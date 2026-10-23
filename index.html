@@ -703,6 +703,8 @@ function makeVoiceGesture(lengthPx,durationSec,deviceScale,targetPullAngle=pullA
  const baseX=voiceGesturePoints[0].x,baseY=voiceGesturePoints[0].y;
  const x1=Math.round(baseX*deviceScale)/deviceScale;
  const y1=Math.round(baseY*deviceScale)/deviceScale;
+  // --- 修正前 ---
+ /*
  let best=null;
  const targetR=lengthPx*deviceScale;
  const minR=Math.max(10,Math.floor(targetR*0.7));
@@ -712,13 +714,39 @@ function makeVoiceGesture(lengthPx,durationSec,deviceScale,targetPullAngle=pullA
   const iy=Math.round(R*Math.sin(target));
   const angle=Math.atan2(iy,ix);
   const diff=Math.abs(Math.atan2(Math.sin(angle-target),Math.cos(angle-target)));
-  const lengthPenalty=Math.abs(R-targetR)/targetR;
-  const score=diff*10000+lengthPenalty*0.1;
-  const testX=x1+ix/deviceScale;
-  const testY=y1+iy/deviceScale;
-  let content=`{${testX.toFixed(5)}, ${testY.toFixed(5)}}`.replace(/(\.\d*?[1-9])0+}/,'$1}').replace(/\.0+}/,'}');
-  if(content.length<=voiceGesturePoints[2].length&&(!best||score<best.score)){
-   best={x:testX,y:testY,content,score};
+  // ...
+ */
+
+ // --- 修正後（ズレを逆算して最適な角度を探す処理） ---
+ let best=null;
+ const targetR=lengthPx*deviceScale;
+ const minR=Math.max(10,Math.floor(targetR*0.7));
+ const maxR=Math.floor(targetR*1.3);
+ 
+ // 設定角度を意図的に -1.0° 〜 +1.0° の範囲で 0.01° 刻みでズラして探索
+ for(let offsetDeg = -1.0; offsetDeg <= 1.0; offsetDeg += 0.01) {
+  const testTarget = target + (offsetDeg * Math.PI / 180);
+  
+  for(let R=minR;R<=maxR;R++){
+   const ix=Math.round(R*Math.cos(testTarget));
+   const iy=Math.round(R*Math.sin(testTarget));
+   
+   // 実際に生成される座標が成す角度
+   const actualAngle=Math.atan2(iy,ix);
+   
+   // 「本来の目標角度(target)」と「実際の角度(actualAngle)」の誤差を評価
+   const diff=Math.abs(Math.atan2(Math.sin(actualAngle-target),Math.cos(actualAngle-target)));
+   const lengthPenalty=Math.abs(R-targetR)/targetR;
+   const score=diff*10000+lengthPenalty*0.1;
+   
+   const testX=x1+ix/deviceScale;
+   const testY=y1+iy/deviceScale;
+   let content=`{${testX.toFixed(5)}, ${testY.toFixed(5)}}`.replace(/(\.\d*?[1-9])0+}/,'$1}').replace(/\.0+}/,'}');
+   
+   // 文字数制限をクリアし、かつこれまでで最も誤差(score)が少ないものを採用
+   if(content.length<=voiceGesturePoints[2].length&&(!best||score<best.score)){
+    best={x:testX,y:testY,content,score};
+   }
   }
  }
  if(!best)throw new Error('指定角度に近い座標を生成できません');
