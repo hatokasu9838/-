@@ -700,27 +700,36 @@ function makeVoiceGesture(lengthPx, durationSec, deviceScale, targetPullAngle=pu
  const bytes = Uint8Array.from(atob(voiceGestureTemplateB64), c => c.charCodeAt(0));
  const target = targetPullAngle - Math.PI;
 
- // 始点をテンプレートの正確な浮動小数点に戻す（勝手な丸めを排除）
  const x1 = voiceGesturePoints[0].x;
  const y1 = voiceGesturePoints[0].y;
  
  let targetDeg = (-targetPullAngle * 180 / Math.PI) % 360;
  if(targetDeg < 0) targetDeg += 360;
 
+ // 画面端ギリギリまで限界まで距離を伸ばし、物理ピクセルの丸め誤差を回避する
+ let maxR = 1000;
+ const dx = Math.cos(target);
+ const dy = Math.sin(target);
+ 
+ // 一般的なiPhoneの画面サイズ内で安全な限界距離を計算
+ if (dx > 0) maxR = Math.min(maxR, (350 - x1) / dx);
+ if (dx < 0) maxR = Math.min(maxR, (20 - x1) / dx);
+ if (dy > 0) maxR = Math.min(maxR, (700 - y1) / dy);
+ if (dy < 0) maxR = Math.min(maxR, (100 - y1) / dy);
+ 
+ // 最低限の長さは担保しつつ、可能な限り長くする（長距離砲にして精度を上げる）
+ const optimalR = Math.max(lengthPx, Math.floor(maxR * 0.95));
+
  let best = null;
  let bestDiff = Infinity;
 
- // 物理ピクセルの縛りを完全撤廃し、純粋な浮動小数点で計算
- // 長さを微調整しながら、文字列化した際に最も誤差が出ない組み合わせを探す
- for(let r = lengthPx * 0.8; r <= lengthPx * 1.3; r += 0.05){
+ for(let r = optimalR * 0.8; r <= optimalR; r += 0.5){
   const testX = x1 + r * Math.cos(target);
   const testY = y1 + r * Math.sin(target);
   
-  // 小数点第5位まで出力（plistの仕様上、これで十分な精度が出る）
   let content = `{${parseFloat(testX.toFixed(5))}, ${parseFloat(testY.toFixed(5))}}`;
   
   if(content.length <= voiceGesturePoints[2].length){
-   // 実際にiOSが読み取る値として再計算し、誤差を確認
    const match = content.match(/\{([0-9.-]+),\s*([0-9.-]+)\}/);
    if(match){
     const px = parseFloat(match[1]);
@@ -738,8 +747,7 @@ function makeVoiceGesture(lengthPx, durationSec, deviceScale, targetPullAngle=pu
      bestDiff = diffDeg;
      best = {x: px, y: py, content, actualDeg};
     }
-    // 誤差が0.001度未満（実質完全に一致）なら探索を即終了
-    if(diffDeg < 0.001) break;
+    if(diffDeg < 0.0001) break;
    }
   }
  }
