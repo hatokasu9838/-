@@ -704,45 +704,58 @@ function makeVoiceGesture(lengthPx, durationSec, deviceScale, targetPullAngle=pu
  const y1=Math.round(baseY*deviceScale)/deviceScale;
  
  let best=null;
- const targetR=lengthPx*deviceScale;
- const minR=Math.max(10,Math.floor(targetR*0.7));
- const maxR=Math.floor(targetR*1.3);
-
- // 目標角度（表示用）
+ const baseR=lengthPx;
+ 
  let targetDeg = (-targetPullAngle * 180 / Math.PI) % 360;
  if(targetDeg < 0) targetDeg += 360;
 
- // 指定半径の範囲内にある全ピクセルを総当たり
- for(let ix = -maxR; ix <= maxR; ix++){
-  for(let iy = -maxR; iy <= maxR; iy++){
-   const R = Math.hypot(ix, iy);
-   if(R < minR || R > maxR) continue;
-
-   const actualRad = Math.atan2(iy, ix);
-   let actualPull = actualRad + Math.PI;
-   let actualDeg = (-actualPull * 180 / Math.PI) % 360;
-   if(actualDeg < 0) actualDeg += 360;
-
-   let diffDeg = Math.abs(actualDeg - targetDeg);
-   if(diffDeg > 180) diffDeg = 360 - diffDeg;
-
-   const testX = x1 + ix / deviceScale;
-   const testY = y1 + iy / deviceScale;
+ // 整数(ピクセル)縛りをやめ、浮動小数点で半径と角度を微小に振って探索
+ for(let r = baseR * 0.7; r <= baseR * 1.3; r += 0.5){
+  // 角度を±0.05度の範囲で0.001度刻みでズラし、文字丸め誤差を吸収できる最適解を探す
+  for(let a_offset = -0.05; a_offset <= 0.05; a_offset += 0.001){
+   const testRad = target + (a_offset * Math.PI / 180);
+   const testX = x1 + r * Math.cos(testRad);
+   const testY = y1 + r * Math.sin(testRad);
+   
+   // 小数点第5位まで出力し、末尾の0は消去
    let content = `{${testX.toFixed(5)}, ${testY.toFixed(5)}}`.replace(/(\.\d*?[1-9])0+}/, '$1}').replace(/\.0+}/, '}');
-
+   
+   // 文字数制限(25文字)をオーバーする場合は、収まるまで小数点桁数を減らす
+   let decimals = 5;
+   while(content.length > voiceGesturePoints[2].length && decimals > 0){
+    decimals--;
+    content = `{${testX.toFixed(decimals)}, ${testY.toFixed(decimals)}}`.replace(/(\.\d*?[1-9])0+}/, '$1}').replace(/\.0+}/, '}');
+   }
+   
    if(content.length <= voiceGesturePoints[2].length){
-    const lengthPenalty = Math.abs(R - targetR) / targetR;
-    // 角度の誤差を最優先（1000倍）し、同じ角度なら長さが近いものを採用
-    const score = diffDeg * 1000 + lengthPenalty;
-    if(!best || score < best.score){
-     best = {x: testX, y: testY, content, score, actualDeg};
+    // 実際に生成される文字列から座標を再パースし、本当の角度を計算する
+    const match = content.match(/\{([0-9.-]+),\s*([0-9.-]+)\}/);
+    if(match){
+     const px = parseFloat(match[1]);
+     const py = parseFloat(match[2]);
+     
+     const actualRad = Math.atan2(py - y1, px - x1);
+     let actualPull = actualRad + Math.PI;
+     let actualDeg = (-actualPull * 180 / Math.PI) % 360;
+     if(actualDeg < 0) actualDeg += 360;
+     
+     let diffDeg = Math.abs(actualDeg - targetDeg);
+     if(diffDeg > 180) diffDeg = 360 - diffDeg;
+     
+     const lengthPenalty = Math.abs(r - baseR) / baseR;
+     // 角度の正確さを最優先（1万倍）してスコア化
+     const score = diffDeg * 10000 + lengthPenalty;
+     
+     if(!best || score < best.score){
+      best = {x: px, y: py, content, score, actualDeg};
+     }
     }
    }
   }
  }
 
  if(!best)throw new Error('指定角度に近い座標を生成できません');
- if(outMeta) outMeta.actualDeg = best.actualDeg; // アラート用に実際の角度を記録
+ if(outMeta) outMeta.actualDeg = best.actualDeg;
 
  const coords=[{x:x1,y:y1},{x:x1,y:y1},{x:best.x,y:best.y}];
  voiceGesturePoints.forEach((p,i)=>{
