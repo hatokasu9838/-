@@ -1,4 +1,4 @@
-<!doctype html>
+上<!doctype html>
 <html lang="ja">
 <head>
 <meta charset="utf-8">
@@ -698,38 +698,39 @@ function voiceDataToBase64(bytes){let bin='';for(let i=0;i<bytes.length;i+=0x800
 // 1. ジェスチャ生成関数（任意の角度に対応できるよう拡張）
 function makeVoiceGesture(lengthPx, durationSec, deviceScale, targetPullAngle=pullAngle, outMeta=null){
  const bytes = Uint8Array.from(atob(voiceGestureTemplateB64), c => c.charCodeAt(0));
- const target = targetPullAngle - Math.PI;
-
+ 
+ // テンプレートの始点
  const x1 = voiceGesturePoints[0].x;
  const y1 = voiceGesturePoints[0].y;
  
+ // 目標の角度（0〜360度）
  let targetDeg = (-targetPullAngle * 180 / Math.PI) % 360;
  if(targetDeg < 0) targetDeg += 360;
-
- // 画面端ギリギリまで限界まで距離を伸ばし、物理ピクセルの丸め誤差を回避する
- let maxR = 1000;
- const dx = Math.cos(target);
- const dy = Math.sin(target);
  
- // 一般的なiPhoneの画面サイズ内で安全な限界距離を計算
- if (dx > 0) maxR = Math.min(maxR, (350 - x1) / dx);
- if (dx < 0) maxR = Math.min(maxR, (20 - x1) / dx);
- if (dy > 0) maxR = Math.min(maxR, (700 - y1) / dy);
- if (dy < 0) maxR = Math.min(maxR, (100 - y1) / dy);
+ const R = lengthPx * deviceScale;
  
- // 最低限の長さは担保しつつ、可能な限り長くする（長距離砲にして精度を上げる）
- const optimalR = Math.max(lengthPx, Math.floor(maxR * 0.95));
-
  let best = null;
  let bestDiff = Infinity;
 
- for(let r = optimalR * 0.8; r <= optimalR; r += 0.5){
-  const testX = x1 + r * Math.cos(target);
-  const testY = y1 + r * Math.sin(target);
+ // 提案通り、設定角度をズラしながら「結果的にピッタリ合う」ものを探す
+ // -2.00度 〜 +2.00度の範囲を 0.001度 刻みで総当たり
+ for(let offset = -2.0; offset <= 2.0; offset += 0.001){
+  const testDeg = targetDeg + offset;
+  const testRad = -testDeg * Math.PI / 180 - Math.PI;
   
-  let content = `{${parseFloat(testX.toFixed(5))}, ${parseFloat(testY.toFixed(5))}}`;
+  const testX = x1 + R * Math.cos(testRad);
+  const testY = y1 + R * Math.sin(testRad);
+  
+  // 文字数制限(25文字)に収まる最大の小数点桁数で文字列化
+  let content = `{${testX.toFixed(5)}, ${testY.toFixed(5)}}`.replace(/(\.\d*?[1-9])0+}/, '$1}').replace(/\.0+}/, '}');
+  let decimals = 5;
+  while(content.length > voiceGesturePoints[2].length && decimals > 0){
+   decimals--;
+   content = `{${testX.toFixed(decimals)}, ${testY.toFixed(decimals)}}`.replace(/(\.\d*?[1-9])0+}/, '$1}').replace(/\.0+}/, '}');
+  }
   
   if(content.length <= voiceGesturePoints[2].length){
+   // 文字列化された座標を再度読み込み、iOSが実際に認識する角度を逆算
    const match = content.match(/\{([0-9.-]+),\s*([0-9.-]+)\}/);
    if(match){
     const px = parseFloat(match[1]);
@@ -740,28 +741,34 @@ function makeVoiceGesture(lengthPx, durationSec, deviceScale, targetPullAngle=pu
     let actualDeg = (-actualPull * 180 / Math.PI) % 360;
     if(actualDeg < 0) actualDeg += 360;
     
-    let diffDeg = Math.abs(actualDeg - targetDeg);
-    if(diffDeg > 180) diffDeg = 360 - diffDeg;
+    // 目標角度との誤差をチェック
+    let diff = Math.abs(actualDeg - targetDeg);
+    if(diff > 180) diff = 360 - diff;
     
-    if(diffDeg < bestDiff){
-     bestDiff = diffDeg;
-     best = {x: px, y: py, content, actualDeg};
+    if(diff < bestDiff){
+     bestDiff = diff;
+     best = {x: px, y: py, content: content, actualDeg: actualDeg};
     }
-    if(diffDeg < 0.0001) break;
+    
+    // 誤差が0.001未満（完全に一致）なら探索完了
+    if(diff < 0.001){
+     break;
+    }
    }
   }
  }
 
  if(!best) throw new Error('指定角度に近い座標を生成できません');
- if(outMeta) outMeta.actualDeg = best.actualDeg;
+ if(outMeta) outMeta.actualDeg = best.actualDeg; // アラート用に記録
 
+ // バイナリへ書き込み
  const coords = [{x: x1, y: y1}, {x: x1, y: y1}, {x: best.x, y: best.y}];
  voiceGesturePoints.forEach((p, i) => {
   const q = coords[i];
   let content = i === 2 ? best.content : '';
   if(i !== 2){
    for(let digits = 6; digits >= 0; digits--){
-    const candidate = `{${parseFloat(q.x.toFixed(digits))}, ${parseFloat(q.y.toFixed(digits))}}`;
+    const candidate = `{${q.x.toFixed(digits)}, ${q.y.toFixed(digits)}}`;
     if(candidate.length <= p.length){ content = candidate; break; }
    }
   }
