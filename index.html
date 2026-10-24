@@ -697,84 +697,76 @@ function voiceXmlEscape(v){return String(v).replace(/&/g,'&amp;').replace(/</g,'
 function voiceDataToBase64(bytes){let bin='';for(let i=0;i<bytes.length;i+=0x8000)bin+=String.fromCharCode(...bytes.subarray(i,Math.min(i+0x8000,bytes.length)));return btoa(bin)}
 // 1. ジェスチャ生成関数（任意の角度に対応できるよう拡張）
 function makeVoiceGesture(lengthPx, durationSec, deviceScale, targetPullAngle=pullAngle, outMeta=null){
- const bytes=Uint8Array.from(atob(voiceGestureTemplateB64),c=>c.charCodeAt(0));
- const target=targetPullAngle-Math.PI;
- const baseX=voiceGesturePoints[0].x,baseY=voiceGesturePoints[0].y;
- const x1=Math.round(baseX*deviceScale)/deviceScale;
- const y1=Math.round(baseY*deviceScale)/deviceScale;
- 
- let best=null;
- const baseR=lengthPx;
+ const bytes = Uint8Array.from(atob(voiceGestureTemplateB64), c => c.charCodeAt(0));
+ const target = targetPullAngle - Math.PI;
+
+ // 始点をテンプレートの正確な浮動小数点に戻す（勝手な丸めを排除）
+ const x1 = voiceGesturePoints[0].x;
+ const y1 = voiceGesturePoints[0].y;
  
  let targetDeg = (-targetPullAngle * 180 / Math.PI) % 360;
  if(targetDeg < 0) targetDeg += 360;
 
- // 整数(ピクセル)縛りをやめ、浮動小数点で半径と角度を微小に振って探索
- for(let r = baseR * 0.7; r <= baseR * 1.3; r += 0.5){
-  // 角度を±0.05度の範囲で0.001度刻みでズラし、文字丸め誤差を吸収できる最適解を探す
-  for(let a_offset = -0.05; a_offset <= 0.05; a_offset += 0.001){
-   const testRad = target + (a_offset * Math.PI / 180);
-   const testX = x1 + r * Math.cos(testRad);
-   const testY = y1 + r * Math.sin(testRad);
-   
-   // 小数点第5位まで出力し、末尾の0は消去
-   let content = `{${testX.toFixed(5)}, ${testY.toFixed(5)}}`.replace(/(\.\d*?[1-9])0+}/, '$1}').replace(/\.0+}/, '}');
-   
-   // 文字数制限(25文字)をオーバーする場合は、収まるまで小数点桁数を減らす
-   let decimals = 5;
-   while(content.length > voiceGesturePoints[2].length && decimals > 0){
-    decimals--;
-    content = `{${testX.toFixed(decimals)}, ${testY.toFixed(decimals)}}`.replace(/(\.\d*?[1-9])0+}/, '$1}').replace(/\.0+}/, '}');
-   }
-   
-   if(content.length <= voiceGesturePoints[2].length){
-    // 実際に生成される文字列から座標を再パースし、本当の角度を計算する
-    const match = content.match(/\{([0-9.-]+),\s*([0-9.-]+)\}/);
-    if(match){
-     const px = parseFloat(match[1]);
-     const py = parseFloat(match[2]);
-     
-     const actualRad = Math.atan2(py - y1, px - x1);
-     let actualPull = actualRad + Math.PI;
-     let actualDeg = (-actualPull * 180 / Math.PI) % 360;
-     if(actualDeg < 0) actualDeg += 360;
-     
-     let diffDeg = Math.abs(actualDeg - targetDeg);
-     if(diffDeg > 180) diffDeg = 360 - diffDeg;
-     
-     const lengthPenalty = Math.abs(r - baseR) / baseR;
-     // 角度の正確さを最優先（1万倍）してスコア化
-     const score = diffDeg * 10000 + lengthPenalty;
-     
-     if(!best || score < best.score){
-      best = {x: px, y: py, content, score, actualDeg};
-     }
+ let best = null;
+ let bestDiff = Infinity;
+
+ // 物理ピクセルの縛りを完全撤廃し、純粋な浮動小数点で計算
+ // 長さを微調整しながら、文字列化した際に最も誤差が出ない組み合わせを探す
+ for(let r = lengthPx * 0.8; r <= lengthPx * 1.3; r += 0.05){
+  const testX = x1 + r * Math.cos(target);
+  const testY = y1 + r * Math.sin(target);
+  
+  // 小数点第5位まで出力（plistの仕様上、これで十分な精度が出る）
+  let content = `{${parseFloat(testX.toFixed(5))}, ${parseFloat(testY.toFixed(5))}}`;
+  
+  if(content.length <= voiceGesturePoints[2].length){
+   // 実際にiOSが読み取る値として再計算し、誤差を確認
+   const match = content.match(/\{([0-9.-]+),\s*([0-9.-]+)\}/);
+   if(match){
+    const px = parseFloat(match[1]);
+    const py = parseFloat(match[2]);
+    
+    const actualRad = Math.atan2(py - y1, px - x1);
+    let actualPull = actualRad + Math.PI;
+    let actualDeg = (-actualPull * 180 / Math.PI) % 360;
+    if(actualDeg < 0) actualDeg += 360;
+    
+    let diffDeg = Math.abs(actualDeg - targetDeg);
+    if(diffDeg > 180) diffDeg = 360 - diffDeg;
+    
+    if(diffDeg < bestDiff){
+     bestDiff = diffDeg;
+     best = {x: px, y: py, content, actualDeg};
     }
+    // 誤差が0.001度未満（実質完全に一致）なら探索を即終了
+    if(diffDeg < 0.001) break;
    }
   }
  }
 
- if(!best)throw new Error('指定角度に近い座標を生成できません');
+ if(!best) throw new Error('指定角度に近い座標を生成できません');
  if(outMeta) outMeta.actualDeg = best.actualDeg;
 
- const coords=[{x:x1,y:y1},{x:x1,y:y1},{x:best.x,y:best.y}];
- voiceGesturePoints.forEach((p,i)=>{
-  const q=coords[i];
-  let content=i===2?best.content:'';
-  if(i!==2){
-   for(let digits=6;digits>=0;digits--){
-    const candidate=`{${q.x.toFixed(digits)}, ${q.y.toFixed(digits)}}`;
-    if(candidate.length<=p.length){content=candidate;break;}
+ const coords = [{x: x1, y: y1}, {x: x1, y: y1}, {x: best.x, y: best.y}];
+ voiceGesturePoints.forEach((p, i) => {
+  const q = coords[i];
+  let content = i === 2 ? best.content : '';
+  if(i !== 2){
+   for(let digits = 6; digits >= 0; digits--){
+    const candidate = `{${parseFloat(q.x.toFixed(digits))}, ${parseFloat(q.y.toFixed(digits))}}`;
+    if(candidate.length <= p.length){ content = candidate; break; }
    }
   }
-  if(!content)throw new Error('座標を元データの領域内に格納できません');
-  const padded=content.slice(0,-1)+' '.repeat(p.length-content.length)+'}';
-  bytes.set(new TextEncoder().encode(padded),p.offset);
+  if(!content) throw new Error('座標を元データの領域内に格納できません');
+  const padded = content.slice(0, -1) + ' '.repeat(p.length - content.length) + '}';
+  bytes.set(new TextEncoder().encode(padded), p.offset);
  });
- const t0=voiceGestureTimes[0].value,tLast=voiceGestureTimes[voiceGestureTimes.length-1].value;
- const factor=durationSec/Math.max(.001,tLast-t0);
- const view=new DataView(bytes.buffer);
- voiceGestureTimes.forEach(t=>view.setFloat64(t.offset,t0+(t.value-t0)*factor,false));
+ 
+ const t0 = voiceGestureTimes[0].value, tLast = voiceGestureTimes[voiceGestureTimes.length-1].value;
+ const factor = durationSec / Math.max(.001, tLast - t0);
+ const view = new DataView(bytes.buffer);
+ voiceGestureTimes.forEach(t => view.setFloat64(t.offset, t0 + (t.value - t0) * factor, false));
+ 
  return voiceDataToBase64(bytes);
 }
 document.getElementById('voiceGenerate').addEventListener('click',()=>{
