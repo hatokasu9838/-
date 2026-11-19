@@ -87,6 +87,10 @@ input{ -webkit-touch-callout:none; }
 #voiceGenerate{background:#315a42;border-color:#4c8764}
 #voiceConvertBtn,#existingVoicePickBtn{width:100%}
 .existingCommandRow{border:1px solid #3d4658;border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.nativeFilePicker{position:fixed;left:-10000px;top:0;width:1px;height:1px;opacity:0;pointer-events:none}
+#voiceConvertBtn,#existingVoicePickBtn,.existingCommandRow button{width:100%;min-height:48px;height:48px;padding:0 12px;border:1px solid #3d4658;border-radius:13px;background:#242b38;color:#fff;font-size:16px;font-weight:700}
+#existingVoiceCommands{gap:8px!important}
+.existingCommandRow{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid #3d4658;border-radius:12px;background:#1a1f29}
 .existingCommandRow input{width:100%;height:44px;border:1px solid #485367;border-radius:9px;background:#0e1219;color:#fff;padding:0 10px;font-size:16px}
 .existingCommandRow button{width:100%}
 
@@ -137,11 +141,11 @@ input{ -webkit-touch-callout:none; }
     <h3 style="font-size: 15px; margin: 0 0 6px; color: #fff;">既存ファイルを一括変換</h3>
     <p class="voiceHint" style="margin: 0 0 10px;">お手持ちの voicecontrolcommands ファイル内の全コマンドを上記で選択した時間（速射/ゲージ等）に一括変換します。</p>
     <button id="voiceConvertBtn" type="button">既存ファイルを選択して変換・保存</button>
-    <input id="voiceConvertFile" type="file" accept=".voicecontrolcommands" style="display: none;">
+    <input id="voiceConvertFile" class="nativeFilePicker" type="file" accept=".voicecontrolcommands">
     <div id="existingVoiceChange" style="margin-top: 10px;">
       <strong style="display:block;font-size:14px;margin-bottom:6px;color:#fff;">既存ファイルの音声コマンドを変更</strong>
       <button id="existingVoicePickBtn" type="button">既存ファイルを選択</button>
-      <input id="existingVoiceFile" type="file" accept=".voicecontrolcommands,.plist,application/xml,text/xml" style="display:none;">
+      <input id="existingVoiceFile" class="nativeFilePicker" type="file" accept=".voicecontrolcommands,.plist,application/xml,text/xml">
       <div id="existingVoiceCommands" style="display:flex;flex-direction:column;gap:8px;margin-top:8px;"></div>
     </div>
   </div>
@@ -806,18 +810,6 @@ function plistKeyValue(dict,key){
  const keys=[...dict.children].filter(n=>n.tagName==='key');
  const k=keys.find(n=>n.textContent===key);return k?.nextElementSibling||null;
 }
-function getExistingAngle(dataText){
- try{
-  const bytes=Uint8Array.from(atob(dataText.trim()),c=>c.charCodeAt(0));
-  const p=voiceGesturePoints[2];
-  const text=new TextDecoder().decode(bytes.slice(p.offset,p.offset+p.length)).trim().replace(/\s+/g,' ');
-  const m=text.match(/\{\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\}/);
-  if(!m)return null;
-  const dx=Number(m[1])-voiceGesturePoints[0].x,dy=Number(m[2])-voiceGesturePoints[0].y;
-  let deg=(-Math.atan2(dy,dx)*180/Math.PI+180)%360;if(deg<0)deg+=360;
-  return deg;
- }catch(_){return null;}
-}
 function downloadExistingVoiceXml(doc,name){
  const blob=new Blob([new XMLSerializer().serializeToString(doc)],{type:'application/octet-stream'});
  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;
@@ -841,7 +833,7 @@ if(existingVoicePickBtn&&existingVoiceInput){
     const namesDict=plistKeyValue(entry.dict,'CustomCommands');let commandName='(名前不明)';
     if(namesDict){const ja=plistKeyValue(namesDict,'ja_JP');if(ja?.tagName==='array')commandName=[...ja.querySelectorAll('string')].map(x=>x.textContent).join(', ')||commandName;}
     const row=document.createElement('div');row.className='existingCommandRow';
-    const label=document.createElement('div');label.textContent=`${i+1}. コマンド名`;label.style.fontWeight='600';row.appendChild(label);
+    const label=document.createElement('div');label.textContent=`${i+1}. コマンド名`;label.style.fontWeight='700';label.style.fontSize='14px';row.appendChild(label);
     const input=document.createElement('input');input.type='text';input.maxLength=80;input.value=commandName;input.setAttribute('aria-label','変更するコマンド名');
     const btn=document.createElement('button');btn.type='button';btn.textContent='名前を変更して保存';
     btn.addEventListener('click',()=>{
