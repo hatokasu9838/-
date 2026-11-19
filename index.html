@@ -85,6 +85,11 @@ input{ -webkit-touch-callout:none; }
 #voiceModal .voiceActions{display:flex;gap:8px;margin-top:16px}
 #voiceModal .voiceActions button{flex:1;height:46px;font-size:15px}
 #voiceGenerate{background:#315a42;border-color:#4c8764}
+#voiceConvertBtn,#existingVoicePickBtn{width:100%}
+.existingCommandRow{border:1px solid #3d4658;border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.existingCommandRow input{width:100%;height:44px;border:1px solid #485367;border-radius:9px;background:#0e1219;color:#fff;padding:0 10px;font-size:16px}
+.existingCommandRow button{width:100%}
+
 .voiceInputRow{display:flex;align-items:stretch;gap:6px}.voiceInputRow input{flex:1;min-width:0}.voiceClear{width:44px;min-width:44px;padding:0;margin:0;border-radius:8px;background:#e8edf5;color:#1769d2;border:1px solid #c8d8ed;font-size:22px;font-weight:700;line-height:1}.voiceClear:active{background:#d4e3f7}.voiceInputRow input:focus{outline:2px solid #1684ff;outline-offset:1px}
 #voiceBtn{grid-column:1/-1;grid-row:3}
 
@@ -127,17 +132,18 @@ input{ -webkit-touch-callout:none; }
   <div class="voiceField"><label for="voiceCommandName">読み上げ語句（何も入力しない場合は1になります）</label><input id="voiceCommandName" type="text" maxlength="80" value="" placeholder="タップして入力"></div>
   <div class="voiceField"><label for="voiceFileName">ファイル名</label><input id="voiceFileName" type="text" maxlength="100" value="" placeholder="タップして入力" autocomplete="off"></div>
    <div class="voiceActions"><button id="voiceCancel" type="button">キャンセル</button><button id="voiceGenerate" type="button">保存</button></div>
-  <section id="existingVoiceChange" style="grid-column:1/-1;border:1px solid #777;border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px">
-    <strong>既存ファイルの音声コマンドを変更</strong>
-    <input id="existingVoiceFile" type="file" accept="*/*">
-    <div id="existingVoiceCommands" style="display:flex;flex-direction:column;gap:8px"></div>
-  </section>
   <!-- 既存ファイル一括変換エリア -->
   <div style="border-top: 1px solid #3d4658; margin-top: 16px; padding-top: 14px;">
     <h3 style="font-size: 15px; margin: 0 0 6px; color: #fff;">既存ファイルを一括変換</h3>
     <p class="voiceHint" style="margin: 0 0 10px;">お手持ちの voicecontrolcommands ファイル内の全コマンドを上記で選択した時間（速射/ゲージ等）に一括変換します。</p>
-    <button id="voiceConvertBtn" type="button" style="width: 100%; height: 44px; font-size: 14px; background: #2c3c54; border-color: #4a6285;">既存ファイルを選択して変換・保存</button>
-    <input id="voiceConvertFile" type="file" accept="*/*" style="display: none;">
+    <button id="voiceConvertBtn" type="button">既存ファイルを選択して変換・保存</button>
+    <input id="voiceConvertFile" type="file" accept=".voicecontrolcommands" style="display: none;">
+    <div id="existingVoiceChange" style="margin-top: 10px;">
+      <strong style="display:block;font-size:14px;margin-bottom:6px;color:#fff;">既存ファイルの音声コマンドを変更</strong>
+      <button id="existingVoicePickBtn" type="button">既存ファイルを選択</button>
+      <input id="existingVoiceFile" type="file" accept=".voicecontrolcommands,.plist,application/xml,text/xml" style="display:none;">
+      <div id="existingVoiceCommands" style="display:flex;flex-direction:column;gap:8px;margin-top:8px;"></div>
+    </div>
   </div>
 
 
@@ -747,73 +753,6 @@ function makeVoiceGesture(lengthPx,durationSec,deviceScale,targetPullAngle=pullA
  voiceGestureTimes.forEach(t=>view.setFloat64(t.offset,t0+(t.value-t0)*factor,false));
  return voiceDataToBase64(bytes);
 }
-// 既存Voice Controlファイルを読み込み、各コマンド名と元角度を表示して個別に変更・保存する。
-const existingVoiceInput=document.getElementById('existingVoiceFile');
-const existingVoiceList=document.getElementById('existingVoiceCommands');
-let existingVoiceXmlDocument=null, existingVoiceFileName='';
-function plistKeyValue(dict,key){
- const keys=[...dict.children].filter(n=>n.tagName==='key');
- const k=keys.find(n=>n.textContent===key);return k?.nextElementSibling||null;
-}
-function getExistingAngle(dataText){
- try{
-  const bytes=Uint8Array.from(atob(dataText.trim()),c=>c.charCodeAt(0));
-  const p=voiceGesturePoints[2];
-  const text=new TextDecoder().decode(bytes.slice(p.offset,p.offset+p.length)).trim().replace(/\s+/g,' ');
-  const m=text.match(/\{\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\}/);
-  if(!m)return null;
-  const dx=Number(m[1])-voiceGesturePoints[0].x,dy=Number(m[2])-voiceGesturePoints[0].y;
-  let deg=(-Math.atan2(dy,dx)*180/Math.PI+180)%360;if(deg<0)deg+=360;
-  return deg;
- }catch(_){return null;}
-}
-function downloadExistingVoiceXml(doc,name){
- const blob=new Blob([new XMLSerializer().serializeToString(doc)],{type:'application/octet-stream'});
- const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;
- a.download=name.toLowerCase().endsWith('.voicecontrolcommands')?name:name+'.voicecontrolcommands';
- document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
-}
-existingVoiceInput.addEventListener('change',async()=>{
- existingVoiceList.innerHTML='';existingVoiceXmlDocument=null;
- const file=existingVoiceInput.files?.[0];if(!file)return;
- try{
-  const text=await file.text();const doc=new DOMParser().parseFromString(text,'application/xml');
-  if(doc.querySelector('parsererror'))throw new Error('XML形式のファイルを読み込めませんでした。');
-  const table=plistKeyValue(doc.querySelector('plist dict'),'CommandsTable');
-  if(!table||table.tagName!=='dict')throw new Error('CommandsTableが見つかりません。');
-  existingVoiceXmlDocument=doc;existingVoiceFileName=file.name;
-  const entries=[...table.children].filter(n=>n.tagName==='key').map(k=>({id:k.textContent,dict:k.nextElementSibling}));
-  if(!entries.length)throw new Error('コマンドが見つかりません。');
-  entries.forEach((entry,i)=>{
-   const namesDict=plistKeyValue(entry.dict,'CustomCommands');
-   let commandName='(名前不明)';
-   if(namesDict){const ja=plistKeyValue(namesDict,'ja_JP');if(ja?.tagName==='array')commandName=[...ja.querySelectorAll('string')].map(x=>x.textContent).join(', ')||commandName;}
-   const gesture=plistKeyValue(entry.dict,'CustomGesture');
-   const angle=gesture?.tagName==='data'?getExistingAngle(gesture.textContent):null;
-   const row=document.createElement('div');row.style.cssText='border:1px solid #999;border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px';
-   const label=document.createElement('div');label.textContent=`${i+1}. ${commandName}｜元角度：${angle===null?'取得できません':angle.toFixed(2)+'°'}`;label.style.fontWeight='600';row.appendChild(label);
-   if(angle===null){const note=document.createElement('small');note.textContent='このコマンドの角度を読み取れないため、変更保存できません。';row.appendChild(note);}
-   else{
-    const controls=document.createElement('div');controls.style.cssText='display:flex;gap:6px;align-items:center;flex-wrap:wrap';
-    const input=document.createElement('input');input.type='number';input.min='0';input.max='359.99';input.step='0.01';input.value=angle.toFixed(2);input.style.width='110px';input.setAttribute('aria-label','変更後角度');
-    const btn=document.createElement('button');btn.type='button';btn.textContent='このコマンドを変更して保存';
-    btn.addEventListener('click',()=>{
-     try{
-      const newDeg=Number(input.value);if(!Number.isFinite(newDeg)||newDeg<0||newDeg>=360)throw new Error('角度は0以上360未満で入力してください。');
-      const profile=getVoiceDeviceProfile();const targetAngle=(-newDeg*Math.PI/180);
-      const gestureData=makeVoiceGesture(profile.lengthPx,.01,profile.deviceScale,targetAngle);
-      const target=plistKeyValue(entry.dict,'CustomGesture');if(!target||target.tagName!=='data')throw new Error('CustomGestureが見つかりません。');
-      target.textContent=gestureData;downloadExistingVoiceXml(doc,file.name);
-     }catch(err){alert(err.message||'変更に失敗しました。');}
-    });
-    controls.append(input,btn);row.appendChild(controls);
-   }
-   existingVoiceList.appendChild(row);
-  });
- }catch(err){existingVoiceList.textContent=err.message||'ファイルの読み込みに失敗しました。';}
-});
-
-
 document.getElementById('voiceGenerate').addEventListener('click',()=>{
  try{
   const deviceProfile=getVoiceDeviceProfile();
@@ -858,6 +797,69 @@ function convertGestureDuration(b64, durationSec, lengthPx, deviceScale){
     throw e;
   }
 }
+// 既存Voice Controlファイルを読み込み、各コマンド名と元角度を表示して個別に変更・保存する。
+const existingVoiceInput=document.getElementById('existingVoiceFile');
+const existingVoiceList=document.getElementById('existingVoiceCommands');
+const existingVoicePickBtn=document.getElementById('existingVoicePickBtn');
+let existingVoiceXmlDocument=null, existingVoiceFileName='';
+function plistKeyValue(dict,key){
+ const keys=[...dict.children].filter(n=>n.tagName==='key');
+ const k=keys.find(n=>n.textContent===key);return k?.nextElementSibling||null;
+}
+function getExistingAngle(dataText){
+ try{
+  const bytes=Uint8Array.from(atob(dataText.trim()),c=>c.charCodeAt(0));
+  const p=voiceGesturePoints[2];
+  const text=new TextDecoder().decode(bytes.slice(p.offset,p.offset+p.length)).trim().replace(/\s+/g,' ');
+  const m=text.match(/\{\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*\}/);
+  if(!m)return null;
+  const dx=Number(m[1])-voiceGesturePoints[0].x,dy=Number(m[2])-voiceGesturePoints[0].y;
+  let deg=(-Math.atan2(dy,dx)*180/Math.PI+180)%360;if(deg<0)deg+=360;
+  return deg;
+ }catch(_){return null;}
+}
+function downloadExistingVoiceXml(doc,name){
+ const blob=new Blob([new XMLSerializer().serializeToString(doc)],{type:'application/octet-stream'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;
+ a.download=name.toLowerCase().endsWith('.voicecontrolcommands')?name:name+'.voicecontrolcommands';
+ document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+if(existingVoicePickBtn&&existingVoiceInput){
+ existingVoicePickBtn.addEventListener('click',()=>{existingVoiceInput.value='';existingVoiceInput.click();});
+ existingVoiceInput.addEventListener('change',async()=>{
+  existingVoiceList.innerHTML='';existingVoiceXmlDocument=null;
+  const file=existingVoiceInput.files?.[0];if(!file)return;
+  try{
+   const text=await file.text();const doc=new DOMParser().parseFromString(text,'application/xml');
+   if(doc.querySelector('parsererror'))throw new Error('XML形式のファイルを読み込めませんでした。');
+   const table=plistKeyValue(doc.querySelector('plist dict'),'CommandsTable');
+   if(!table||table.tagName!=='dict')throw new Error('CommandsTableが見つかりません。');
+   existingVoiceXmlDocument=doc;existingVoiceFileName=file.name;
+   const entries=[...table.children].filter(n=>n.tagName==='key').map(k=>({id:k.textContent,dict:k.nextElementSibling}));
+   if(!entries.length)throw new Error('コマンドが見つかりません。');
+   entries.forEach((entry,i)=>{
+    const namesDict=plistKeyValue(entry.dict,'CustomCommands');let commandName='(名前不明)';
+    if(namesDict){const ja=plistKeyValue(namesDict,'ja_JP');if(ja?.tagName==='array')commandName=[...ja.querySelectorAll('string')].map(x=>x.textContent).join(', ')||commandName;}
+    const row=document.createElement('div');row.className='existingCommandRow';
+    const label=document.createElement('div');label.textContent=`${i+1}. コマンド名`;label.style.fontWeight='600';row.appendChild(label);
+    const input=document.createElement('input');input.type='text';input.maxLength=80;input.value=commandName;input.setAttribute('aria-label','変更するコマンド名');
+    const btn=document.createElement('button');btn.type='button';btn.textContent='名前を変更して保存';
+    btn.addEventListener('click',()=>{
+     try{
+      const newName=input.value.trim();if(!newName)throw new Error('コマンド名を入力してください。');
+      const customCommands=plistKeyValue(entry.dict,'CustomCommands');if(!customCommands||customCommands.tagName!=='dict')throw new Error('CustomCommandsが見つかりません。');
+      const ja=plistKeyValue(customCommands,'ja_JP');if(!ja||ja.tagName!=='array')throw new Error('日本語コマンド名が見つかりません。');
+      const strings=[...ja.querySelectorAll('string')];if(!strings.length)throw new Error('コマンド名が見つかりません。');
+      strings[0].textContent=newName;while(strings.length>1){strings.pop().remove();}
+      downloadExistingVoiceXml(doc,file.name);
+     }catch(err){alert(err.message||'名前の変更に失敗しました。');}
+    });row.append(input,btn);
+    existingVoiceList.appendChild(row);
+   });
+  }catch(err){existingVoiceList.textContent=err.message||'ファイルの読み込みに失敗しました。';}
+ });
+}
+
 // 3. ファイル選択イベント処理
 const voiceConvertBtn = document.getElementById('voiceConvertBtn');
 const voiceConvertFile = document.getElementById('voiceConvertFile');
