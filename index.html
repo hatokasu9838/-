@@ -87,7 +87,8 @@ input{ -webkit-touch-callout:none; }
 #voiceGenerate{background:#315a42;border-color:#4c8764}
 #voiceConvertBtn,#existingVoicePickBtn{width:100%}
 .existingCommandRow{border:1px solid #3d4658;border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px}
-.nativeFilePicker{position:fixed;left:-10000px;top:0;width:1px;height:1px;opacity:0;pointer-events:none}
+.nativeFilePicker{position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:auto;cursor:pointer}
+.filePickerOverlay{position:relative;width:100%;min-height:48px}
 #voiceConvertBtn,#existingVoicePickBtn,.existingCommandRow button{width:100%;min-height:48px;height:48px;padding:0 12px;border:1px solid #3d4658;border-radius:13px;background:#242b38;color:#fff;font-size:16px;font-weight:700}
 #existingVoiceCommands{gap:8px!important}
 .existingCommandRow{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid #3d4658;border-radius:12px;background:#1a1f29}
@@ -140,12 +141,16 @@ input{ -webkit-touch-callout:none; }
   <div style="border-top: 1px solid #3d4658; margin-top: 16px; padding-top: 14px;">
     <h3 style="font-size: 15px; margin: 0 0 6px; color: #fff;">既存ファイルを一括変換</h3>
     <p class="voiceHint" style="margin: 0 0 10px;">お手持ちの voicecontrolcommands ファイル内の全コマンドを上記で選択した時間（速射/ゲージ等）に一括変換します。</p>
-    <button id="voiceConvertBtn" type="button">既存ファイルを選択して変換・保存</button>
-    <input id="voiceConvertFile" class="nativeFilePicker" type="file" accept=".voicecontrolcommands">
+    <div class="filePickerOverlay">
+      <button id="voiceConvertBtn" type="button">既存ファイルを選択して変換・保存</button>
+      <input id="voiceConvertFile" class="nativeFilePicker" type="file" accept=".voicecontrolcommands">
+    </div>
     <div id="existingVoiceChange" style="margin-top: 10px;">
       <strong style="display:block;font-size:14px;margin-bottom:6px;color:#fff;">既存ファイルの音声コマンドを変更</strong>
-      <button id="existingVoicePickBtn" type="button">既存ファイルを選択</button>
-      <input id="existingVoiceFile" class="nativeFilePicker" type="file" accept=".voicecontrolcommands,.plist,application/xml,text/xml">
+      <div class="filePickerOverlay">
+        <button id="existingVoicePickBtn" type="button">既存ファイルを選択</button>
+        <input id="existingVoiceFile" class="nativeFilePicker" type="file" accept=".voicecontrolcommands,.plist,application/xml,text/xml">
+      </div>
       <div id="existingVoiceCommands" style="display:flex;flex-direction:column;gap:8px;margin-top:8px;"></div>
     </div>
   </div>
@@ -817,7 +822,7 @@ function downloadExistingVoiceXml(doc,name){
  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
 }
 if(existingVoicePickBtn&&existingVoiceInput){
- existingVoicePickBtn.addEventListener('click',()=>{existingVoiceInput.value='';existingVoiceInput.click();});
+ existingVoiceInput.addEventListener('click',()=>{existingVoiceInput.value='';});
  existingVoiceInput.addEventListener('change',async()=>{
   existingVoiceList.innerHTML='';existingVoiceXmlDocument=null;
   const file=existingVoiceInput.files?.[0];if(!file)return;
@@ -857,9 +862,8 @@ const voiceConvertBtn = document.getElementById('voiceConvertBtn');
 const voiceConvertFile = document.getElementById('voiceConvertFile');
 
 if(voiceConvertBtn && voiceConvertFile){
-  voiceConvertBtn.addEventListener('click', ()=>{
+  voiceConvertFile.addEventListener('click', ()=>{
     voiceConvertFile.value = '';
-    voiceConvertFile.click();
   });
 
   voiceConvertFile.addEventListener('change', e => {
