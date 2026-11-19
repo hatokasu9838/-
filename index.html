@@ -149,7 +149,7 @@ input{ -webkit-touch-callout:none; }
       <strong style="display:block;font-size:14px;margin-bottom:6px;color:#fff;">既存ファイルの音声コマンドを変更</strong>
       <div class="filePickerOverlay">
         <button id="existingVoicePickBtn" type="button">既存ファイルを選択</button>
-        <input id="existingVoiceFile" class="nativeFilePicker" type="file" accept=".voicecontrolcommands,.plist,application/xml,text/xml">
+        <input id="existingVoiceFile" class="nativeFilePicker" type="file" accept=".voicecontrolcommands">
       </div>
       <div id="existingVoiceCommands" style="display:flex;flex-direction:column;gap:8px;margin-top:8px;"></div>
     </div>
@@ -823,6 +823,7 @@ function downloadExistingVoiceXml(doc,name){
 }
 if(existingVoicePickBtn&&existingVoiceInput){
  existingVoiceInput.addEventListener('click',()=>{existingVoiceInput.value='';});
+ existingVoicePickBtn.addEventListener('click',()=>{existingVoiceInput.click();});
  existingVoiceInput.addEventListener('change',async()=>{
   existingVoiceList.innerHTML='';existingVoiceXmlDocument=null;
   const file=existingVoiceInput.files?.[0];if(!file)return;
