@@ -3,182 +3,698 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>アクセ生成サイト</title>
+<title>モンスト ガイド＆音声コマンド生成</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Reggae+One&display=swap');
-:root{--safe-area-bottom:env(safe-area-inset-bottom,0px)}
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700;800&display=swap');
+:root{
+  --safe-area-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#0b0e14;
+  --surface:rgba(18,23,34,.92);
+  --card:#151b27;
+  --card-2:#1c2434;
+  --input:#0d121b;
+  --border:rgba(255,255,255,.12);
+  --border-strong:#354259;
+  --text:#f8fafc;
+  --text-muted:#94a3b8;
+  --accent:#3b82f6;
+  --accent-soft:rgba(59,130,246,.16);
+  --success:#16a34a;
+  --success-hover:#22c55e;
+  --danger:#ef4444;
+  --warn-bg:rgba(245,158,11,.12);
+  --warn-border:rgba(245,158,11,.35);
+  --warn-text:#fcd34d;
+}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0;-webkit-text-size-adjust:100%;background:#111;color:#fff;font-family:"Reggae One","ComicReggae",-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;height:100%;overflow:hidden;touch-action:manipulation}
+html,body{
+  margin:0;padding:0;
+  -webkit-text-size-adjust:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:"Noto Sans JP","Hiragino Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  height:100%;
+  overflow:hidden;
+  touch-action:manipulation;
+}
 body{display:block;position:relative}
-button,input{font-family:inherit}
-button{border:1px solid #3d4658;background:#242b38;color:#fff;border-radius:13px;height:56px;padding:0 14px;font-size:17px;font-weight:700;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-button:active{transform:scale(.97)}
-button.repeatPressed{background:#4a566b;border-color:#7f8da8;box-shadow:0 0 0 2px rgba(255,255,255,.12) inset}
 html,body,*{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-#bar{position:fixed;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;left:50%;bottom:max(4px,env(safe-area-inset-bottom));transform:translateX(-50%) scale(var(--auto-menu-scale,1));transform-origin:bottom center;width:min(96vw,620px);max-width:calc(100vw - 8px);display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px;background:#151820;z-index:20;background:rgba(21,24,32,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.12);border-radius:14px}
-#fileBtn{flex:1 1 190px;min-width:150px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-#count{display:grid;grid-template-columns:56px 1fr 56px;gap:2px;flex:0 0 174px;align-items:center}
-#count span{text-align:center;font-size:18px;font-weight:700;line-height:18px;display:flex;flex-direction:column;align-items:center;justify-content:center}#count span .maxLabel{font-size:9px;line-height:9px;height:9px;font-weight:700}#count span small{font-size:9px;font-weight:500;line-height:10px;opacity:.8}#count span.max .num{color:#ff3b3b}#angleControls{display:flex;align-items:center;gap:3px;flex:0 0 auto}#angleDisplay{font-size:17px;opacity:.95;white-space:nowrap;min-width:76px;text-align:center}
-#angleDisplay>span:first-child{font-size:9px;font-weight:500;line-height:10px;opacity:.8;display:block}#angleControls button{width:56px;min-width:56px;height:58px;padding:0;font-size:30px}
-#minus,#plus{width:56px;min-width:56px;height:58px;padding:0;font-size:30px;touch-action:manipulation}
-#zoomBtn{flex:0 0 100px;min-width:0;width:100%;padding:0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:17px}
-#gaugeBtn{flex:0 0 58px;min-width:58px;width:58px;padding:0;font-size:20px}
-#wrap{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;overflow:hidden;background:#111}
-#stage{position:relative;width:100%;height:100%;max-width:100%;max-height:100%;touch-action:none;transform-origin:center center}
+html::before,html::after,body::before,body::after{content:none!important;display:none!important}
+img,canvas,button,div,span{-webkit-user-drag:none}
+input{-webkit-touch-callout:none}
+button,input{font-family:inherit}
+
+button{
+  border:1px solid var(--border-strong);
+  background:var(--card-2);
+  color:var(--text);
+  border-radius:12px;
+  height:52px;
+  padding:0 12px;
+  font-size:15px;
+  font-weight:700;
+  cursor:pointer;
+  touch-action:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  transition:background .15s ease,border-color .15s ease,transform .08s ease,box-shadow .15s ease;
+}
+button:active{transform:scale(.97)}
+button svg{flex-shrink:0}
+button.repeatPressed{
+  background:#334463;
+  border-color:#60a5fa;
+  box-shadow:0 0 0 2px rgba(96,165,250,.22) inset;
+}
+
+/* ステージ・画像表示 */
+#wrap{
+  position:absolute;inset:0;
+  display:flex;justify-content:center;align-items:center;
+  overflow:hidden;
+  background:radial-gradient(circle at 50% 35%, #161d2b 0%, #0b0e14 70%);
+}
+#stage{
+  position:relative;
+  width:100%;height:100%;
+  max-width:100%;max-height:100%;
+  touch-action:none;
+  transform-origin:center center;
+}
 #photo{display:block;width:100%;height:100%;max-width:none;max-height:none;object-fit:contain}
 canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
-#empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:16px;text-align:center;padding:30px;cursor:pointer}
 #file{display:none}
-#bar{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,174px) 100px;gap:7px;padding:8px}
-#fileBtn{grid-column:1;grid-row:1/3;height:100%;min-width:0;width:100%;font-size:14px;padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#count{width:100%;min-width:0;grid-column:auto}
-#zoomBtn{width:100%;min-width:0;padding:0 3px;font-size:17px;grid-column:3;grid-row:1}
-#gaugeBtn{width:100%;min-width:0;padding:0;font-size:20px;grid-column:3;grid-row:2}
-#angleControls{justify-content:center;grid-column:2;grid-row:2}
-#angleDisplay{font-size:11px;opacity:.95;white-space:normal;min-width:56px;width:56px;text-align:center;line-height:1.05;display:flex;flex-direction:column;align-items:center;justify-content:center}#angleDisplay .angleValue{font-size:12px;line-height:14px;font-weight:700}
-@media(max-width:430px){
- #bar{grid-template-columns:minmax(0,1fr) 146px 82px;gap:5px;padding:6px}
- button{height:54px}
- #count{grid-template-columns:47px 1fr 47px;flex-basis:146px}
- #minus,#plus{width:47px;min-width:47px;height:54px;font-size:27px}#angleControls button{width:47px;min-width:47px;height:54px;font-size:27px}
- #zoomBtn{font-size:17px;padding:0 2px}
- #gaugeBtn{width:100%;min-width:0;font-size:20px;padding:0;grid-column:3;grid-row:2}
- #angleControls button{width:47px;min-width:47px;height:54px;font-size:27px}
- #angleDisplay{font-size:10px;min-width:46px;width:46px;height:54px}
-}
-html::before,html::after,body::before,body::after{content:none!important;display:none!important}
-img,canvas,button,div,span{ -webkit-user-drag:none; }
-input{ -webkit-touch-callout:none; }
-#zoomBtn.active{background:#52677e}
-#gaugeBtn.active{background:#52677e}
 
-/* 画面中央に重ねるゲージ */
+/* 初期画面（画像未選択） */
+#empty{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px 20px 180px;
+  cursor:pointer;
+}
+.emptyCard{
+  width:min(100%, 360px);
+  padding:28px 22px;
+  border-radius:20px;
+  background:rgba(21,27,39,.88);
+  border:1.5px dashed rgba(96,165,250,.45);
+  box-shadow:0 16px 40px rgba(0,0,0,.45);
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+  text-align:center;
+}
+.emptyIcon{
+  width:56px;height:56px;
+  border-radius:16px;
+  background:rgba(59,130,246,.16);
+  color:#60a5fa;
+  display:flex;align-items:center;justify-content:center;
+}
+.emptyTitle{font-size:17px;font-weight:800;color:#fff;margin:0}
+.emptySub{font-size:13px;color:var(--text-muted);margin:0;line-height:1.5}
+.emptyTips{
+  width:100%;
+  margin-top:6px;
+  padding-top:12px;
+  border-top:1px solid rgba(255,255,255,.08);
+  display:flex;flex-direction:column;gap:6px;
+  text-align:left;
+}
+.emptyTip{
+  font-size:12px;color:#cbd5e1;
+  display:flex;align-items:center;gap:8px;
+}
+.emptyTip b{
+  color:#93c5fd;font-weight:700;
+  background:rgba(59,130,246,.12);
+  padding:2px 7px;border-radius:6px;
+  font-size:11px;white-space:nowrap;
+}
+
+/* 下部コントロールバー */
+#bar{
+  position:fixed;
+  left:50%;
+  bottom:max(6px,env(safe-area-inset-bottom));
+  transform:translateX(-50%) scale(var(--auto-menu-scale,1));
+  transform-origin:bottom center;
+  width:min(96vw,560px);
+  max-width:calc(100vw - 10px);
+  display:grid;
+  grid-template-columns:minmax(84px,1fr) minmax(170px,196px) 92px;
+  gap:7px;
+  padding:9px;
+  z-index:20;
+  background:var(--surface);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:18px;
+  box-shadow:0 12px 32px rgba(0,0,0,.55);
+  touch-action:manipulation;
+}
+
+#fileBtn{
+  grid-column:1;grid-row:1/3;
+  height:100%;min-width:0;width:100%;
+  flex-direction:column;gap:5px;
+  padding:8px 6px;
+  font-size:13px;line-height:1.2;
+  background:linear-gradient(180deg,#263147 0%,#1d2638 100%);
+  border-color:#3b4c6b;
+}
+
+/* 反射・角度ステッパー共通スタイル */
+#count,#angleControls{
+  display:grid;
+  grid-template-columns:48px 1fr 48px;
+  align-items:center;
+  background:#0e131d;
+  border:1px solid var(--border-strong);
+  border-radius:12px;
+  padding:3px;
+  gap:2px;
+  height:52px;
+}
+#count{grid-column:2;grid-row:1;width:100%;min-width:0}
+#angleControls{grid-column:2;grid-row:2;width:100%;min-width:0}
+
+#minus,#plus,#angleControls button{
+  width:100%;min-width:0;height:44px;
+  padding:0;
+  font-size:24px;line-height:1;
+  border-radius:9px;
+  background:#1f293b;
+  border:1px solid rgba(255,255,255,.08);
+  color:#e2e8f0;
+}
+#minus,#plus{touch-action:manipulation}
+
+#count span{
+  text-align:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  line-height:1.1;
+  font-variant-numeric:tabular-nums;
+}
+#count span .maxLabel{font-size:9px;line-height:10px;height:10px;font-weight:800;color:#f87171;letter-spacing:.04em}
+#count span .num{font-size:18px;font-weight:800;color:#fff;line-height:19px}
+#count span small{font-size:10px;font-weight:500;line-height:11px;color:var(--text-muted)}
+#count span.max .num{color:#f87171}
+
+#angleDisplay{
+  text-align:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  line-height:1.1;
+  cursor:pointer;
+  padding:2px 2px;
+  border-radius:7px;
+  font-variant-numeric:tabular-nums;
+}
+#angleDisplay>span:first-child{
+  font-size:10px;font-weight:500;line-height:11px;color:var(--text-muted);display:block;
+}
+#angleDisplay .angleValue{
+  font-size:14px;line-height:18px;font-weight:800;color:#fff;
+  border-bottom:1px dashed rgba(148,163,184,.45);
+}
+
+#zoomBtn{
+  grid-column:3;grid-row:1;
+  width:100%;min-width:0;height:52px;
+  padding:0 6px;font-size:14px;
+}
+#zoomBtn.active{
+  background:var(--accent);
+  border-color:#60a5fa;
+  color:#fff;
+  box-shadow:0 0 0 2px rgba(59,130,246,.28);
+}
+
+#gaugeBtn{
+  grid-column:3;grid-row:2;
+  width:100%;min-width:0;height:52px;
+  padding:0 6px;font-size:14px;
+}
+#gaugeBtn.active{background:var(--accent);border-color:#60a5fa}
+
+#voiceBtn{
+  grid-column:1/-1;grid-row:3;
+  width:100%;height:46px;
+  font-size:15px;padding:0 14px;
+  background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);
+  border-color:#60a5fa;
+  color:#fff;
+  box-shadow:0 4px 14px rgba(37,99,235,.32);
+}
+#voiceBtn:active{transform:scale(.98)}
+
+@media(max-width:430px){
+  #bar{
+    grid-template-columns:minmax(72px,1fr) 158px 80px;
+    gap:6px;padding:7px;border-radius:16px;
+  }
+  button{height:48px;font-size:14px}
+  #fileBtn{font-size:12px}
+  #count,#angleControls{grid-template-columns:42px 1fr 42px;height:48px}
+  #minus,#plus,#angleControls button{height:40px;font-size:22px}
+  #angleDisplay .angleValue{font-size:13px}
+  #zoomBtn,#gaugeBtn{height:48px;font-size:13px;gap:4px}
+  #voiceBtn{height:44px;font-size:14px}
+}
+
+/* 画面中央に重ねるゲージ（互換用） */
 #gaugeOverlay{position:absolute;left:50%;top:50%;width:114px;height:32px;transform:translate(-50%,-50%) rotate(0deg);transform-origin:left center;pointer-events:none;z-index:15;display:none}
 #gaugeOverlay.on{display:block}
-#gaugeLine{position:absolute;left:0;top:50%;width:114px;height:20px;transform:translateY(-50%) scaleX(0);transform-origin:left center;border-radius:999px;background:rgba(255,255,255,.34);box-shadow:0 0 7px rgba(255,255,255,.12);}
-#gaugeCore{position:absolute;left:0;top:50%;width:114px;height:2px;transform:translateY(-50%) scaleX(0);transform-origin:left center;background:rgba(255,255,255,.75);}
+#gaugeLine{position:absolute;left:0;top:50%;width:114px;height:20px;transform:translateY(-50%) scaleX(0);transform-origin:left center;border-radius:999px;background:rgba(255,255,255,.34);box-shadow:0 0 7px rgba(255,255,255,.12)}
+#gaugeCore{position:absolute;left:0;top:50%;width:114px;height:2px;transform:translateY(-50%) scaleX(0);transform-origin:left center;background:rgba(255,255,255,.75)}
 #gaugeCapStart,#gaugeCapEnd{position:absolute;top:50%;width:2px;height:30px;background:rgba(255,255,255,.78);transform:translateY(-50%) scaleY(0);transform-origin:center center}
 #gaugeCapStart{left:0}.gaugeCapEnd{right:0}
-#gaugeOverlay.animate #gaugeLine{animation:gaugePull .3s ease-out forwards}
-#gaugeOverlay.animate #gaugeCore{animation:gaugePull .3s ease-out forwards}
+#gaugeOverlay.animate #gaugeLine,#gaugeOverlay.animate #gaugeCore{animation:gaugePull .3s ease-out forwards}
 #gaugeOverlay.animate #gaugeCapStart,#gaugeOverlay.animate #gaugeCapEnd{animation:gaugeCap .3s ease-out forwards}
 @keyframes gaugePull{from{transform:translateY(-50%) scaleX(0)}to{transform:translateY(-50%) scaleX(1)}}
 @keyframes gaugeCap{from{transform:translateY(-50%) scaleY(0)}to{transform:translateY(-50%) scaleY(1)}}
 
-#voiceBtn{grid-column:1/-1;width:100%;height:42px;font-size:15px;padding:0 10px}
-#voiceModal{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:18px}
+/* 音声コマンドモーダル */
+#voiceModal{
+  display:none;
+  position:fixed;inset:0;z-index:1000;
+  background:rgba(5,8,14,.76);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;
+  padding:14px;
+}
 #voiceModal.open{display:flex}
-#voiceModal .voiceCard{width:min(100%,420px);max-height:90vh;overflow:auto;background:#171c26;border:1px solid #465064;border-radius:16px;padding:18px;box-shadow:0 12px 40px #0009}
-#voiceModal h2{font-size:19px;margin:0 0 14px}
-#voiceModal .voiceField{display:flex;flex-direction:column;gap:8px;margin:12px 0}
-#voiceModal #customDurationField{margin:0;gap:0}
-#voiceModal label{font-size:13px;color:#d5dbe5}
-#voiceModal input{width:100%;height:42px;border:1px solid #485367;border-radius:9px;background:#0e1219;color:#fff;padding:0 10px;font-size:16px;-webkit-user-select:text;user-select:text}
-#voiceModal .durationOptions{display:grid;grid-template-columns:1fr;gap:8px;margin:0}
-#voiceModal #customDurationField{margin:0;gap:0}
-#voiceModal .durationOption{display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid #485367;border-radius:9px;background:#0e1219;cursor:pointer;font-size:14px}
-#voiceModal .durationOption:has(input:checked){border-color:#4f91ff;background:#17263b}
-#voiceModal .durationOption input{appearance:none;-webkit-appearance:none;width:20px;height:20px;flex:0 0 20px;margin:0;border:1.5px solid #8793a6;border-radius:5px;background:#0e1219;display:grid;place-content:center}
-#voiceModal .durationOption input:checked{background:#3985ff;border-color:#3985ff}
-#voiceModal .durationOption input:checked::before{content:"";width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg);margin-top:-2px}
-#voiceModal .voiceHint{font-size:12px;line-height:1.45;color:#b8c0ce;margin:10px 0}
+#voiceModal .voiceCard{
+  width:min(100%,440px);
+  max-height:90dvh;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  background:var(--card);
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:20px;
+  box-shadow:0 24px 60px rgba(0,0,0,.65);
+}
+
+.voiceHeader{
+  padding:16px 18px 12px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.02);
+  flex-shrink:0;
+}
+.voiceHeaderTop{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin-bottom:12px;
+}
+#voiceModal h2{font-size:18px;font-weight:800;margin:0;color:#fff}
+#voiceCloseX{
+  width:36px;height:36px;min-width:36px;
+  padding:0;border-radius:10px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  color:#cbd5e1;font-size:20px;line-height:1;
+}
+
+/* モーダル内タブ切り替え */
+.voiceTabs{
+  display:grid;grid-template-columns:1fr 1fr;gap:6px;
+  padding:4px;
+  background:#0d121b;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+}
+.voiceTabBtn{
+  height:38px;
+  border:1px solid transparent;
+  background:transparent;
+  color:var(--text-muted);
+  font-size:13px;font-weight:700;
+  border-radius:9px;
+  padding:0 8px;
+}
+.voiceTabBtn.active{
+  background:var(--accent);
+  color:#fff;
+  box-shadow:0 2px 10px rgba(59,130,246,.35);
+}
+
+.voiceBody{
+  padding:16px 18px 20px;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  flex:1;
+}
+
+/* 現在の角度バナー */
+.angleSummary{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;
+  border-radius:12px;
+  background:rgba(59,130,246,.12);
+  border:1px solid rgba(59,130,246,.28);
+  margin-bottom:14px;
+}
+.angleSummary span{font-size:13px;color:#bfdbfe;font-weight:700}
+.angleSummary strong{font-size:20px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
+
+#voiceModal .voiceField{display:flex;flex-direction:column;gap:7px;margin:14px 0}
+#voiceModal #customDurationField{margin:8px 0 0;gap:0}
+#voiceModal label{font-size:13px;font-weight:700;color:#e2e8f0}
+.fieldSub{font-size:11.5px;color:var(--text-muted);margin:-2px 0 2px;line-height:1.45}
+#voiceModal input{
+  width:100%;height:44px;
+  border:1px solid var(--border-strong);
+  border-radius:10px;
+  background:var(--input);
+  color:#fff;
+  padding:0 12px;
+  font-size:15px;
+  -webkit-user-select:text;user-select:text;
+  transition:border-color .15s ease,box-shadow .15s ease;
+}
+#voiceModal input::placeholder{color:#64748b}
+#voiceModal input:focus{
+  outline:none;
+  border-color:#60a5fa;
+  box-shadow:0 0 0 3px rgba(59,130,246,.22);
+}
+
+#voiceModal .durationOptions{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0;
+}
+#voiceModal .durationOption{
+  display:flex;align-items:center;gap:9px;
+  padding:11px 12px;
+  border:1.5px solid var(--border-strong);
+  border-radius:11px;
+  background:var(--input);
+  cursor:pointer;
+  font-size:13px;font-weight:700;color:#cbd5e1;
+  transition:border-color .15s ease,background .15s ease;
+}
+#voiceModal .durationOption:has(input:checked){
+  border-color:#60a5fa;
+  background:rgba(59,130,246,.16);
+  color:#fff;
+}
+#voiceModal .durationOption input{
+  appearance:none;-webkit-appearance:none;
+  width:18px;height:18px;flex:0 0 18px;
+  margin:0;padding:0;
+  border:1.5px solid #64748b;
+  border-radius:50%;
+  background:transparent;
+  display:grid;place-content:center;
+}
+#voiceModal .durationOption input:checked{
+  background:var(--accent);border-color:var(--accent);
+}
+#voiceModal .durationOption input:checked::before{
+  content:"";width:7px;height:7px;border-radius:50%;background:#fff;
+}
+.durationText{display:flex;flex-direction:column;line-height:1.2}
+.durationText small{font-size:11px;font-weight:500;color:var(--text-muted);margin-top:2px}
+#voiceModal .durationOption:has(input:checked) .durationText small{color:#bfdbfe}
+
+.voiceNoticeBox{
+  margin:14px 0 4px;
+  padding:10px 12px;
+  border-radius:10px;
+  background:var(--warn-bg);
+  border:1px solid var(--warn-border);
+  color:var(--warn-text);
+  font-size:12px;line-height:1.5;
+}
+#voiceModal .voiceHint{font-size:12.5px;line-height:1.55;color:var(--text-muted);margin:0 0 12px}
+
 #voiceModal .voiceActions{display:flex;gap:8px;margin-top:16px}
-#voiceModal .voiceActions button{flex:1;height:46px;font-size:15px}
-#voiceGenerate{background:#315a42;border-color:#4c8764}
+#voiceModal .voiceActions button{flex:1;height:48px;font-size:15px}
+#voiceCancel{background:#1f293b;border-color:var(--border-strong);color:#cbd5e1}
+#voiceGenerate{
+  background:linear-gradient(135deg,#16a34a 0%,#15803d 100%);
+  border-color:#4ade80;
+  color:#fff;
+  box-shadow:0 4px 14px rgba(22,163,74,.32);
+}
+
+/* 既存ファイル編集エリア */
 .nativeFilePicker{position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:auto;cursor:pointer}
-.filePickerOverlay{position:relative;width:100%;min-height:48px}
-#existingVoicePickBtn{width:100%;min-height:48px;height:48px;padding:0 12px;border:1px solid #3d4658;border-radius:13px;background:#242b38;color:#fff;font-size:16px;font-weight:700}
-#existingVoiceCommands{display:flex;flex-direction:column;gap:10px;margin-top:10px}
-.existingBulkBar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 10px;border:1px solid #3d4658;border-radius:10px;background:#121720;margin-top:10px}
-.existingBulkBar span{font-size:12px;color:#b8c0ce;margin-right:auto}
-.existingBulkBtn{height:32px;min-height:32px;padding:0 10px;font-size:12px;border-radius:8px;background:#242b38;border:1px solid #485367;color:#fff}
-.existingCommandRow{display:flex;flex-direction:column;gap:8px;padding:12px;border:1px solid #3d4658;border-radius:12px;background:#1a1f29}
-.existingCommandHead{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.existingCommandTitle{font-weight:700;font-size:14px;color:#fff}
-.existingCommandMeta{font-size:11px;color:#9eb3d4;background:#10151f;border:1px solid #2e384b;border-radius:999px;padding:2px 8px}
-.existingSubLabel{font-size:12px;color:#b8c0ce;margin:0}
-.existingCommandRow input[type="text"],.existingCommandRow input[type="number"]{width:100%;height:42px;border:1px solid #485367;border-radius:9px;background:#0e1219;color:#fff;padding:0 10px;font-size:16px;-webkit-user-select:text;user-select:text}
+.filePickerOverlay{position:relative;width:100%}
+#existingVoicePickBtn{
+  width:100%;height:auto;min-height:76px;
+  padding:14px 16px;
+  flex-direction:column;gap:4px;
+  border:1.5px dashed rgba(96,165,250,.55);
+  border-radius:14px;
+  background:rgba(59,130,246,.08);
+  color:#fff;
+  font-size:15px;font-weight:700;
+}
+#existingVoicePickBtn small{font-size:11.5px;font-weight:500;color:#93c5fd}
+
+#existingVoiceFileInfo{
+  margin:10px 0 0;
+  padding:9px 12px;
+  border-radius:10px;
+  background:rgba(34,197,94,.12);
+  border:1px solid rgba(34,197,94,.3);
+  color:#86efac;
+  font-size:12.5px;font-weight:700;
+}
+
+.existingBulkBar{
+  display:flex;flex-wrap:wrap;align-items:center;gap:6px;
+  padding:9px 11px;
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:12px;
+  background:#0f1521;
+  margin-top:10px;
+}
+.existingBulkBar span{font-size:12px;color:var(--text-muted);font-weight:700;width:100%;margin-bottom:2px}
+.existingBulkBtn{
+  flex:1;min-width:0;
+  height:34px;min-height:34px;
+  padding:0 8px;font-size:12px;
+  border-radius:8px;
+  background:#1f293b;border:1px solid var(--border-strong);color:#e2e8f0;
+}
+
+#existingVoiceCommands{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.existingCommandRow{
+  display:flex;flex-direction:column;gap:9px;
+  padding:13px;
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:14px;
+  background:#111723;
+}
+.existingCommandHead{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
+  padding-bottom:8px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+.existingCommandTitle{font-weight:800;font-size:14px;color:#fff;display:flex;align-items:center;gap:6px}
+.cmdNumBadge{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:2px 7px;border-radius:6px;
+  background:rgba(59,130,246,.2);color:#93c5fd;
+  font-size:12px;font-weight:800;
+}
+.existingCommandMeta{
+  font-size:11.5px;font-weight:700;color:#cbd5e1;
+  background:#1b2436;border:1px solid rgba(255,255,255,.08);
+  border-radius:999px;padding:3px 9px;
+  font-variant-numeric:tabular-nums;
+}
+.existingSubLabel{font-size:12px;font-weight:700;color:#cbd5e1;margin:2px 0 -3px}
+.existingCommandRow input[type="text"],.existingCommandRow input[type="number"]{
+  width:100%;height:42px;
+  border:1px solid var(--border-strong);
+  border-radius:9px;
+  background:var(--input);
+  color:#fff;padding:0 11px;font-size:15px;
+  -webkit-user-select:text;user-select:text;
+}
 .existingSpeedGroup{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
-.existingSpeedChip{display:flex;align-items:center;justify-content:center;min-height:38px;padding:4px 6px;border:1px solid #485367;border-radius:8px;background:#0e1219;color:#d5dbe5;font-size:12px;cursor:pointer;text-align:center;line-height:1.2}
-.existingSpeedChip.active{border-color:#4f91ff;background:#17263b;color:#fff;font-weight:700}
-.existingSaveArea{display:flex;flex-direction:column;gap:8px;margin-top:12px;padding-top:12px;border-top:1px dashed #3d4658}
-#existingVoiceSaveBtn{width:100%;min-height:48px;height:48px;padding:0 12px;border:1px solid #4c8764;border-radius:13px;background:#315a42;color:#fff;font-size:16px;font-weight:700}
+.existingSpeedChip{
+  display:flex;align-items:center;justify-content:center;
+  height:38px;min-height:38px;padding:4px 6px;
+  border:1.5px solid var(--border-strong);
+  border-radius:9px;
+  background:var(--input);
+  color:#cbd5e1;font-size:12px;font-weight:700;
+  cursor:pointer;text-align:center;line-height:1.2;
+}
+.existingSpeedChip.active{
+  border-color:#60a5fa;
+  background:rgba(59,130,246,.2);
+  color:#fff;
+}
 
-.voiceInputRow{display:flex;align-items:stretch;gap:6px}.voiceInputRow input{flex:1;min-width:0}.voiceClear{width:44px;min-width:44px;padding:0;margin:0;border-radius:8px;background:#e8edf5;color:#1769d2;border:1px solid #c8d8ed;font-size:22px;font-weight:700;line-height:1}.voiceClear:active{background:#d4e3f7}.voiceInputRow input:focus{outline:2px solid #1684ff;outline-offset:1px}
-#voiceBtn{grid-column:1/-1;grid-row:3}
-
+.existingSaveArea{
+  display:flex;flex-direction:column;gap:10px;
+  margin-top:14px;padding-top:14px;
+  border-top:1px solid rgba(255,255,255,.1);
+}
+#existingVoiceSaveBtn{
+  width:100%;min-height:48px;height:48px;
+  padding:0 14px;
+  border:1px solid #4ade80;
+  border-radius:12px;
+  background:linear-gradient(135deg,#16a34a 0%,#15803d 100%);
+  color:#fff;font-size:15px;font-weight:800;
+  box-shadow:0 4px 14px rgba(22,163,74,.32);
+}
 </style>
 </head>
 <body>
 <div id="bar">
-  <button id="fileBtn" type="button">画像を選択</button>
+  <button id="fileBtn" type="button">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+    <span>画像選択</span>
+  </button>
   <input id="file" type="file" accept="image/*">
+
   <div id="count">
-    <button id="minus">−</button><span id="n"><b class="maxLabel"></b><strong class="num">0</strong><small>反射</small></span><button id="plus">＋</button>
+    <button id="minus" type="button" aria-label="反射を減らす">−</button>
+    <span id="n"><b class="maxLabel"></b><strong class="num">0</strong><small>反射</small></span>
+    <button id="plus" type="button" aria-label="反射を増やす">＋</button>
   </div>
-  <button id="zoomBtn">拡大</button>
-  <button id="gaugeBtn" type="button" aria-label="ガイド画像を保存">📸</button>
-  <button id="voiceBtn" type="button">音声コントロールとして保存</button>
-  <div id="angleControls"><button id="angleMinus">−</button><span id="angleDisplay"><span>角度</span><span class="angleValue">000.00°</span></span><button id="anglePlus">＋</button></div>
+
+  <button id="zoomBtn" type="button">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+    <span class="btnLabel">拡大</span>
+  </button>
+
+  <button id="gaugeBtn" type="button" aria-label="ガイド画像を保存">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    <span>保存</span>
+  </button>
+
+  <div id="angleControls">
+    <button id="angleMinus" type="button" aria-label="角度を減らす">−</button>
+    <span id="angleDisplay" title="ダブルタップで直接入力"><span>角度</span><span class="angleValue">000.00°</span></span>
+    <button id="anglePlus" type="button" aria-label="角度を増やす">＋</button>
+  </div>
+
+  <button id="voiceBtn" type="button">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+    <span>音声コマンド作成・編集</span>
+  </button>
 </div>
 
 <div id="voiceModal" role="dialog" aria-modal="true" aria-labelledby="voiceTitle">
  <div class="voiceCard">
-  <h2 id="voiceTitle">音声コマンドファイルを生成</h2>
-  <p class="voiceHint">現在の角度のvoicecontrolcommandsファイルを生成します。読み上げ語句は「あ」や「1」などの音声コントロール上で設定することの出来ない4文字以下の語句を使用することもできます。</p>
-  <div id="voiceNoticeWrap" style="overflow: hidden; width: 100%; margin-top: 8px;">
-  <style>
-    @keyframes voiceMarquee {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-100%); }
-    }
-  </style>
-  <p id="voiceNoticeText" style="color: #ff4d4d; font-weight: bold; font-size: 12px; margin: 0; line-height: 1.45;">※注意※iPhoneSEなどの画面の小さい端末の場合スケールフィルターが@2xのため生成した角度から0.01°~0.02°程ズレが生じます。</p>
-</div>
-  <div class="voiceField">
-   <label>なぞるのにかける時間</label>
-   <div class="durationOptions" role="radiogroup" aria-label="なぞるのにかける時間">
-    <label class="durationOption"><input type="radio" name="voiceDurationMode" value="rapid" checked><span>速射（0.01秒）</span></label>
-    <label class="durationOption"><input type="radio" name="voiceDurationMode" value="gauge"><span>ゲージ（0.5秒）</span></label>
+  <div class="voiceHeader">
+   <div class="voiceHeaderTop">
+    <h2 id="voiceTitle">音声コマンド</h2>
+    <button id="voiceCloseX" type="button" aria-label="閉じる">×</button>
    </div>
-   <div class="voiceField" id="customDurationField"><input id="voiceDuration" type="number" min="0.01" max="10" step="0.001" value="" placeholder="タップして入力（秒）" aria-label="自由入力（秒）"></div>
+   <div class="voiceTabs" role="tablist">
+    <button type="button" class="voiceTabBtn active" data-tab="create" role="tab" aria-selected="true">新規作成</button>
+    <button type="button" class="voiceTabBtn" data-tab="edit" role="tab" aria-selected="false">既存ファイルを編集</button>
+   </div>
   </div>
-  <div class="voiceField"><label for="voiceCommandName">読み上げ語句（何も入力しない場合は1になります）</label><input id="voiceCommandName" type="text" maxlength="80" value="" placeholder="タップして入力"></div>
-  <div class="voiceField"><label for="voiceFileName">ファイル名</label><input id="voiceFileName" type="text" maxlength="100" value="" placeholder="タップして入力" autocomplete="off"></div>
-   <div class="voiceActions"><button id="voiceCancel" type="button">キャンセル</button><button id="voiceGenerate" type="button">保存</button></div>
-  <!-- 既存ファイル編集エリア（引っ張る速度変更・音声コマンド変更を統合） -->
-  <div style="border-top: 1px solid #3d4658; margin-top: 16px; padding-top: 14px;">
-    <h3 style="font-size: 15px; margin: 0 0 6px; color: #fff;">既存ファイルを編集</h3>
-    <p class="voiceHint" style="margin: 0 0 10px;">お手持ちの voicecontrolcommands ファイルを選択すると、中のコマンドを一覧表示し、読み上げ語句や引っ張る速度をコマンドごとに編集して保存できます。</p>
+
+  <div class="voiceBody">
+   <!-- タブ1: 新規作成 -->
+   <div id="voiceTabCreate" role="tabpanel">
+    <div class="angleSummary">
+     <span>現在のガイド角度</span>
+     <strong id="voiceCurrentAngle">90.00°</strong>
+    </div>
+
+    <div class="voiceField" style="margin-top:0">
+     <label>なぞるのにかける時間（引っ張る速度）</label>
+     <div class="durationOptions" role="radiogroup" aria-label="なぞるのにかける時間">
+      <label class="durationOption">
+       <input type="radio" name="voiceDurationMode" value="rapid" checked>
+       <span class="durationText">速射<small>0.01秒</small></span>
+      </label>
+      <label class="durationOption">
+       <input type="radio" name="voiceDurationMode" value="gauge">
+       <span class="durationText">ゲージ<small>0.5秒</small></span>
+      </label>
+     </div>
+     <div class="voiceField" id="customDurationField">
+      <input id="voiceDuration" type="number" min="0.01" max="10" step="0.001" value="" placeholder="自由入力（0.01〜10秒）" aria-label="自由入力（秒）">
+     </div>
+    </div>
+
+    <div class="voiceField">
+     <label for="voiceCommandName">読み上げ語句</label>
+     <p class="fieldSub">空欄の場合は「1」になります。「あ」「1」など4文字以下の短い語句も設定できます。</p>
+     <input id="voiceCommandName" type="text" maxlength="80" value="" placeholder="例：1、あ、ルートA">
+    </div>
+
+    <div class="voiceField">
+     <label for="voiceFileName">ファイル名</label>
+     <input id="voiceFileName" type="text" maxlength="100" value="" placeholder="タップして入力" autocomplete="off">
+    </div>
+
+    <div class="voiceNoticeBox">
+     ※注意：iPhone SEなどの小型端末（@2x）では、生成した角度から0.01°〜0.02°ほどズレが生じる場合があります。
+    </div>
+
+    <div class="voiceActions">
+     <button id="voiceCancel" type="button">キャンセル</button>
+     <button id="voiceGenerate" type="button">ファイルを保存</button>
+    </div>
+   </div>
+
+   <!-- タブ2: 既存ファイルを編集 -->
+   <div id="voiceTabEdit" role="tabpanel" hidden>
+    <p class="voiceHint">お手持ちの <b>.voicecontrolcommands</b> ファイルを選択すると、中のコマンドを一覧表示し、読み上げ語句や引っ張る速度を個別に編集して保存できます。</p>
     <div id="existingVoiceChange">
-      <div class="filePickerOverlay">
-        <button id="existingVoicePickBtn" type="button">既存ファイルを選択して編集</button>
-        <input id="existingVoiceFile" class="nativeFilePicker" type="file" accept=".voicecontrolcommands">
+     <div class="filePickerOverlay">
+      <button id="existingVoicePickBtn" type="button">
+       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+       <span>既存ファイルを選択して編集</span>
+       <small>.voicecontrolcommands ファイルに対応</small>
+      </button>
+      <input id="existingVoiceFile" class="nativeFilePicker" type="file" accept=".voicecontrolcommands">
+     </div>
+
+     <div id="existingVoiceFileInfo" style="display:none;"></div>
+
+     <div id="existingBulkBar" class="existingBulkBar" style="display:none;">
+      <span>全コマンドの速度を一括設定</span>
+      <button type="button" class="existingBulkBtn" data-bulk-speed="keep">変更しない</button>
+      <button type="button" class="existingBulkBtn" data-bulk-speed="rapid">速射 (0.01秒)</button>
+      <button type="button" class="existingBulkBtn" data-bulk-speed="gauge">ゲージ (0.5秒)</button>
+     </div>
+
+     <div id="existingVoiceCommands"></div>
+
+     <div id="existingSaveArea" class="existingSaveArea" style="display:none;">
+      <div class="voiceField" style="margin:0">
+       <label for="existingVoiceSaveName">保存ファイル名</label>
+       <input id="existingVoiceSaveName" type="text" maxlength="100" value="" placeholder="ファイル名を入力" autocomplete="off">
       </div>
-      <div id="existingVoiceFileInfo" class="voiceHint" style="margin: 8px 0 0; display: none;"></div>
-      <div id="existingBulkBar" class="existingBulkBar" style="display: none;">
-        <span>全コマンドの速度を一括設定:</span>
-        <button type="button" class="existingBulkBtn" data-bulk-speed="keep">変更しない</button>
-        <button type="button" class="existingBulkBtn" data-bulk-speed="rapid">速射</button>
-        <button type="button" class="existingBulkBtn" data-bulk-speed="gauge">ゲージ</button>
+      <button id="existingVoiceSaveBtn" type="button">編集内容を保存</button>
+     </div>
+    </div>
+   </div>
+  </div>
+ </div>
+</div>
+
+<div id="wrap">
+  <div id="gaugeOverlay" aria-hidden="true"><div id="gaugeLine"></div><div id="gaugeCore"></div><div id="gaugeCapStart"></div><div id="gaugeCapEnd" class="gaugeCapEnd"></div></div>
+  <div id="empty">
+    <div class="emptyCard">
+      <div class="emptyIcon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
       </div>
-      <div id="existingVoiceCommands"></div>
-      <div id="existingSaveArea" class="existingSaveArea" style="display: none;">
-        <div class="voiceField" style="margin: 0;">
-          <label for="existingVoiceSaveName">保存ファイル名</label>
-          <input id="existingVoiceSaveName" type="text" maxlength="100" value="" placeholder="ファイル名を入力" autocomplete="off">
-        </div>
-        <button id="existingVoiceSaveBtn" type="button">編集内容を保存</button>
+      <p class="emptyTitle">スクショを選択してガイドを表示</p>
+      <p class="emptySub">ここをタップするか、下の「画像選択」から<br>モンストの画面画像を選んでください</p>
+      <div class="emptyTips">
+        <div class="emptyTip"><b>矢印をドラッグ</b><span>カーソルの位置を移動</span></div>
+        <div class="emptyTip"><b>画面をなぞる</b><span>引っ張る角度を調整</span></div>
+        <div class="emptyTip"><b>角度を2回タップ</b><span>数値を直接入力</span></div>
       </div>
     </div>
   </div>
-
-
- </div>
-</div>
-<div id="wrap">
-  <div id="gaugeOverlay" aria-hidden="true"><div id="gaugeLine"></div><div id="gaugeCore"></div><div id="gaugeCapStart"></div><div id="gaugeCapEnd" class="gaugeCapEnd"></div></div>
-  <div id="empty">画像を選択</div>
   <div id="stage" hidden>
     <img id="photo" alt="">
     <canvas id="cv"></canvas>
@@ -222,7 +738,7 @@ file.onchange=e=>{
    updateAngleUI();
    draw();
    updateBarScale();
-   if(gaugeOn)positionGauge();
+   if(typeof gaugeOn!=='undefined'&&gaugeOn&&typeof positionGauge==='function')positionGauge();
  };
  photo.src=url;
 };
@@ -235,7 +751,7 @@ function fitStage(){
  stage.style.height=Math.round(imgH*scale)+'px';
  cv.width=imgW; cv.height=imgH;
 }
-window.addEventListener('resize',()=>{if(!stage.hidden){fitStage();if(gaugeOn)positionGauge();draw();}requestAnimationFrame(updateBarScale);});
+window.addEventListener('resize',()=>{if(!stage.hidden){fitStage();if(typeof gaugeOn!=='undefined'&&gaugeOn&&typeof positionGauge==='function')positionGauge();draw();}requestAnimationFrame(updateBarScale);});
 
 function bounds(){
    const topY = 299;
@@ -415,7 +931,7 @@ function drawReflection(b){
    ctx.closePath();
    ctx.fillStyle='rgba(40,255,255,.12)';ctx.fill();
    ctx.strokeStyle='rgba(40,255,255,.95)';ctx.lineWidth=6*s;ctx.stroke();
-   ctx.font=`bold ${Math.round(20*s)}px "Reggae One","ComicReggae",-apple-system,BlinkMacSystemFont,sans-serif`;
+   ctx.font=`bold ${Math.round(20*s)}px "Noto Sans JP","Hiragino Sans",-apple-system,BlinkMacSystemFont,sans-serif`;
    ctx.fillStyle='#69ff6b';ctx.fillText(String(i),p.x+40*s,p.y-35*s);
    ctx.restore();
  }
@@ -591,7 +1107,7 @@ function saveGuideImage(){
   octx.save();
   octx.textAlign='center';
   octx.textBaseline='middle';
-  octx.font='700 28px "Reggae One","ComicReggae",-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif';
+  octx.font='700 28px "Noto Sans JP","Hiragino Sans",-apple-system,BlinkMacSystemFont,sans-serif';
   octx.lineWidth=7;
   octx.strokeStyle='rgba(0,0,0,.75)';
   octx.strokeText(angleText,cursor.x,cursor.y);
@@ -620,7 +1136,7 @@ let panX=0,panY=0,panStartX=0,panStartY=0,panBaseX=0,panBaseY=0,panActive=false;
 function applyStageTransform(){stage.style.transform=`translate3d(${panX}px,${panY}px,0) scale(${zoomScale})`;}
 zoomBtn.onclick=()=>{
  zoomMode=!zoomMode;
- zoomBtn.textContent=zoomMode?'解除':'拡大';
+ const zl=zoomBtn.querySelector('.btnLabel');if(zl)zl.textContent=zoomMode?'解除':'拡大';else zoomBtn.textContent=zoomMode?'解除':'拡大';
  zoomBtn.classList.toggle('active',zoomMode);
  if(!zoomMode){zoomScale=1;panX=0;panY=0;applyStageTransform();}else active=null;
  requestAnimationFrame(updateBarScale);
@@ -724,9 +1240,35 @@ document.getElementById('voiceFileName').value=getDefaultVoiceFileName();
  el.addEventListener('focus',()=>{try{el.select()}catch(_){}});
 });
 document.getElementById('voiceFileName').addEventListener('input',()=>{voiceFileNameEdited=true;});
+function updateVoiceModalAngleBadge(){
+ const badge=document.getElementById('voiceCurrentAngle');
+ if(!badge)return;
+ let deg=(-pullAngle*180/Math.PI)%360;
+ if(deg<0)deg+=360;
+ badge.textContent=deg.toFixed(2)+'°';
+}
+function switchVoiceTab(tabName){
+ document.querySelectorAll('.voiceTabBtn').forEach(btn=>{
+  const active=btn.dataset.tab===tabName;
+  btn.classList.toggle('active',active);
+  btn.setAttribute('aria-selected',active?'true':'false');
+ });
+ const createPane=document.getElementById('voiceTabCreate');
+ const editPane=document.getElementById('voiceTabEdit');
+ if(createPane)createPane.hidden=(tabName!=='create');
+ if(editPane)editPane.hidden=(tabName!=='edit');
+ const body=document.querySelector('#voiceModal .voiceBody');
+ if(body)body.scrollTop=0;
+}
+document.querySelectorAll('.voiceTabBtn').forEach(btn=>{
+ btn.addEventListener('click',()=>switchVoiceTab(btn.dataset.tab));
+});
+const voiceCloseX=document.getElementById('voiceCloseX');
+if(voiceCloseX)voiceCloseX.addEventListener('click',()=>voiceModal.classList.remove('open'));
 document.getElementById('voiceBtn').addEventListener('click',()=>{
  const fileInput=document.getElementById('voiceFileName');
  if(!voiceFileNameEdited)fileInput.value=getDefaultVoiceFileName();
+ updateVoiceModalAngleBadge();
  voiceModal.classList.add('open');
 });
 document.getElementById('voiceCancel').addEventListener('click',()=>voiceModal.classList.remove('open'));
@@ -978,7 +1520,7 @@ if(existingVoicePickBtn&&existingVoiceInput){
     head.className='existingCommandHead';
     const title=document.createElement('div');
     title.className='existingCommandTitle';
-    title.textContent=`${i+1}. コマンド`;
+    title.innerHTML=`<span class="cmdNumBadge">#${i+1}</span> コマンド`;
     head.appendChild(title);
 
     const metaParts=[];
