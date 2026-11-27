@@ -5,26 +5,52 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>モンスト ガイド＆音声コマンド生成</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700;800;900&family=Noto+Sans+JP:wght@700;900&display=swap');
 :root{
   --safe-area-bottom:env(safe-area-inset-bottom,0px);
-  --bg:#0b0e14;
-  --surface:rgba(18,23,34,.92);
-  --card:#151b27;
-  --card-2:#1c2434;
-  --input:#0d121b;
-  --border:rgba(255,255,255,.12);
-  --border-strong:#354259;
-  --text:#f8fafc;
-  --text-muted:#94a3b8;
-  --accent:#3b82f6;
-  --accent-soft:rgba(59,130,246,.16);
-  --success:#16a34a;
-  --success-hover:#22c55e;
-  --danger:#ef4444;
-  --warn-bg:rgba(245,158,11,.12);
-  --warn-border:rgba(245,158,11,.35);
-  --warn-text:#fcd34d;
+  --bg:#090b10;
+  --panel-top:#262b38;
+  --panel-mid:#181c26;
+  --panel-bot:#0f121a;
+  --gold-light:#ffe98a;
+  --gold:#f5b72f;
+  --gold-dark:#9e640b;
+  --gold-deep:#5c3504;
+  --fire-1:#ffcf4d;
+  --fire-2:#ff7a00;
+  --fire-3:#d93d00;
+  --fire-4:#ff5900;
+  --fire-shadow:#6e1a00;
+  --water-1:#5ce1ff;
+  --water-2:#1c9bff;
+  --water-3:#0b5ed7;
+  --water-4:#1478f0;
+  --water-shadow:#072a6b;
+  --wood-1:#7dff8a;
+  --wood-2:#28c745;
+  --wood-3:#12852a;
+  --wood-4:#1da337;
+  --wood-shadow:#094715;
+  --light-1:#fff394;
+  --light-2:#ffca28;
+  --light-3:#d98a00;
+  --light-4:#f5a600;
+  --light-shadow:#734200;
+  --dark-1:#6b748c;
+  --dark-2:#3d4457;
+  --dark-3:#242938;
+  --dark-4:#31374a;
+  --dark-shadow:#12151f;
+  --text:#ffffff;
+  --text-muted:#b8c2d6;
+  --outline-dark:
+    -1.5px -1.5px 0 #140a00, 1.5px -1.5px 0 #140a00,
+    -1.5px  1.5px 0 #140a00, 1.5px  1.5px 0 #140a00,
+     0px    2px   0 rgba(0,0,0,.85);
+  --outline-soft:
+    -1px -1px 0 rgba(0,0,0,.9), 1px -1px 0 rgba(0,0,0,.9),
+    -1px  1px 0 rgba(0,0,0,.9), 1px  1px 0 rgba(0,0,0,.9),
+     0px  1.5px 0 rgba(0,0,0,.85);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{
@@ -32,7 +58,7 @@ html,body{
   -webkit-text-size-adjust:100%;
   background:var(--bg);
   color:var(--text);
-  font-family:"Noto Sans JP","Hiragino Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-family:"M PLUS Rounded 1c","Noto Sans JP","Hiragino Maru Gothic ProN","Hiragino Sans",-apple-system,BlinkMacSystemFont,sans-serif;
   height:100%;
   overflow:hidden;
   touch-action:manipulation;
@@ -44,37 +70,76 @@ img,canvas,button,div,span{-webkit-user-drag:none}
 input{-webkit-touch-callout:none}
 button,input{font-family:inherit}
 
+/* モンスト風 立体光沢ボタン基本形 */
 button{
-  border:1px solid var(--border-strong);
-  background:var(--card-2);
-  color:var(--text);
-  border-radius:12px;
+  position:relative;
+  overflow:hidden;
+  border:2px solid #8a95ad;
+  background:linear-gradient(180deg,var(--dark-1) 0%,var(--dark-2) 48%,var(--dark-3) 50%,var(--dark-4) 100%);
+  color:#fff;
+  border-radius:11px;
   height:52px;
-  padding:0 12px;
+  padding:0 10px;
   font-size:15px;
-  font-weight:700;
+  font-weight:900;
+  letter-spacing:.02em;
   cursor:pointer;
   touch-action:none;
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  gap:6px;
-  transition:background .15s ease,border-color .15s ease,transform .08s ease,box-shadow .15s ease;
+  gap:5px;
+  text-shadow:var(--outline-dark);
+  box-shadow:
+    0 3px 0 var(--dark-shadow),
+    0 5px 10px rgba(0,0,0,.5),
+    inset 0 2px 1px rgba(255,255,255,.38),
+    inset 0 -2px 3px rgba(0,0,0,.35);
+  transition:transform .07s cubic-bezier(.34,1.56,.64,1),box-shadow .07s ease,filter .12s ease;
 }
-button:active{transform:scale(.97)}
-button svg{flex-shrink:0}
+button:active{
+  transform:translateY(2.5px);
+  box-shadow:
+    0 1px 0 var(--dark-shadow),
+    0 2px 4px rgba(0,0,0,.45),
+    inset 0 2px 2px rgba(255,255,255,.25);
+}
+button svg{
+  flex-shrink:0;
+  filter:drop-shadow(0 1.5px 0 rgba(0,0,0,.85));
+}
 button.repeatPressed{
-  background:#334463;
-  border-color:#60a5fa;
-  box-shadow:0 0 0 2px rgba(96,165,250,.22) inset;
+  background:linear-gradient(180deg,#ffdf6b 0%,#ff8c1a 48%,#d94b00 50%,#ff6a00 100%)!important;
+  border-color:#fff2b2!important;
+  box-shadow:
+    0 1px 0 #701d00,
+    0 0 12px rgba(255,140,0,.75),
+    inset 0 2px 1px rgba(255,255,255,.65)!important;
+  transform:translateY(2px);
 }
 
-/* ステージ・画像表示 */
+@keyframes monstShimmer{
+  0%,68%{transform:translateX(-140%) skewX(-24deg);opacity:0}
+  74%{opacity:.85}
+  92%{transform:translateX(260%) skewX(-24deg);opacity:0}
+  100%{transform:translateX(260%) skewX(-24deg);opacity:0}
+}
+
+/* ステージ・画像表示（ダークストライプ＋オーラ背景） */
 #wrap{
   position:absolute;inset:0;
   display:flex;justify-content:center;align-items:center;
   overflow:hidden;
-  background:radial-gradient(circle at 50% 35%, #161d2b 0%, #0b0e14 70%);
+  background:
+    radial-gradient(circle at 50% 34%, rgba(255,132,0,.18) 0%, rgba(28,84,180,.14) 36%, rgba(8,10,16,.96) 76%),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255,255,255,.028) 0px,
+      rgba(255,255,255,.028) 6px,
+      rgba(0,0,0,.12) 6px,
+      rgba(0,0,0,.12) 12px
+    ),
+    #0a0d14;
 }
 #stage{
   position:relative;
@@ -87,53 +152,119 @@ button.repeatPressed{
 canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 #file{display:none}
 
-/* 初期画面（画像未選択） */
+/* 初期画面（モンスト クエストボード風） */
 #empty[hidden],#stage[hidden]{display:none!important}
 #empty{
   position:absolute;inset:0;
   display:flex;align-items:center;justify-content:center;
-  padding:24px 20px 180px;
+  padding:20px 18px 186px;
   cursor:pointer;
 }
 .emptyCard{
-  width:min(100%, 360px);
-  padding:28px 22px;
-  border-radius:20px;
-  background:rgba(21,27,39,.88);
-  border:1.5px dashed rgba(96,165,250,.45);
-  box-shadow:0 16px 40px rgba(0,0,0,.45);
-  display:flex;flex-direction:column;align-items:center;gap:12px;
+  position:relative;
+  width:min(100%, 368px);
+  padding:24px 20px 20px;
+  border-radius:18px;
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255,255,255,.024) 0px,
+      rgba(255,255,255,.024) 5px,
+      transparent 5px,
+      transparent 10px
+    ),
+    linear-gradient(180deg,#252b3b 0%,#141824 55%,#0e111b 100%);
+  border:3px solid var(--gold);
+  box-shadow:
+    0 0 0 2px #3b2202,
+    0 18px 42px rgba(0,0,0,.78),
+    0 0 28px rgba(255,155,20,.16),
+    inset 0 2px 0 rgba(255,238,165,.45),
+    inset 0 -3px 8px rgba(0,0,0,.6);
+  display:flex;flex-direction:column;align-items:center;gap:11px;
   text-align:center;
 }
-.emptyIcon{
-  width:56px;height:56px;
-  border-radius:16px;
-  background:rgba(59,130,246,.16);
-  color:#60a5fa;
-  display:flex;align-items:center;justify-content:center;
+/* ボード四隅の金属リベット装飾 */
+.emptyCard::before,.emptyCard::after{
+  content:"";
+  position:absolute;
+  top:9px;
+  width:8px;height:8px;border-radius:50%;
+  background:radial-gradient(circle at 30% 30%, #fff4b8, #d48811 70%, #5c3300);
+  box-shadow:0 1px 2px rgba(0,0,0,.85);
 }
-.emptyTitle{font-size:17px;font-weight:800;color:#fff;margin:0}
-.emptySub{font-size:13px;color:var(--text-muted);margin:0;line-height:1.5}
+.emptyCard::before{left:10px}
+.emptyCard::after{right:10px}
+
+.emptyRibbon{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 16px;
+  margin-bottom:2px;
+  border-radius:999px;
+  background:linear-gradient(180deg,#ff9a24 0%,#d93800 52%,#a82200 100%);
+  border:2px solid #ffe494;
+  box-shadow:0 3px 0 #4d1000, 0 4px 10px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.6);
+  font-size:11px;font-weight:900;letter-spacing:.12em;color:#fff;
+  text-shadow:var(--outline-soft);
+  transform:skewX(-8deg);
+}
+.emptyRibbon span{transform:skewX(8deg);display:inline-block}
+
+.emptyIcon{
+  width:66px;height:66px;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 32% 28%, #fff6cc 0%, #ffb732 24%, #ff5a00 62%, #8a1500 100%);
+  border:3px solid #ffe799;
+  color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:
+    0 5px 0 #591100,
+    0 0 22px rgba(255,115,0,.55),
+    inset 0 3px 6px rgba(255,255,255,.7);
+}
+.emptyIcon svg{filter:drop-shadow(0 2px 1px rgba(90,15,0,.95))}
+
+.emptyTitle{
+  font-size:18px;font-weight:900;margin:2px 0 0;
+  color:#fff;
+  text-shadow:var(--outline-dark);
+  letter-spacing:.02em;
+}
+.emptySub{
+  font-size:12.5px;font-weight:700;color:#d6deee;margin:0;line-height:1.5;
+  text-shadow:0 1px 2px rgba(0,0,0,.9);
+}
 .emptyTips{
   width:100%;
   margin-top:6px;
-  padding-top:12px;
-  border-top:1px solid rgba(255,255,255,.08);
-  display:flex;flex-direction:column;gap:6px;
+  padding:10px 10px 8px;
+  border-radius:12px;
+  background:rgba(7,9,15,.72);
+  border:1.5px solid rgba(245,183,47,.38);
+  box-shadow:inset 0 2px 6px rgba(0,0,0,.75);
+  display:flex;flex-direction:column;gap:7px;
   text-align:left;
 }
 .emptyTip{
-  font-size:12px;color:#cbd5e1;
+  font-size:12px;font-weight:800;color:#eef3ff;
   display:flex;align-items:center;gap:8px;
+  text-shadow:0 1px 1px rgba(0,0,0,.9);
 }
 .emptyTip b{
-  color:#93c5fd;font-weight:700;
-  background:rgba(59,130,246,.12);
-  padding:2px 7px;border-radius:6px;
+  color:#fff;font-weight:900;
+  padding:3px 9px;border-radius:7px;
   font-size:11px;white-space:nowrap;
+  border:1.5px solid rgba(255,255,255,.7);
+  text-shadow:var(--outline-soft);
+  box-shadow:0 2px 0 rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.45);
+  transform:skewX(-7deg);
 }
+.emptyTip:nth-child(1) b{background:linear-gradient(180deg,#ff9c2a 0%,#d93d00 100%)}
+.emptyTip:nth-child(2) b{background:linear-gradient(180deg,#3ecbff 0%,#0b63d6 100%)}
+.emptyTip:nth-child(3) b{background:linear-gradient(180deg,#ffe054 0%,#d18200 100%)}
 
-/* 下部コントロールバー */
+/* 下部コントロールバー（バトル操作盤風メタリックフレーム） */
 #bar{
   position:fixed;
   left:50%;
@@ -147,188 +278,312 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   gap:7px;
   padding:9px;
   z-index:20;
-  background:var(--surface);
-  backdrop-filter:blur(16px);
-  -webkit-backdrop-filter:blur(16px);
-  border:1px solid rgba(255,255,255,.14);
-  border-radius:18px;
-  box-shadow:0 12px 32px rgba(0,0,0,.55);
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255,255,255,.022) 0px,
+      rgba(255,255,255,.022) 4px,
+      transparent 4px,
+      transparent 8px
+    ),
+    linear-gradient(180deg,#2c3242 0%,#1a1f2b 16%,#121621 85%,#0b0d14 100%);
+  border:2.5px solid var(--gold);
+  border-radius:16px;
+  box-shadow:
+    0 0 0 2px #2b1803,
+    0 12px 30px rgba(0,0,0,.8),
+    inset 0 2px 0 rgba(255,238,165,.42),
+    inset 0 -3px 6px rgba(0,0,0,.75);
   touch-action:manipulation;
 }
 
+/* 画像選択：水属性 光沢ブルーボタン */
 #fileBtn{
   grid-column:1;grid-row:1/3;
   height:100%;min-width:0;width:100%;
-  flex-direction:column;gap:5px;
+  flex-direction:column;gap:4px;
   padding:8px 6px;
-  font-size:13px;line-height:1.2;
-  background:linear-gradient(180deg,#263147 0%,#1d2638 100%);
-  border-color:#3b4c6b;
+  font-size:13px;line-height:1.15;
+  background:linear-gradient(180deg,var(--water-1) 0%,var(--water-2) 47%,var(--water-3) 50%,var(--water-4) 100%);
+  border:2px solid #c7f2ff;
+  box-shadow:
+    0 4px 0 var(--water-shadow),
+    0 6px 12px rgba(0,0,0,.55),
+    inset 0 2px 1px rgba(255,255,255,.65),
+    inset 0 -2px 3px rgba(0,25,85,.4);
+}
+#fileBtn:active{
+  transform:translateY(3px);
+  box-shadow:0 1px 0 var(--water-shadow),inset 0 2px 2px rgba(255,255,255,.45);
 }
 
-/* 反射・角度ステッパー共通スタイル */
+/* 反射・角度ステッパー（金属ベゼル＋デジタルカウンター風） */
 #count,#angleControls{
   display:grid;
-  grid-template-columns:48px 1fr 48px;
+  grid-template-columns:46px 1fr 46px;
   align-items:center;
-  background:#0e131d;
-  border:1px solid var(--border-strong);
-  border-radius:12px;
+  background:linear-gradient(180deg,#090b12 0%,#141926 100%);
+  border:2px solid #8a6b2e;
+  border-radius:11px;
   padding:3px;
-  gap:2px;
+  gap:3px;
   height:52px;
+  box-shadow:
+    inset 0 3px 6px rgba(0,0,0,.85),
+    0 1px 0 rgba(255,232,155,.28);
 }
 #count{grid-column:2;grid-row:1;width:100%;min-width:0}
 #angleControls{grid-column:2;grid-row:2;width:100%;min-width:0}
 
 #minus,#plus,#angleControls button{
-  width:100%;min-width:0;height:44px;
+  width:100%;min-width:0;height:42px;
   padding:0;
-  font-size:24px;line-height:1;
-  border-radius:9px;
-  background:#1f293b;
-  border:1px solid rgba(255,255,255,.08);
-  color:#e2e8f0;
+  font-size:23px;line-height:1;
+  border-radius:8px;
+  background:linear-gradient(180deg,#7a86a1 0%,#49536b 48%,#2d3447 50%,#3b445c 100%);
+  border:1.5px solid #cbd5e8;
+  color:#fff;
+  box-shadow:
+    0 2.5px 0 #141824,
+    inset 0 1.5px 0 rgba(255,255,255,.55);
+}
+#minus:active,#plus:active,#angleControls button:active{
+  transform:translateY(2px);
+  box-shadow:0 0.5px 0 #141824,inset 0 1px 0 rgba(255,255,255,.35);
 }
 #minus,#plus{touch-action:manipulation}
 
 #count span{
   text-align:center;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  line-height:1.1;
+  line-height:1.05;
   font-variant-numeric:tabular-nums;
 }
-#count span .maxLabel{font-size:9px;line-height:10px;height:10px;font-weight:800;color:#f87171;letter-spacing:.04em}
-#count span .num{font-size:18px;font-weight:800;color:#fff;line-height:19px}
-#count span small{font-size:10px;font-weight:500;line-height:11px;color:var(--text-muted)}
-#count span.max .num{color:#f87171}
+#count span .maxLabel{
+  font-size:9px;line-height:10px;height:10px;font-weight:900;
+  color:#ffea59;letter-spacing:.06em;
+  text-shadow:0 0 6px #ff2e00, var(--outline-soft);
+}
+#count span .num{
+  font-size:20px;font-weight:900;font-style:italic;
+  color:#ffe36e;line-height:20px;
+  text-shadow:var(--outline-dark);
+}
+#count span small{
+  font-size:10px;font-weight:800;line-height:11px;
+  color:#b6c2db;
+  text-shadow:0 1px 1px #000;
+}
+#count span.max .num{
+  color:#ff5533;
+  text-shadow:0 0 8px rgba(255,60,0,.75), var(--outline-dark);
+}
 
 #angleDisplay{
   text-align:center;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  line-height:1.1;
+  line-height:1.08;
   cursor:pointer;
   padding:2px 2px;
   border-radius:7px;
   font-variant-numeric:tabular-nums;
 }
 #angleDisplay>span:first-child{
-  font-size:10px;font-weight:500;line-height:11px;color:var(--text-muted);display:block;
+  font-size:10px;font-weight:800;line-height:11px;color:#b6c2db;display:block;
+  text-shadow:0 1px 1px #000;
 }
 #angleDisplay .angleValue{
-  font-size:14px;line-height:18px;font-weight:800;color:#fff;
-  border-bottom:1px dashed rgba(148,163,184,.45);
+  font-size:14.5px;line-height:18px;font-weight:900;font-style:italic;
+  color:#fff2a6;
+  text-shadow:var(--outline-dark);
+  border-bottom:1.5px dashed rgba(255,213,79,.55);
 }
 
+/* 拡大ボタン：通常ダークメタリック / ONで光属性ゴールド */
 #zoomBtn{
   grid-column:3;grid-row:1;
   width:100%;min-width:0;height:52px;
   padding:0 6px;font-size:14px;
+  border-color:#b2bdd4;
 }
 #zoomBtn.active{
-  background:var(--accent);
-  border-color:#60a5fa;
+  background:linear-gradient(180deg,var(--light-1) 0%,var(--light-2) 47%,var(--light-3) 50%,var(--light-4) 100%);
+  border-color:#fff8c4;
   color:#fff;
-  box-shadow:0 0 0 2px rgba(59,130,246,.28);
+  box-shadow:
+    0 3.5px 0 var(--light-shadow),
+    0 0 14px rgba(255,204,0,.55),
+    inset 0 2px 1px rgba(255,255,255,.75);
+}
+#zoomBtn.active:active{
+  box-shadow:0 1px 0 var(--light-shadow),inset 0 2px 1px rgba(255,255,255,.5);
 }
 
+/* 保存ボタン：木属性 決定エメラルドグリーン */
 #gaugeBtn{
   grid-column:3;grid-row:2;
   width:100%;min-width:0;height:52px;
   padding:0 6px;font-size:14px;
+  background:linear-gradient(180deg,var(--wood-1) 0%,var(--wood-2) 47%,var(--wood-3) 50%,var(--wood-4) 100%);
+  border:2px solid #c6ffce;
+  box-shadow:
+    0 3.5px 0 var(--wood-shadow),
+    0 5px 10px rgba(0,0,0,.5),
+    inset 0 2px 1px rgba(255,255,255,.68),
+    inset 0 -2px 3px rgba(0,60,15,.4);
 }
-#gaugeBtn.active{background:var(--accent);border-color:#60a5fa}
+#gaugeBtn:active{
+  transform:translateY(2.5px);
+  box-shadow:0 1px 0 var(--wood-shadow),inset 0 2px 2px rgba(255,255,255,.45);
+}
 
+/* 音声コマンドボタン：火属性 ストライクショット風メインボタン＋シマー光沢 */
 #voiceBtn{
   grid-column:1/-1;grid-row:3;
   width:100%;height:46px;
-  font-size:15px;padding:0 14px;
-  background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);
-  border-color:#60a5fa;
+  font-size:15.5px;padding:0 14px;
+  letter-spacing:.04em;
+  background:linear-gradient(180deg,var(--fire-1) 0%,var(--fire-2) 46%,var(--fire-3) 50%,var(--fire-4) 100%);
+  border:2.5px solid #fff0b3;
   color:#fff;
-  box-shadow:0 4px 14px rgba(37,99,235,.32);
+  box-shadow:
+    0 4px 0 var(--fire-shadow),
+    0 6px 16px rgba(255,94,0,.38),
+    inset 0 2px 1px rgba(255,255,255,.75),
+    inset 0 -2px 4px rgba(130,20,0,.45);
 }
-#voiceBtn:active{transform:scale(.98)}
+#voiceBtn::after{
+  content:"";
+  position:absolute;
+  top:-10%;bottom:-10%;left:0;
+  width:44%;
+  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.48) 50%,transparent 100%);
+  pointer-events:none;
+  animation:monstShimmer 4.2s ease-in-out infinite;
+}
+#voiceBtn:active{
+  transform:translateY(3px);
+  box-shadow:
+    0 1px 0 var(--fire-shadow),
+    0 2px 8px rgba(255,94,0,.35),
+    inset 0 2px 2px rgba(255,255,255,.5);
+}
 
 @media(max-width:430px){
   #bar{
     grid-template-columns:minmax(72px,1fr) 158px 80px;
-    gap:6px;padding:7px;border-radius:16px;
+    gap:6px;padding:7px;border-radius:14px;
   }
   button{height:48px;font-size:14px}
   #fileBtn{font-size:12px}
-  #count,#angleControls{grid-template-columns:42px 1fr 42px;height:48px}
-  #minus,#plus,#angleControls button{height:40px;font-size:22px}
-  #angleDisplay .angleValue{font-size:13px}
+  #count,#angleControls{grid-template-columns:40px 1fr 40px;height:48px}
+  #minus,#plus,#angleControls button{height:38px;font-size:21px}
+  #angleDisplay .angleValue{font-size:13.5px}
   #zoomBtn,#gaugeBtn{height:48px;font-size:13px;gap:4px}
-  #voiceBtn{height:44px;font-size:14px}
+  #voiceBtn{height:44px;font-size:14.5px}
 }
 
-/* 音声コマンドモーダル */
+/* 音声コマンドモーダル（モンスト ゲーム内ダイアログ風） */
 #voiceModal{
   display:none;
   position:fixed;inset:0;z-index:1000;
-  background:rgba(5,8,14,.76);
-  backdrop-filter:blur(6px);
-  -webkit-backdrop-filter:blur(6px);
+  background:rgba(4,6,12,.82);
   align-items:center;justify-content:center;
   padding:14px;
 }
 #voiceModal.open{display:flex}
 #voiceModal .voiceCard{
-  width:min(100%,440px);
+  width:min(100%,444px);
   max-height:90dvh;
   display:flex;flex-direction:column;
   overflow:hidden;
-  background:var(--card);
-  border:1px solid rgba(255,255,255,.14);
-  border-radius:20px;
-  box-shadow:0 24px 60px rgba(0,0,0,.65);
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255,255,255,.018) 0px,
+      rgba(255,255,255,.018) 5px,
+      transparent 5px,
+      transparent 10px
+    ),
+    linear-gradient(180deg,#1f2536 0%,#131724 100%);
+  border:3px solid var(--gold);
+  border-radius:18px;
+  box-shadow:
+    0 0 0 2px #361e02,
+    0 24px 60px rgba(0,0,0,.82),
+    inset 0 2px 0 rgba(255,238,165,.45);
 }
 
 .voiceHeader{
-  padding:16px 18px 12px;
-  border-bottom:1px solid rgba(255,255,255,.08);
-  background:rgba(255,255,255,.02);
+  padding:13px 15px 11px;
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255,255,255,.045) 0px,
+      rgba(255,255,255,.045) 6px,
+      transparent 6px,
+      transparent 12px
+    ),
+    linear-gradient(180deg,#6e1d10 0%,#3d0e08 55%,#290905 100%);
+  border-bottom:2.5px solid var(--gold);
+  box-shadow:0 4px 12px rgba(0,0,0,.45), inset 0 1.5px 0 rgba(255,214,140,.35);
   flex-shrink:0;
 }
 .voiceHeaderTop{
   display:flex;align-items:center;justify-content:space-between;gap:10px;
-  margin-bottom:12px;
+  margin-bottom:11px;
 }
-#voiceModal h2{font-size:18px;font-weight:800;margin:0;color:#fff}
+#voiceModal h2{
+  font-size:19px;font-weight:900;margin:0;color:#fff;
+  letter-spacing:.04em;
+  text-shadow:
+    -2px -2px 0 #2e0700, 2px -2px 0 #2e0700,
+    -2px  2px 0 #2e0700, 2px  2px 0 #2e0700,
+     0px  3px 0 #1f0400;
+}
 #voiceCloseX{
   width:36px;height:36px;min-width:36px;
-  padding:0;border-radius:10px;
-  background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.1);
-  color:#cbd5e1;font-size:20px;line-height:1;
+  padding:0;border-radius:50%;
+  background:linear-gradient(180deg,#ff8070 0%,#e02418 48%,#a60d05 50%,#c91a10 100%);
+  border:2px solid #ffd5cc;
+  color:#fff;font-size:21px;line-height:1;
+  box-shadow:0 3px 0 #590400, inset 0 1.5px 0 rgba(255,255,255,.65);
+}
+#voiceCloseX:active{
+  transform:translateY(2px);
+  box-shadow:0 1px 0 #590400;
 }
 
 .voiceTabs{
   display:grid;grid-template-columns:1fr 1fr;gap:6px;
   padding:4px;
-  background:#0d121b;
-  border:1px solid rgba(255,255,255,.08);
+  background:#120807;
+  border:1.5px solid rgba(245,183,47,.5);
   border-radius:12px;
+  box-shadow:inset 0 2px 5px rgba(0,0,0,.85);
 }
 .voiceTabBtn{
-  height:38px;
-  border:1px solid transparent;
-  background:transparent;
-  color:var(--text-muted);
-  font-size:13px;font-weight:700;
-  border-radius:9px;
+  height:37px;
+  border:1.5px solid #49526b;
+  background:linear-gradient(180deg,#353c4f 0%,#1f2433 100%);
+  color:#b9c4db;
+  font-size:13px;font-weight:900;
+  border-radius:8px;
   padding:0 8px;
+  box-shadow:0 2px 0 #0d1018, inset 0 1px 0 rgba(255,255,255,.2);
 }
 .voiceTabBtn.active{
-  background:var(--accent);
+  background:linear-gradient(180deg,var(--fire-1) 0%,var(--fire-2) 48%,var(--fire-3) 50%,var(--fire-4) 100%);
+  border-color:#fff0b3;
   color:#fff;
-  box-shadow:0 2px 10px rgba(59,130,246,.35);
+  box-shadow:
+    0 2.5px 0 var(--fire-shadow),
+    0 0 10px rgba(255,123,0,.45),
+    inset 0 1.5px 0 rgba(255,255,255,.7);
 }
 
 .voiceBody{
-  padding:16px 18px 20px;
+  padding:15px 16px 20px;
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
   flex:1;
@@ -338,33 +593,48 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   display:flex;align-items:center;justify-content:space-between;
   padding:10px 14px;
   border-radius:12px;
-  background:rgba(59,130,246,.12);
-  border:1px solid rgba(59,130,246,.28);
+  background:linear-gradient(180deg,#121724 0%,#090c14 100%);
+  border:2px solid var(--gold);
+  box-shadow:
+    inset 0 3px 8px rgba(0,0,0,.85),
+    0 3px 0 rgba(0,0,0,.45);
   margin-bottom:14px;
 }
-.angleSummary span{font-size:13px;color:#bfdbfe;font-weight:700}
-.angleSummary strong{font-size:20px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
+.angleSummary span{
+  font-size:13px;color:#ffd97d;font-weight:900;
+  text-shadow:var(--outline-soft);
+}
+.angleSummary strong{
+  font-size:23px;font-weight:900;font-style:italic;
+  color:#fff2a6;
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 0 10px rgba(255,180,0,.55), var(--outline-dark);
+}
 
-#voiceModal .voiceField{display:flex;flex-direction:column;gap:7px;margin:14px 0}
+#voiceModal .voiceField{display:flex;flex-direction:column;gap:7px;margin:13px 0}
 #voiceModal #customDurationField{margin:8px 0 0;gap:0}
-#voiceModal label{font-size:13px;font-weight:700;color:#e2e8f0}
-.fieldSub{font-size:11.5px;color:var(--text-muted);margin:-2px 0 2px;line-height:1.45}
+#voiceModal label{
+  font-size:13px;font-weight:900;color:#ffe49e;
+  text-shadow:var(--outline-soft);
+}
+.fieldSub{font-size:11.5px;font-weight:700;color:#b8c4db;margin:-2px 0 2px;line-height:1.45}
 #voiceModal input{
   width:100%;height:44px;
-  border:1px solid var(--border-strong);
+  border:2px solid #596582;
   border-radius:10px;
-  background:var(--input);
+  background:#0a0d16;
   color:#fff;
   padding:0 12px;
-  font-size:15px;
+  font-size:15px;font-weight:800;
+  box-shadow:inset 0 2px 5px rgba(0,0,0,.85);
   -webkit-user-select:text;user-select:text;
   transition:border-color .15s ease,box-shadow .15s ease;
 }
-#voiceModal input::placeholder{color:#64748b}
+#voiceModal input::placeholder{color:#6b7896;font-weight:700}
 #voiceModal input:focus{
   outline:none;
-  border-color:#60a5fa;
-  box-shadow:0 0 0 3px rgba(59,130,246,.22);
+  border-color:var(--gold);
+  box-shadow:inset 0 2px 5px rgba(0,0,0,.85), 0 0 0 3px rgba(245,183,47,.28);
 }
 
 #voiceModal .durationOptions{
@@ -372,171 +642,245 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 }
 #voiceModal .durationOption{
   display:flex;align-items:center;gap:9px;
-  padding:11px 12px;
-  border:1.5px solid var(--border-strong);
+  padding:10px 12px;
+  border:2px solid #505b78;
   border-radius:11px;
-  background:var(--input);
+  background:linear-gradient(180deg,#252c3f 0%,#151a28 100%);
   cursor:pointer;
-  font-size:13px;font-weight:700;color:#cbd5e1;
-  transition:border-color .15s ease,background .15s ease;
+  font-size:13.5px;font-weight:900;color:#d6e0f5;
+  box-shadow:0 3px 0 #0a0d14, inset 0 1px 0 rgba(255,255,255,.22);
+  transition:border-color .12s ease,background .12s ease,transform .08s ease;
 }
 #voiceModal .durationOption:has(input:checked){
-  border-color:#60a5fa;
-  background:rgba(59,130,246,.16);
+  border-color:#ffe48a;
+  background:linear-gradient(180deg,#ff9e2c 0%,#d94b00 50%,#b83700 100%);
   color:#fff;
+  box-shadow:
+    0 3px 0 #591600,
+    0 0 12px rgba(255,123,0,.45),
+    inset 0 1.5px 0 rgba(255,255,255,.6);
 }
 #voiceModal .durationOption input{
   appearance:none;-webkit-appearance:none;
-  width:18px;height:18px;flex:0 0 18px;
+  width:20px;height:20px;flex:0 0 20px;
   margin:0;padding:0;
-  border:1.5px solid #64748b;
+  border:2px solid #8a97b5;
   border-radius:50%;
-  background:transparent;
+  background:#0a0d16;
+  box-shadow:inset 0 2px 3px rgba(0,0,0,.8);
   display:grid;place-content:center;
 }
 #voiceModal .durationOption input:checked{
-  background:var(--accent);border-color:var(--accent);
+  background:radial-gradient(circle at 35% 30%,#fff7c2,#ffbb00 65%,#cc5500);
+  border-color:#fff;
+  box-shadow:0 0 8px #ffe066;
 }
 #voiceModal .durationOption input:checked::before{
   content:"";width:7px;height:7px;border-radius:50%;background:#fff;
 }
-.durationText{display:flex;flex-direction:column;line-height:1.2}
-.durationText small{font-size:11px;font-weight:500;color:var(--text-muted);margin-top:2px}
-#voiceModal .durationOption:has(input:checked) .durationText small{color:#bfdbfe}
+.durationText{display:flex;flex-direction:column;line-height:1.15;text-shadow:var(--outline-soft)}
+.durationText small{font-size:11px;font-weight:800;color:#a8b5cf;margin-top:2px}
+#voiceModal .durationOption:has(input:checked) .durationText small{color:#fff2bf}
 
 .voiceNoticeBox{
   margin:14px 0 4px;
   padding:10px 12px;
   border-radius:10px;
-  background:var(--warn-bg);
-  border:1px solid var(--warn-border);
-  color:var(--warn-text);
-  font-size:12px;line-height:1.5;
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255,196,0,.09) 0px,
+      rgba(255,196,0,.09) 7px,
+      transparent 7px,
+      transparent 14px
+    ),
+    rgba(66,40,4,.82);
+  border:2px solid #f5b72f;
+  color:#ffe999;
+  font-size:12px;font-weight:700;line-height:1.5;
+  box-shadow:inset 0 1px 0 rgba(255,236,160,.25);
 }
-#voiceModal .voiceHint{font-size:12.5px;line-height:1.55;color:var(--text-muted);margin:0 0 12px}
+#voiceModal .voiceHint{font-size:12.5px;font-weight:700;line-height:1.55;color:#cbd5e8;margin:0 0 12px}
 
 #voiceModal .voiceActions{display:flex;gap:8px;margin-top:16px}
 #voiceModal .voiceActions button{flex:1;height:48px;font-size:15px}
-#voiceCancel{background:#1f293b;border-color:var(--border-strong);color:#cbd5e1}
-#voiceGenerate{
-  background:linear-gradient(135deg,#16a34a 0%,#15803d 100%);
-  border-color:#4ade80;
+#voiceCancel{
+  background:linear-gradient(180deg,#68728a 0%,#3c4459 48%,#252b3b 50%,#31384c 100%);
+  border:2px solid #c2cce0;
   color:#fff;
-  box-shadow:0 4px 14px rgba(22,163,74,.32);
+  box-shadow:0 3.5px 0 #141824, inset 0 2px 0 rgba(255,255,255,.45);
+}
+#voiceGenerate{
+  background:linear-gradient(180deg,var(--wood-1) 0%,var(--wood-2) 47%,var(--wood-3) 50%,var(--wood-4) 100%);
+  border:2.5px solid #d4ffd9;
+  color:#fff;
+  box-shadow:
+    0 4px 0 var(--wood-shadow),
+    0 6px 14px rgba(20,180,60,.38),
+    inset 0 2px 1px rgba(255,255,255,.72);
+}
+#voiceGenerate::after,#existingVoiceSaveBtn::after{
+  content:"";
+  position:absolute;
+  top:-10%;bottom:-10%;left:0;
+  width:42%;
+  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.45) 50%,transparent 100%);
+  pointer-events:none;
+  animation:monstShimmer 3.8s ease-in-out infinite;
+}
+#voiceGenerate:active{
+  transform:translateY(3px);
+  box-shadow:0 1px 0 var(--wood-shadow),inset 0 2px 1px rgba(255,255,255,.5);
 }
 
+/* 既存ファイル編集エリア */
 .nativeFilePicker{position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:auto;cursor:pointer}
 .filePickerOverlay{position:relative;width:100%}
 #existingVoicePickBtn{
-  width:100%;height:auto;min-height:76px;
+  width:100%;height:auto;min-height:78px;
   padding:14px 16px;
   flex-direction:column;gap:4px;
-  border:1.5px dashed rgba(96,165,250,.55);
+  border:2.5px solid #c4f1ff;
   border-radius:14px;
-  background:rgba(59,130,246,.08);
+  background:linear-gradient(180deg,var(--water-1) 0%,var(--water-2) 47%,var(--water-3) 50%,var(--water-4) 100%);
   color:#fff;
-  font-size:15px;font-weight:700;
+  font-size:15px;font-weight:900;
+  box-shadow:
+    0 4px 0 var(--water-shadow),
+    0 6px 14px rgba(10,120,240,.35),
+    inset 0 2px 1px rgba(255,255,255,.68);
 }
-#existingVoicePickBtn small{font-size:11.5px;font-weight:500;color:#93c5fd}
+#existingVoicePickBtn svg{stroke:#fff}
+#existingVoicePickBtn small{
+  font-size:11.5px;font-weight:800;color:#e0f7ff;
+  text-shadow:var(--outline-soft);
+}
 
 #existingVoiceFileInfo{
-  margin:10px 0 0;
+  margin:12px 0 0;
   padding:9px 12px;
   border-radius:10px;
-  background:rgba(34,197,94,.12);
-  border:1px solid rgba(34,197,94,.3);
-  color:#86efac;
-  font-size:12.5px;font-weight:700;
+  background:linear-gradient(180deg,rgba(25,130,52,.42) 0%,rgba(12,72,28,.65) 100%);
+  border:2px solid #5ce679;
+  color:#c8ffd4;
+  font-size:12.5px;font-weight:800;
+  text-shadow:0 1px 1px #000;
 }
 
 .existingBulkBar{
   display:flex;flex-wrap:wrap;align-items:center;gap:6px;
-  padding:9px 11px;
-  border:1px solid rgba(255,255,255,.1);
+  padding:10px 11px;
+  border:2px solid #7a6029;
   border-radius:12px;
-  background:#0f1521;
+  background:#0d111c;
   margin-top:10px;
+  box-shadow:inset 0 2px 6px rgba(0,0,0,.75);
 }
-.existingBulkBar span{font-size:12px;color:var(--text-muted);font-weight:700;width:100%;margin-bottom:2px}
+.existingBulkBar span{
+  font-size:12px;color:#ffe296;font-weight:900;width:100%;margin-bottom:2px;
+  text-shadow:var(--outline-soft);
+}
 .existingBulkBtn{
   flex:1;min-width:0;
-  height:34px;min-height:34px;
-  padding:0 8px;font-size:12px;
+  height:36px;min-height:36px;
+  padding:0 6px;font-size:11.5px;
   border-radius:8px;
-  background:#1f293b;border:1px solid var(--border-strong);color:#e2e8f0;
+  border-width:1.5px;
 }
 
 #existingVoiceCommands{display:flex;flex-direction:column;gap:10px;margin-top:12px}
 .existingCommandRow{
   display:flex;flex-direction:column;gap:9px;
   padding:13px;
-  border:1px solid rgba(255,255,255,.1);
+  border:2px solid #6b5830;
   border-radius:14px;
-  background:#111723;
+  background:linear-gradient(180deg,#1d2333 0%,#111521 100%);
+  box-shadow:0 4px 10px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,232,165,.22);
 }
 .existingCommandHead{
   display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
   padding-bottom:8px;
-  border-bottom:1px solid rgba(255,255,255,.07);
+  border-bottom:1.5px solid rgba(245,183,47,.26);
 }
-.existingCommandTitle{font-weight:800;font-size:14px;color:#fff;display:flex;align-items:center;gap:6px}
+.existingCommandTitle{
+  font-weight:900;font-size:14px;color:#fff;
+  display:flex;align-items:center;gap:7px;
+  text-shadow:var(--outline-soft);
+}
 .cmdNumBadge{
   display:inline-flex;align-items:center;justify-content:center;
-  padding:2px 7px;border-radius:6px;
-  background:rgba(59,130,246,.2);color:#93c5fd;
-  font-size:12px;font-weight:800;
+  padding:2px 8px;border-radius:6px;
+  background:linear-gradient(180deg,#ffbd38 0%,#d95b00 100%);
+  border:1.5px solid #fff0b3;
+  color:#fff;
+  font-size:12px;font-weight:900;font-style:italic;
+  box-shadow:0 2px 0 #5e2000;
+  transform:skewX(-8deg);
 }
 .existingCommandMeta{
-  font-size:11.5px;font-weight:700;color:#cbd5e1;
-  background:#1b2436;border:1px solid rgba(255,255,255,.08);
-  border-radius:999px;padding:3px 9px;
+  font-size:11.5px;font-weight:800;color:#d6f0ff;
+  background:#0a1526;border:1.5px solid #2b86d6;
+  border-radius:999px;padding:3px 10px;
   font-variant-numeric:tabular-nums;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.8);
 }
-.existingSubLabel{font-size:12px;font-weight:700;color:#cbd5e1;margin:2px 0 -3px}
+.existingSubLabel{
+  font-size:12px;font-weight:900;color:#ffe49e;margin:2px 0 -3px;
+  text-shadow:var(--outline-soft);
+}
 .existingCommandRow input[type="text"],.existingCommandRow input[type="number"]{
   width:100%;height:42px;
-  border:1px solid var(--border-strong);
+  border:2px solid #596582;
   border-radius:9px;
-  background:var(--input);
-  color:#fff;padding:0 11px;font-size:15px;
+  background:#0a0d16;
+  color:#fff;padding:0 11px;font-size:15px;font-weight:800;
   -webkit-user-select:text;user-select:text;
 }
 .existingSpeedGroup{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .existingSpeedChip{
   display:flex;align-items:center;justify-content:center;
-  height:38px;min-height:38px;padding:4px 6px;
-  border:1.5px solid var(--border-strong);
+  height:38px;min-height:38px;padding:4px 5px;
+  border:1.5px solid #5c6782;
   border-radius:9px;
-  background:var(--input);
-  color:#cbd5e1;font-size:12px;font-weight:700;
-  cursor:pointer;text-align:center;line-height:1.2;
+  background:linear-gradient(180deg,#2d354a 0%,#1a2030 100%);
+  color:#cbd5e8;font-size:11.5px;font-weight:900;
+  cursor:pointer;text-align:center;line-height:1.15;
+  box-shadow:0 2.5px 0 #0b0e17, inset 0 1px 0 rgba(255,255,255,.22);
 }
 .existingSpeedChip.active{
-  border-color:#60a5fa;
-  background:rgba(59,130,246,.2);
+  border-color:#fff0b3;
+  background:linear-gradient(180deg,var(--fire-1) 0%,var(--fire-2) 48%,var(--fire-3) 50%,var(--fire-4) 100%);
   color:#fff;
+  box-shadow:0 2.5px 0 var(--fire-shadow), 0 0 10px rgba(255,123,0,.45), inset 0 1.5px 0 rgba(255,255,255,.65);
 }
 
 .existingSaveArea{
   display:flex;flex-direction:column;gap:10px;
   margin-top:14px;padding-top:14px;
-  border-top:1px solid rgba(255,255,255,.1);
+  border-top:2px solid rgba(245,183,47,.32);
 }
 #existingVoiceSaveBtn{
   width:100%;min-height:48px;height:48px;
   padding:0 14px;
-  border:1px solid #4ade80;
+  border:2.5px solid #d4ffd9;
   border-radius:12px;
-  background:linear-gradient(135deg,#16a34a 0%,#15803d 100%);
-  color:#fff;font-size:15px;font-weight:800;
-  box-shadow:0 4px 14px rgba(22,163,74,.32);
+  background:linear-gradient(180deg,var(--wood-1) 0%,var(--wood-2) 47%,var(--wood-3) 50%,var(--wood-4) 100%);
+  color:#fff;font-size:15.5px;font-weight:900;
+  box-shadow:
+    0 4px 0 var(--wood-shadow),
+    0 6px 14px rgba(20,180,60,.38),
+    inset 0 2px 1px rgba(255,255,255,.72);
+}
+#existingVoiceSaveBtn:active{
+  transform:translateY(3px);
+  box-shadow:0 1px 0 var(--wood-shadow),inset 0 2px 1px rgba(255,255,255,.5);
 }
 </style>
 </head>
 <body>
 <div id="bar">
   <button id="fileBtn" type="button">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
     <span>画像選択</span>
   </button>
   <input id="file" type="file" accept="image/*">
@@ -548,12 +892,12 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   </div>
 
   <button id="zoomBtn" type="button">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
     <span class="btnLabel">拡大</span>
   </button>
 
   <button id="gaugeBtn" type="button" aria-label="ガイド画像を保存">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     <span>保存</span>
   </button>
 
@@ -564,7 +908,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   </div>
 
   <button id="voiceBtn" type="button">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
     <span>音声コマンド作成・編集</span>
   </button>
 </div>
@@ -634,7 +978,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
     <div id="existingVoiceChange">
      <div class="filePickerOverlay">
       <button id="existingVoicePickBtn" type="button">
-       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
        <span>既存ファイルを選択して編集</span>
        <small>.voicecontrolcommands ファイルに対応</small>
       </button>
@@ -668,8 +1012,9 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 <div id="wrap">
   <div id="empty">
     <div class="emptyCard">
+      <div class="emptyRibbon"><span>SHOT GUIDE</span></div>
       <div class="emptyIcon">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
       </div>
       <p class="emptyTitle">スクショを選択してガイドを表示</p>
       <p class="emptySub">ここをタップするか、下の「画像選択」から<br>モンストの画面画像を選んでください</p>
@@ -978,7 +1323,7 @@ function updateAngleUI(){
   const input=document.createElement('input');
   input.type='number'; input.inputMode='decimal'; input.min='0'; input.max='359.99'; input.step='0.01';
   input.value=current.toFixed(2); input.setAttribute('aria-label','角度を入力');
-  input.style.cssText='width:78px;max-width:100%;font:inherit;font-weight:700;text-align:center;color:inherit;background:#0e1219;border:1px solid #4f91ff;border-radius:5px;padding:2px;box-sizing:border-box;';
+  input.style.cssText='width:78px;max-width:100%;font:inherit;font-weight:900;text-align:center;color:#fff2a6;background:#0a0d16;border:2px solid #f5b72f;border-radius:6px;padding:2px;box-sizing:border-box;';
   valueEl.replaceWith(input);
   const finish=(commit)=>{
    if(!input.isConnected)return;
@@ -1161,11 +1506,13 @@ let voiceFileNameEdited=false;
 function getVoiceDeviceProfile(){
  const shortSide=Math.min(window.screen.width,window.screen.height);
  const isIPad=(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)||/iPad/i.test(navigator.userAgent)||shortSide>=700;
- const deviceScale=Number(window.devicePixelRatio)||(isIPad?2:3);
+ // SafariのdevicePixelRatioを優先し、取得できない場合だけ端末種別から補う。
+ const deviceScale=Number(window.devicePixelRatio)|| (isIPad?2:3);
  return {isIPad,deviceScale,lengthPx:Math.round(isIPad?140:100)};
 }
 const durationModeInputs=[...document.querySelectorAll('input[name="voiceDurationMode"]')];
 const customDurationInput=document.getElementById('voiceDuration');
+// 自由入力欄に数値が入っている場合は、速射・ゲージの選択を解除して入力値を優先する。
 function updateDurationMode(){
  if(customDurationInput.value.trim()!=='') durationModeInputs.forEach(input=>input.checked=false);
  else if(!durationModeInputs.some(input=>input.checked)) durationModeInputs.find(input=>input.value==='rapid').checked=true;
@@ -1185,15 +1532,23 @@ function getDefaultVoiceFileName(){
  let deg = (-pullAngle * 180 / Math.PI) % 360;
  if(deg < 0) deg += 360;
  const angleText = deg.toFixed(2);
+
+ // 選択されているモード名を取得
  const customDurationValue = document.getElementById('voiceDuration').value.trim();
  const durationMode = [...document.querySelectorAll('input[name="voiceDurationMode"]')].find(input=>input.checked)?.value||'rapid';
  let modeText = '';
- if(customDurationValue !== '') modeText = `${customDurationValue}秒`;
- else if(durationMode === 'gauge') modeText = 'ゲージ';
- else if(durationMode === 'rapid') modeText = '速射';
+ if(customDurationValue !== ''){
+   modeText = `${customDurationValue}秒`;
+ }else if(durationMode === 'gauge'){
+   modeText = 'ゲージ';
+ }else if(durationMode === 'rapid'){
+   modeText = '速射';
+ }
+
  return `${angleText}°_${modeText}_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
 }
 document.getElementById('voiceFileName').value=getDefaultVoiceFileName();
+// 既存の文字をタップしたら全選択し、すぐ上書きできるようにする。
 ['voiceDuration','voiceCommandName','voiceFileName'].forEach(id=>{
  const el=document.getElementById(id);
  el.addEventListener('focus',()=>{try{el.select()}catch(_){}});
@@ -1234,9 +1589,11 @@ document.getElementById('voiceCancel').addEventListener('click',()=>voiceModal.c
 voiceModal.addEventListener('click',e=>{if(e.target===voiceModal)voiceModal.classList.remove('open')});
 function voiceXmlEscape(v){return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;')}
 function voiceDataToBase64(bytes){let bin='';for(let i=0;i<bytes.length;i+=0x8000)bin+=String.fromCharCode(...bytes.subarray(i,Math.min(i+0x8000,bytes.length)));return btoa(bin)}
+// 1. ジェスチャ生成関数（任意の角度に対応できるよう拡張）
 function makeVoiceGesture(lengthPx,durationSec,deviceScale,targetPullAngle=pullAngle){
  const bytes=Uint8Array.from(atob(voiceGestureTemplateB64),c=>c.charCodeAt(0));
  const target=targetPullAngle-Math.PI;
+ // 実機テンプレートの座標を維持し、端末のスケールに合わせて始点をスナップ。
  const baseX=voiceGesturePoints[0].x,baseY=voiceGesturePoints[0].y;
  const x1=Math.round(baseX*deviceScale)/deviceScale;
  const y1=Math.round(baseY*deviceScale)/deviceScale;
@@ -1299,25 +1656,42 @@ document.getElementById('voiceGenerate').addEventListener('click',()=>{
   const blob=new Blob([xml],{type:'application/octet-stream'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=fileName.toLowerCase().endsWith('.voicecontrolcommands')?fileName:fileName+'.voicecontrolcommands';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);voiceModal.classList.remove('open');
  }catch(err){alert(err.message||'ファイル生成に失敗しました。')}
 });
+// 2. 既存バイナリから角度を取り出して新規テンプレートで一括打ち直しする処理（角度軸修正版）
 function convertGestureDuration(b64, durationSec, lengthPx, deviceScale){
-  const raw = atob(b64.trim());
-  const matches = [...raw.matchAll(/\{([0-9.]+),\s*([0-9.]+)\}/g)];
-  if(!matches || matches.length < 2) throw new Error('ジェスチャーの座標を読み取れませんでした。');
-  const startX = parseFloat(matches[0][1]);
-  const startY = parseFloat(matches[0][2]);
-  const endX = parseFloat(matches[matches.length - 1][1]);
-  const endY = parseFloat(matches[matches.length - 1][2]);
-  const extractedPullAngle = Math.atan2(endY - startY, endX - startX) + Math.PI;
-  return makeVoiceGesture(lengthPx, durationSec, deviceScale, extractedPullAngle);
+  try{
+    const raw = atob(b64.trim());
+    const matches = [...raw.matchAll(/\{([0-9.]+),\s*([0-9.]+)\}/g)];
+    if(!matches || matches.length < 2) throw new Error('ジェスチャーの座標を読み取れませんでした。');
+    
+    // 実際のファイルデータから「始点」と「終点」を取得
+    const startX = parseFloat(matches[0][1]);
+    const startY = parseFloat(matches[0][2]);
+    const endX = parseFloat(matches[matches.length - 1][1]);
+    const endY = parseFloat(matches[matches.length - 1][2]);
+    
+    const dx = endX - startX;
+    const dy = endY - startY;
+    
+    // ジェスチャ作成関数の内部計算（-Math.PI）と打ち消し合って100%同じ角度になるよう調整
+    const extractedPullAngle = Math.atan2(dy, dx) + Math.PI;
+
+    return makeVoiceGesture(lengthPx, durationSec, deviceScale, extractedPullAngle);
+  }catch(e){
+    throw e;
+  }
 }
+// 既存ジェスチャのバイナリから角度と元の所要時間（秒）を推定する。
 function extractGestureInfo(b64){
   const info={angleText:null,durationSec:null};
   try{
     const raw=atob(b64.trim());
     const matches=[...raw.matchAll(/\{([0-9.]+),\s*([0-9.]+)\}/g)];
     if(matches.length>=2){
-      const dx=parseFloat(matches[matches.length-1][1])-parseFloat(matches[0][1]);
-      const dy=parseFloat(matches[matches.length-1][2])-parseFloat(matches[0][2]);
+      const startX=parseFloat(matches[0][1]);
+      const startY=parseFloat(matches[0][2]);
+      const endX=parseFloat(matches[matches.length-1][1]);
+      const endY=parseFloat(matches[matches.length-1][2]);
+      const dx=endX-startX, dy=endY-startY;
       if(Math.hypot(dx,dy)>1e-4){
         const extractedPullAngle=Math.atan2(dy,dx)+Math.PI;
         let deg=(-extractedPullAngle*180/Math.PI)%360;
@@ -1343,6 +1717,7 @@ function extractGestureInfo(b64){
   return info;
 }
 
+// 既存Voice Controlファイルを読み込み、各コマンドの読み上げ語句と引っ張る速度を個別に編集・保存する。
 const existingVoiceInput=document.getElementById('existingVoiceFile');
 const existingVoiceList=document.getElementById('existingVoiceCommands');
 const existingVoicePickBtn=document.getElementById('existingVoicePickBtn');
@@ -1564,6 +1939,7 @@ if(existingVoiceSaveBtn){
    const deviceScale=deviceProfile.deviceScale;
    const isoNow=new Date().toISOString().replace(/\.\d{3}Z$/,'Z');
 
+   // 先に全コマンドの入力値を検証する
    const plans=existingVoiceEntries.map(item=>{
     const newName=item.nameInput.value.trim();
     if(!newName)throw new Error(`${item.index+1}番目のコマンド名を入力してください。`);
@@ -1582,6 +1958,7 @@ if(existingVoiceSaveBtn){
     return {item,newName,targetDuration};
    });
 
+   // 検証通過後にXMLへ反映する
    plans.forEach(({item,newName,targetDuration})=>{
     let customCommands=plistKeyValue(item.dict,'CustomCommands');
     if(!customCommands||customCommands.tagName!=='dict'){
