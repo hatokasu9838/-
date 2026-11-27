@@ -69,6 +69,31 @@ button.repeatPressed{
   box-shadow:0 0 0 2px rgba(96,165,250,.22) inset;
 }
 
+/* 検出ステータストースト */
+#detectToast{
+  position:fixed;
+  top:max(14px,env(safe-area-inset-top));
+  left:50%;
+  transform:translateX(-50%) translateY(-12px);
+  z-index:60;
+  padding:8px 14px;
+  border-radius:999px;
+  background:rgba(15,23,42,.92);
+  border:1px solid rgba(96,165,250,.45);
+  color:#f8fafc;
+  font-size:12.5px;
+  font-weight:700;
+  white-space:nowrap;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .18s ease,transform .18s ease;
+  box-shadow:0 8px 24px rgba(0,0,0,.45);
+}
+#detectToast.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
 /* ステージ・画像表示 */
 #wrap{
   position:absolute;inset:0;
@@ -175,6 +200,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   color:#e2e8f0;
   gap:5px;
   letter-spacing:.02em;
+  touch-action:manipulation;
 }
 .presetDot{
   width:8px;height:8px;border-radius:50%;flex-shrink:0;
@@ -352,7 +378,6 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   color:#cbd5e1;font-size:20px;line-height:1;
 }
 
-/* モーダル内タブ切り替え */
 .voiceTabs{
   display:grid;grid-template-columns:1fr 1fr;gap:6px;
   padding:4px;
@@ -382,7 +407,6 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   flex:1;
 }
 
-/* 現在の角度バナー */
 .angleSummary{
   display:flex;align-items:center;justify-content:space-between;
   padding:10px 14px;
@@ -474,7 +498,6 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   box-shadow:0 4px 14px rgba(22,163,74,.32);
 }
 
-/* 既存ファイル編集エリア */
 .nativeFilePicker{position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:auto;cursor:pointer}
 .filePickerOverlay{position:relative;width:100%}
 #existingVoicePickBtn{
@@ -584,8 +607,10 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 </style>
 </head>
 <body>
+<div id="detectToast" role="status" aria-live="polite"></div>
+
 <div id="bar">
-  <div id="presetRow" role="group" aria-label="味方位置にカーソルを合わせる">
+  <div id="presetRow" role="group" aria-label="画像から味方位置を自動検出してカーソルを合わせる">
     <button type="button" class="presetBtn" data-slot="0"><span class="presetDot" aria-hidden="true"></span><span>1st</span></button>
     <button type="button" class="presetBtn" data-slot="1"><span class="presetDot" aria-hidden="true"></span><span>2nd</span></button>
     <button type="button" class="presetBtn" data-slot="2"><span class="presetDot" aria-hidden="true"></span><span>3rd</span></button>
@@ -731,9 +756,9 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
       <p class="emptyTitle">スクショを選択してガイドを表示</p>
       <p class="emptySub">ここをタップするか、下の「画像選択」から<br>モンストの画面画像を選んでください</p>
       <div class="emptyTips">
+        <div class="emptyTip"><b>1st〜4thボタン</b><span>画像から味方ボール絵を自動検出</span></div>
         <div class="emptyTip"><b>矢印をドラッグ</b><span>カーソルの位置を移動</span></div>
         <div class="emptyTip"><b>画面をなぞる</b><span>引っ張る角度を調整</span></div>
-        <div class="emptyTip"><b>角度を2回タップ</b><span>数値を直接入力</span></div>
       </div>
     </div>
   </div>
@@ -742,34 +767,54 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
     <canvas id="cv"></canvas>
   </div>
 </div>
+
 <script>
 const file=document.getElementById('file'), fileBtn=document.getElementById('fileBtn');
 const stage=document.getElementById('stage'), photo=document.getElementById('photo'), cv=document.getElementById('cv');
 const ctx=cv.getContext('2d'), empty=document.getElementById('empty');
-const nEl=document.getElementById('n'), plus=document.getElementById('plus'), minus=document.getElementById('minus'), hide=document.getElementById('hide');
+const nEl=document.getElementById('n'), plus=document.getElementById('plus'), minus=document.getElementById('minus');
+const detectToast=document.getElementById('detectToast');
 
-let reflections=3, imgW=0,imgH=0; let zoomMode=false, zoomScale=1, zoomStartDist=0, zoomStartScale=1;
-let cursor={x:0,y:0}; // image coordinates
-// pullAngle is the direction from the ball toward the tapped/released position.
+let reflections=3, imgW=0, imgH=0;
+let zoomMode=false, zoomScale=1, zoomStartDist=0, zoomStartScale=1;
+let cursor={x:0,y:0};
 let pullAngle=-Math.PI/2;
-let active=null, lastX=0,lastY=0;
-let touchStartX=0,touchStartY=0;
+let active=null, lastX=0, lastY=0;
+let touchStartX=0, touchStartY=0;
+
+// 自動検出キャッシュ（画像が変わるたびにリセット）
+let autoDetectCache=null;
+let lastClickedSlot=-1;
+let slotCandidateCursor=[0,0,0,0];
+let toastTimer=null;
+
+function showDetectToast(msg){
+  if(!detectToast)return;
+  detectToast.textContent=msg;
+  detectToast.classList.add('show');
+  if(toastTimer)clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>detectToast.classList.remove('show'),2000);
+}
 
 fileBtn.onclick=()=>file.click();
 empty.onclick=()=>{ if(stage.hidden) file.click(); };
 file.onchange=e=>{
  const f=e.target.files?.[0]; if(!f)return;
  const url=URL.createObjectURL(f);
- // Remember the most recently selected image for the ⚡︎ button.
  photo.onload=()=>{
    if(imgW>0 && imgH>0){
      window._cursorRelX=cursor.x/imgW;
      window._cursorRelY=cursor.y/imgH;
    }
    imgW=photo.naturalWidth; imgH=photo.naturalHeight;
-   stage.hidden=false; empty.hidden=true; empty.style.display='none';
+   stage.hidden=false;
+   empty.hidden=true;
+   empty.style.display='none';
+   autoDetectCache=null;
+   lastClickedSlot=-1;
+   slotCandidateCursor=[0,0,0,0];
+   clearPresetActive();
    fitStage();
-   // 画像を変更しても、カーソルの現在位置と角度を維持します。
    const b=bounds();
    if(typeof window._cursorRelX==='number' && typeof window._cursorRelY==='number'){
      cursor.x=Math.max(0,Math.min(imgW,window._cursorRelX*imgW));
@@ -780,7 +825,6 @@ file.onchange=e=>{
    updateAngleUI();
    draw();
    updateBarScale();
-   if(typeof gaugeOn!=='undefined'&&gaugeOn&&typeof positionGauge==='function')positionGauge();
  };
  photo.src=url;
 };
@@ -793,19 +837,17 @@ function fitStage(){
  stage.style.height=Math.round(imgH*scale)+'px';
  cv.width=imgW; cv.height=imgH;
 }
-window.addEventListener('resize',()=>{if(!stage.hidden){fitStage();if(typeof gaugeOn!=='undefined'&&gaugeOn&&typeof positionGauge==='function')positionGauge();draw();}requestAnimationFrame(updateBarScale);});
+window.addEventListener('resize',()=>{if(!stage.hidden){fitStage();draw();}requestAnimationFrame(updateBarScale);});
 
 function bounds(){
-   const topY = 299;
-   const bottomY = 1030;
-   const leftX = 54;
-   const rightX = 1111;
-  // 1. マスター環境（iPhone 14想定）の解像度
+  const topY = 299;
+  const bottomY = 1030;
+  const leftX = 54;
+  const rightX = 1111;
   const baseW = 1170;
   const baseH = 2532;
   const oldRefH = 1536;
 
-  // 2. 完璧な数値から、ベース環境での絶対座標を算出
   const uL = leftX;
   const uR = rightX;
   const uT = (topY / oldRefH) * baseH;
@@ -813,32 +855,17 @@ function bounds(){
 
   const baseBoxW = uR - uL;
   const baseBoxH = uB - uT;
-
-  // ★ここが位置ズレ解消の鍵：「画面のど真ん中」からどれだけズレているかを計算
   const baseCenterX = (uL + uR) / 2;
   const baseCenterY = (uT + uB) / 2;
-  const offsetX = (baseW / 2) - baseCenterX; // 中心からのXズレ
-  const offsetY = (baseH / 2) - baseCenterY; // 中心からのYズレ（上にズレている分）
+  const offsetX = (baseW / 2) - baseCenterX;
+  const offsetY = (baseH / 2) - baseCenterY;
 
-  // 3. 読み込んだ画像のアスペクト比判定（16:9を基準とする）
   const thresholdAspect = 16 / 9;
   const imgAspect = imgH / imgW;
+  const scale = (imgAspect >= thresholdAspect) ? (imgW / baseW) : ((imgH / thresholdAspect) / baseW);
 
-  let scale;
-  if (imgAspect >= thresholdAspect) {
-    // 縦長スマホ (iPhone 14, SEなど)
-    scale = imgW / baseW;
-  } else {
-    // 横広タブレット (iPadなど)
-    const virtualW = imgH / thresholdAspect;
-    scale = virtualW / baseW;
-  }
-
-  // 4. 最終的な盤面のサイズ（ここは前回と同じ完璧なサイズ）
   const currentW = baseBoxW * scale;
   const currentH = baseBoxH * scale;
-
-  // 5. 各端末の「画面のど真ん中」を基準に、スケールされたズレ分を適用して配置
   const currentCX = (imgW / 2) - (offsetX * scale);
   const currentCY = (imgH / 2) - (offsetY * scale);
 
@@ -846,13 +873,14 @@ function bounds(){
     l: Math.max(0, currentCX - currentW / 2),
     r: Math.min(imgW, currentCX + currentW / 2),
     t: Math.max(0, currentCY - currentH / 2),
-    b: Math.min(imgH, currentCY + currentH / 2)
+    b: Math.min(imgH, currentCY + currentH / 2),
+    scale
   };
 }
+
 function updateBarScale(){
  const bar=document.getElementById('bar');
  if(!bar)return;
- // Measure the unscaled menu so repeated resize events do not compound scaling.
  const naturalHeight=bar.offsetHeight;
  if(!naturalHeight)return;
  let availableHeight=window.innerHeight*0.88;
@@ -863,7 +891,6 @@ function updateBarScale(){
    const safeBottom=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-bottom'))||0;
    availableHeight=window.innerHeight-wallBottomOnScreen-safeBottom-12;
  }
- // Leave a small margin below the wall and never enlarge beyond the iPhone 14 baseline.
  const scale=Math.max(0.1,Math.min(1,(availableHeight*0.90)/naturalHeight));
  bar.style.setProperty('--auto-menu-scale',String(scale));
 }
@@ -910,11 +937,10 @@ function rayToSegment(px,py,dx,dy,x1,y1,x2,y2){
  if(t>1e-7 && u>=0 && u<=1)return {t,u,x:px+dx*t,y:py+dy*t};
  return null;
 }
+
 function reflectPath(b){
- // Shoot directly toward the tapped/released position.
  let x=cursor.x,y=cursor.y;
  let dx=Math.cos(pullAngle),dy=Math.sin(pullAngle);
- // angle is the travel direction.
  const pts=[{x,y}];
  for(let k=0;k<reflections;k++){
    const hits=[
@@ -929,9 +955,8 @@ function reflectPath(b){
    else dy=-dy;
    x=h.x+dx*.05;y=h.y+dy*.05;
  }
- // Continue last segment to boundary/long distance.
  let ex=x+dx*Math.max(imgW,imgH)*2, ey=y+dy*Math.max(imgW,imgH)*2;
- const last= [
+ const last=[
    rayToSegment(x,y,dx,dy,b.l,b.t,b.r,b.t),
    rayToSegment(x,y,dx,dy,b.r,b.t,b.r,b.b),
    rayToSegment(x,y,dx,dy,b.r,b.b,b.l,b.b),
@@ -941,6 +966,7 @@ function reflectPath(b){
  pts.push({x:ex,y:ey});
  return pts;
 }
+
 function drawReflection(b){
  const s=(b.r-b.l)/1057;
  const pts=reflectPath(b);
@@ -978,11 +1004,12 @@ function drawReflection(b){
    ctx.restore();
  }
 }
-// Convert pointer from canvas CSS pixels to image coordinates.
+
 function pos(e){
  const r=cv.getBoundingClientRect();
  return {x:(e.clientX-r.left)*imgW/r.width,y:(e.clientY-r.top)*imgH/r.height};
 }
+
 function nearestArm(p){
  const x=cursor.x,y=cursor.y;
  const b=bounds();
@@ -1000,6 +1027,7 @@ function nearestArm(p){
  }
  return -1;
 }
+
 cv.addEventListener('pointerdown',e=>{
  if(stage.hidden || zoomMode)return;
  cv.setPointerCapture(e.pointerId);
@@ -1014,19 +1042,17 @@ cv.addEventListener('pointerdown',e=>{
  }
  e.preventDefault();
 });
+
 cv.addEventListener('pointermove',e=>{
  if(!active)return;
- // Safari/iPhoneでも可能な限り細かいpointerイベントをすべて処理し、角度を丸めません。
  const events=e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
  for(const ev of events){
    const p=pos(ev);
    if(active==='move'){
-     // Move the whole cursor with the selected arm; the arm stays in the hand.
      cursor.x=Math.max(0,Math.min(imgW,cursor.x+(p.x-lastX)));
      cursor.y=Math.max(0,Math.min(imgH,cursor.y+(p.y-lastY)));
      clearPresetActive();
    }else{
-     // 指の位置から連続値の角度を直接計算。1°刻みにはしません。
      const vx=p.x-touchStartX, vy=p.y-touchStartY;
      if(Math.hypot(vx,vy)>0.01){
        pullAngle=Math.atan2(-vy,-vx);
@@ -1037,12 +1063,13 @@ cv.addEventListener('pointermove',e=>{
  updateAngleUI(); draw();
  e.preventDefault();
 });
+
 function updateAngleUI(){
  let deg = (-pullAngle * 180 / Math.PI) % 360;
  if(deg < 0) deg += 360;
  document.getElementById('angleDisplay').querySelector('.angleValue').textContent = deg.toFixed(2) + '°';
 }
-// 角度表示をダブルタップすると数値キーボードで直接編集できます。
+
 (function enableAngleDirectInput(){
  const display=document.getElementById('angleDisplay');
  let lastTap=0;
@@ -1074,6 +1101,7 @@ function updateAngleUI(){
  display.addEventListener('dblclick',e=>{e.preventDefault();e.stopPropagation();openEditor()});
  display.addEventListener('touchend',e=>{const now=Date.now();if(now-lastTap<350){e.preventDefault();openEditor();lastTap=0}else lastTap=now},{passive:false});
 })();
+
 function end(e){
  if(active==='angle' && e){
    const p=pos(e);
@@ -1085,8 +1113,8 @@ function end(e){
  }
  active=null;
 }
-
-cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);
+cv.addEventListener('pointerup',end);
+cv.addEventListener('pointercancel',end);
 
 function updateCount(){
   const num=nEl.querySelector('.num');
@@ -1095,6 +1123,7 @@ function updateCount(){
   max.textContent=reflections===20?'MAX':'';
   nEl.classList.toggle('max',reflections===20);
 }
+
 const angleMinus=document.getElementById('angleMinus'), anglePlus=document.getElementById('anglePlus');
 function changeAngle(delta){
   let currentDeg = (-pullAngle * 180 / Math.PI) % 360;
@@ -1104,7 +1133,7 @@ function changeAngle(delta){
   updateAngleUI();
   draw();
 }
-// 長押し対応：反射は「通常速度→1段階だけ加速」。角度は従来の速度を維持。
+
 function bindRepeat(btn,fn,mode='slow'){
  let timeout=null, stopped=false, step=0;
  const reflectionDelays=[240,120];
@@ -1124,42 +1153,288 @@ function bindRepeat(btn,fn,mode='slow'){
  });
  ['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,stop));
 }
-bindRepeat(plus,()=>{reflections=reflections===20?0:reflections+1;
-// 1st〜4th の標準初期配置（盤面 bounds に対する比率）へカーソルを移動する
-const presetSlots = [
-  { rx: 0.19,  ry: 0.865 }, // 1st
-  { rx: 0.397, ry: 0.865 }, // 2nd
-  { rx: 0.603, ry: 0.865 }, // 3rd
-  { rx: 0.81,  ry: 0.865 }  // 4th
-];
-const presetBtns = [...document.querySelectorAll('.presetBtn')];
+
+bindRepeat(plus,()=>{reflections=reflections===20?0:reflections+1;updateCount();draw();});
+bindRepeat(minus,()=>{reflections=reflections===0?20:reflections-1;updateCount();draw();});
+bindRepeat(anglePlus,()=>changeAngle(0.01),'fast');
+bindRepeat(angleMinus,()=>changeAngle(-0.01),'fast');
+updateCount();
+
+/* =====================================================================
+ * 1st / 2nd / 3rd / 4th ボール絵中心 自動検出エンジン
+ * バトル画面下部の4キャラ枠（1st〜4th）から円形アイコンを抽出し、
+ * 盤面内をマルチスケール円形正規化相互相関（Masked NCC）で探索する。
+ * ===================================================================== */
+const presetBtns=[...document.querySelectorAll('.presetBtn')];
+const slotLabels=['1st','2nd','3rd','4th'];
+
 function clearPresetActive(){
-  presetBtns.forEach(b => b.classList.remove('active'));
+  presetBtns.forEach(b=>b.classList.remove('active'));
+  lastClickedSlot=-1;
 }
+
+// オフスクリーン解析用：画像から (cx, cy) 中心・半径 r の円形パッチ（N×N）をサンプリングして正規化ベクトルを作る
+function sampleCircularPatch(imgData, W, H, cx, cy, radius, gridN){
+  const data=imgData.data;
+  const vec=[];
+  const half=(gridN-1)/2;
+  let sumR=0, sumG=0, sumB=0, count=0;
+
+  for(let gy=0;gy<gridN;gy++){
+    const ny=(gy-half)/half; // -1..1
+    for(let gx=0;gx<gridN;gx++){
+      const nx=(gx-half)/half;
+      const dist2=nx*nx+ny*ny;
+      // 外周の文字・枠ノイズを避けるため、半径0.82以内の円内のみを使用
+      if(dist2>0.82*0.82) continue;
+      const px=Math.round(cx + nx*radius);
+      const py=Math.round(cy + ny*radius);
+      if(px<0||px>=W||py<0||py>=H){
+        vec.push(0,0,0);
+        count++;
+        continue;
+      }
+      const idx=(py*W+px)*4;
+      const r=data[idx], g=data[idx+1], b=data[idx+2];
+      vec.push(r,g,b);
+      sumR+=r; sumG+=g; sumB+=b;
+      count++;
+    }
+  }
+  const meanR=sumR/count, meanG=sumG/count, meanB=sumB/count;
+  let norm2=0;
+  const out=new Float32Array(vec.length);
+  for(let i=0;i<vec.length;i+=3){
+    const dr=vec[i]-meanR;
+    const dg=vec[i+1]-meanG;
+    const db=vec[i+2]-meanB;
+    out[i]=dr; out[i+1]=dg; out[i+2]=db;
+    norm2+=dr*dr+dg*dg+db*db;
+  }
+  const norm=Math.sqrt(norm2)||1;
+  for(let i=0;i<out.length;i++) out[i]/=norm;
+  return { vec: out, mean: [meanR, meanG, meanB] };
+}
+
+function dotPatch(a, b){
+  const va=a.vec, vb=b.vec;
+  let s=0;
+  for(let i=0;i<va.length;i++) s+=va[i]*vb[i];
+  // 色の平均値の近さも軽く加味（明るさや色味の大幅な違いを抑制）
+  const dm=Math.hypot(a.mean[0]-b.mean[0], a.mean[1]-b.mean[1], a.mean[2]-b.mean[2])/441.67;
+  return s - dm*0.18;
+}
+
+// 画像全体を解析して、1st〜4thそれぞれの最有力候補と複数候補リストを作成
+function detectAllPartyBalls(){
+  const b=bounds();
+  const bw=b.r-b.l;
+  const bh=b.b-b.t;
+  const s=bw/1057; // 盤面基準スケール
+
+  // 高速化のため、解析用キャンバスは盤面幅約240px相当に縮小
+  const targetBoardW=240;
+  const workScale=Math.min(1, targetBoardW / bw);
+  const wW=Math.max(120, Math.round(imgW * workScale));
+  const wH=Math.max(120, Math.round(imgH * workScale));
+
+  const workCv=document.createElement('canvas');
+  workCv.width=wW; workCv.height=wH;
+  const wctx=workCv.getContext('2d', { willReadFrequently: true });
+  wctx.drawImage(photo, 0, 0, wW, wH);
+  const imgData=wctx.getImageData(0, 0, wW, wH);
+
+  // 縮小座標系での盤面範囲と基本サイズ
+  const bl=b.l*workScale, br=b.r*workScale, bt=b.t*workScale, bb=b.b*workScale;
+  const bbw=br-bl;
+  const ws=s*workScale;
+
+  // 下部パーティ欄（4スロット）の座標を算出
+  // モンストのバトル画面では盤面下端 bb の下方に4等分のキャラ枠が並ぶ
+  const uiWidth = 1170 * b.scale * workScale;
+  const uiLeft = (wW - uiWidth) / 2;
+  const slotW = uiWidth / 4;
+  // キャラ顔アイコンの中心Y（盤面下端からの相対距離：実測約0.265*bbw）
+  const slotCenterY = bb + bbw * 0.268;
+  // 下部アイコンからサンプリングする半径（約0.095*bbw）
+  const slotRadius = Math.max(8, bbw * 0.092);
+
+  // 下部欄が画像内に収まっているかチェック
+  const hasBottomSlots = (slotCenterY + slotRadius < wH - 2);
+  if(!hasBottomSlots){
+    // 下部欄が切れている画像の場合は標準初期位置にフォールバック
+    const fallback=[0.19,0.397,0.603,0.81].map(rx=>([{x:b.l+bw*rx, y:b.t+bh*0.865, score:0}]));
+    return { assigned: fallback.map(list=>list[0]), candidatesPerSlot: fallback, fallback: true };
+  }
+
+  // 各スロットからテンプレートを抽出（スロット中央付近の微小オフセットで最もコントラストが高い中心を採用）
+  const gridN=13;
+  const templates=[];
+  for(let i=0;i<4;i++){
+    const cx = uiLeft + slotW * (i + 0.46);
+    const cy = slotCenterY;
+    templates.push(sampleCircularPatch(imgData, wW, wH, cx, cy, slotRadius, gridN));
+  }
+
+  // 盤面上のボール絵の標準半径（1057幅盤面で半径約60〜66px）
+  const ballRBase = 62 * ws;
+  const scales = [0.88, 1.0, 1.12];
+  const step = Math.max(3, Math.round(ballRBase * 0.26));
+  const marginX = Math.max(4, Math.round(ballRBase * 0.65));
+  const marginY = Math.max(4, Math.round(ballRBase * 0.65));
+
+  // 1. 粗探索：盤面全体をスキャンし、各スロットごとの上位候補を収集
+  const rawMaps=[[],[],[],[]];
+  for(let y=Math.round(bt+marginY); y<=Math.round(bb-marginY); y+=step){
+    for(let x=Math.round(bl+marginX); x<=Math.round(br-marginX); x+=step){
+      let bestPatchScores=[-9,-9,-9,-9];
+      let bestRadii=[ballRBase,ballRBase,ballRBase,ballRBase];
+      for(const sc of scales){
+        const r=ballRBase*sc;
+        const patch=sampleCircularPatch(imgData, wW, wH, x, y, r, gridN);
+        for(let i=0;i<4;i++){
+          const scVal=dotPatch(templates[i], patch);
+          if(scVal > bestPatchScores[i]){
+            bestPatchScores[i]=scVal;
+            bestRadii[i]=r;
+          }
+        }
+      }
+      for(let i=0;i<4;i++){
+        rawMaps[i].push({ x, y, r: bestRadii[i], score: bestPatchScores[i] });
+      }
+    }
+  }
+
+  // 2. 各スロットの非極大抑制（NMS）で上位8候補を取り出し、1px刻みで中心を精密補正
+  const nmsDist = ballRBase * 1.45;
+  const refinedPerSlot = [];
+  for(let i=0;i<4;i++){
+    rawMaps[i].sort((a,c)=>c.score-a.score);
+    const peaks=[];
+    for(const pt of rawMaps[i]){
+      if(peaks.every(p=>Math.hypot(p.x-pt.x, p.y-pt.y) >= nmsDist)){
+        // 周囲 ±step を1px刻みで精探索してボール絵の中心へピタッと合わせる
+        let bx=pt.x, by=pt.y, brBest=pt.r, bs=pt.score;
+        const refineRange=step;
+        for(let dy=-refineRange; dy<=refineRange; dy++){
+          const ny=pt.y+dy;
+          if(ny<bt+marginY*0.5 || ny>bb-marginY*0.5) continue;
+          for(let dx=-refineRange; dx<=refineRange; dx++){
+            const nx=pt.x+dx;
+            if(nx<bl+marginX*0.5 || nx>br-marginX*0.5) continue;
+            const patch=sampleCircularPatch(imgData, wW, wH, nx, ny, pt.r, gridN);
+            const scVal=dotPatch(templates[i], patch);
+            if(scVal>bs){ bs=scVal; bx=nx; by=ny; }
+          }
+        }
+        peaks.push({
+          x: bx / workScale,
+          y: by / workScale,
+          wx: bx,
+          wy: by,
+          score: bs
+        });
+        if(peaks.length >= 8) break;
+      }
+    }
+    refinedPerSlot.push(peaks);
+  }
+
+  // 3. 4体全体で「互いに重ならない（距離 >= 1.15 * ボール半径）」最適1対1割り当てを探索
+  const minSepImg = (ballRBase * 1.15) / workScale;
+  let bestCombo = null;
+  let bestTotal = -1e9;
+
+  const c0=refinedPerSlot[0].slice(0,6);
+  const c1=refinedPerSlot[1].slice(0,6);
+  const c2=refinedPerSlot[2].slice(0,6);
+  const c3=refinedPerSlot[3].slice(0,6);
+
+  function distOk(a, b){ return Math.hypot(a.x-b.x, a.y-b.y) >= minSepImg; }
+
+  for(const p0 of c0){
+    for(const p1 of c1){
+      if(!distOk(p0,p1)) continue;
+      for(const p2 of c2){
+        if(!distOk(p0,p2)||!distOk(p1,p2)) continue;
+        for(const p3 of c3){
+          if(!distOk(p0,p3)||!distOk(p1,p3)||!distOk(p2,p3)) continue;
+          const total = p0.score + p1.score + p2.score + p3.score;
+          if(total > bestTotal){
+            bestTotal = total;
+            bestCombo = [p0, p1, p2, p3];
+          }
+        }
+      }
+    }
+  }
+
+  // もし重なり制約で組めなかった場合は各スロットの最上位を採用
+  const assigned = bestCombo || [
+    refinedPerSlot[0][0] || {x:b.l+bw*0.19, y:b.t+bh*0.865, score:0},
+    refinedPerSlot[1][0] || {x:b.l+bw*0.397, y:b.t+bh*0.865, score:0},
+    refinedPerSlot[2][0] || {x:b.l+bw*0.603, y:b.t+bh*0.865, score:0},
+    refinedPerSlot[3][0] || {x:b.l+bw*0.81, y:b.t+bh*0.865, score:0}
+  ];
+
+  // 各スロットの候補リスト先頭に割り当て結果を置き、残りの上位候補も再タップ切替用に保持
+  const candidatesPerSlot = assigned.map((primary, idx)=>{
+    const list=[primary];
+    for(const cand of refinedPerSlot[idx]){
+      if(list.every(p=>Math.hypot(p.x-cand.x, p.y-cand.y) >= minSepImg*0.7)){
+        list.push(cand);
+      }
+      if(list.length >= 4) break;
+    }
+    return list;
+  });
+
+  return { assigned, candidatesPerSlot, fallback: false };
+}
+
 function snapCursorToSlot(slotIndex){
   if(stage.hidden || !imgW || !imgH){
     alert('先に画像を選択してください。');
     return;
   }
-  const slot = presetSlots[slotIndex];
-  if(!slot) return;
-  const b = bounds();
-  cursor.x = b.l + (b.r - b.l) * slot.rx;
-  cursor.y = b.t + (b.b - b.t) * slot.ry;
-  presetBtns.forEach((b, idx) => b.classList.toggle('active', idx === slotIndex));
+  if(!autoDetectCache){
+    autoDetectCache = detectAllPartyBalls();
+  }
+  const cands = autoDetectCache.candidatesPerSlot[slotIndex];
+  if(!cands || !cands.length) return;
+
+  // 同じボタンを連続タップしたら次の候補ボール絵へ切り替え（同キャラ艦隊対策）
+  if(lastClickedSlot === slotIndex && cands.length > 1){
+    slotCandidateCursor[slotIndex] = (slotCandidateCursor[slotIndex] + 1) % cands.length;
+  }else{
+    slotCandidateCursor[slotIndex] = 0;
+  }
+  lastClickedSlot = slotIndex;
+
+  const target = cands[slotCandidateCursor[slotIndex]];
+  cursor.x = Math.max(0, Math.min(imgW, target.x));
+  cursor.y = Math.max(0, Math.min(imgH, target.y));
+
+  presetBtns.forEach((b, idx)=>b.classList.toggle('active', idx===slotIndex));
   draw();
+
+  if(autoDetectCache.fallback){
+    showDetectToast(`${slotLabels[slotIndex]}：下部枠が検出できず標準位置へ移動`);
+  }else if(slotCandidateCursor[slotIndex] === 0){
+    showDetectToast(`${slotLabels[slotIndex]} を自動検出（再タップで別候補）`);
+  }else{
+    showDetectToast(`${slotLabels[slotIndex]}：候補 ${slotCandidateCursor[slotIndex]+1}/${cands.length} に切替`);
+  }
 }
-presetBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
+
+presetBtns.forEach(btn=>{
+  btn.addEventListener('click',()=>{
     snapCursorToSlot(Number(btn.dataset.slot));
   });
 });
 
-updateCount();draw();});
-bindRepeat(minus,()=>{reflections=reflections===0?20:reflections-1;updateCount();draw();});
-bindRepeat(anglePlus,()=>changeAngle(0.01),'fast');
-bindRepeat(angleMinus,()=>changeAngle(-0.01),'fast');
-updateCount();
+/* ===================================================================== */
 
 const gaugeBtn=document.getElementById('gaugeBtn');
 function saveGuideImage(){
@@ -1167,14 +1442,12 @@ function saveGuideImage(){
     alert('先に画像を選択してください。');
     return;
   }
-  // 選択した元画像に、現在canvasへ描かれているガイドをそのまま重ねて保存します。
   const out=document.createElement('canvas');
   out.width=imgW; out.height=imgH;
   const octx=out.getContext('2d');
   octx.drawImage(photo,0,0,imgW,imgH);
   octx.drawImage(cv,0,0,imgW,imgH);
 
-    // 保存画像では、現在の角度をカーソル中央（バッテンと円の中心）に記録する。
   let angleDeg = (-pullAngle * 180 / Math.PI) % 360;
   if(angleDeg < 0) angleDeg += 360;
   const angleText = angleDeg.toFixed(2) + '°';
@@ -1205,6 +1478,7 @@ function saveGuideImage(){
   },'image/png');
 }
 gaugeBtn.onclick=saveGuideImage;
+
 const zoomBtn=document.getElementById('zoomBtn');
 let panX=0,panY=0,panStartX=0,panStartY=0,panBaseX=0,panBaseY=0,panActive=false;
 function applyStageTransform(){stage.style.transform=`translate3d(${panX}px,${panY}px,0) scale(${zoomScale})`;}
@@ -1247,7 +1521,7 @@ document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
 document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
 requestAnimationFrame(updateBarScale);
 
-// Voice Control gesture generator: uses the uploaded iPhone export as a structural template.
+// Voice Control gesture generator
 const voiceGestureTemplateB64="YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0b3BYJG9iamVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRyb290gAGvECULDBUdKCkqKzEyNzg+Q0lKS01XXWBhZ2hpc3l8fYOEjpKWl5ydVSRudWxs1A0ODxAREhMUViRjbGFzc1lBbGxFdmVudHNXVmVyc2lvbl8QF0FyZVBvaW50c0RldmljZVJlbGF0aXZlgCSAAoAjCNIWDRccWk5TLm9iamVjdHOkGBkaG4ADgBGAGIAegCLTHhYNHyMnV05TLmtleXOjICEigASABYAGoyQlJoAHgA2AD4AQV0ZpbmdlcnNWRm9yY2VzVFRpbWXTHhYNLC4woS2ACKEvgAmADBAB0zMNNDU2MVtOUy5wb2ludHZhbFpOUy5zcGVjaWFsgAqAC18QKHsxODYuMzMzMzMzMzMzMzMzMzEsIDM3Mi4zMzMzMzMzMzMzMzMzMX3SOTo7PFokY2xhc3NuYW1lWCRjbGFzc2VzV05TVmFsdWWiOz1YTlNPYmplY3TSOTo/QF8QE05TTXV0YWJsZURpY3Rpb25hcnmjQUI9XxATTlNNdXRhYmxlRGljdGlvbmFyeVxOU0RpY3Rpb25hcnnTHhYNREYwoS2ACKFHgA6ADCIAAAAAI0HIQj0TBh5g0jk6QkyiQj3THhYNTlInoyAhIoAEgAWABqNTVFWAEoAVgBeAENMeFg1YWjChLYAIoVuAE4AM0zMNNF42MYAUgAtfECh7MTg2LjMzMzMzMzMzMzMzMzMxLCAzNzIuMzMzMzMzMzMzMzMzMzF90x4WDWJkMKEtgAihZYAWgAwiP4AAACNByEI9EwiRl9MeFg1qbiejICEigASABYAGo29wcYAZgByAHYAQ0x4WDXR2MKEtgAihd4AagAzTMw00ejYxgBuAC18QGXsxOTcsIDQ3My4zMzMzMzMzMzMzMzMzMX3THhYNfoAwoS2ACKFlgBaADCNByEI9Ewn3+dMeFg2FiSejICEigASABYAGo4qLjIAfgCCAIYAQ0x4WDY+QMKCggAzTHhYNk5QwoKCADCNByEI9EwoBHdI5OpiZXk5TTXV0YWJsZUFycmF5o5qbPV5OU011dGFibGVBcnJheVdOU0FycmF5FAAAAAAAAAAAAAAAAAAAAAHSOTqen18QGkFYTXV0YWJsZVJlcGxheWFibGVHZXN0dXJlo6ChPV8QGkFYTXV0YWJsZVJlcGxheWFibGVHZXN0dXJlXxATQVhSZXBsYXlhYmxlR2VzdHVyZQAIABEAGgAkACkAMgA3AEkATABRAFMAewCBAIoAkQCbAKMAvQC/AMEAwwDEAMkA1ADZANsA3QDfAOEA4wDqAPIA9gD4APoA/AEAAQIBBAEGAQgBEAEXARwBIwElAScBKQErAS0BLwE2AUIBTQFPAVEBfAGBAYwBlQGdAaABqQGuAcQByAHeAesB8gH0AfYB+AH6AfwCAQIKAg8CEgIZAh0CHwIhAiMCJwIpAisCLQIvAjYCOAI6AjwCPgJAAkcCSQJLAnYCfQJ/AoECgwKFAocCjAKVApwCoAKiAqQCpgKqAqwCrgKwArICuQK7Ar0CvwLBAsMCygLMAs4C6gLxAvMC9QL3AvkC+wMEAwsDDwMRAxMDFQMZAxsDHQMfAyEDKAMpAyoDLAMzAzQDNQM3A0ADRQNUA1gDZwNvA4ADhQOiA6YDwwAAAAAAAAIBAAAAAAAAAKIAAAAAAAAAAAAAAAAAAAPZ";
 const voiceGesturePoints=[
  {offset:340,length:40,x:186.33333333333331,y:372.33333333333331},
@@ -1266,13 +1540,11 @@ let voiceFileNameEdited=false;
 function getVoiceDeviceProfile(){
  const shortSide=Math.min(window.screen.width,window.screen.height);
  const isIPad=(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)||/iPad/i.test(navigator.userAgent)||shortSide>=700;
- // SafariのdevicePixelRatioを優先し、取得できない場合だけ端末種別から補う。
- const deviceScale=Number(window.devicePixelRatio)|| (isIPad?2:3);
+ const deviceScale=Number(window.devicePixelRatio)||(isIPad?2:3);
  return {isIPad,deviceScale,lengthPx:Math.round(isIPad?140:100)};
 }
 const durationModeInputs=[...document.querySelectorAll('input[name="voiceDurationMode"]')];
 const customDurationInput=document.getElementById('voiceDuration');
-// 自由入力欄に数値が入っている場合は、速射・ゲージの選択を解除して入力値を優先する。
 function updateDurationMode(){
  if(customDurationInput.value.trim()!=='') durationModeInputs.forEach(input=>input.checked=false);
  else if(!durationModeInputs.some(input=>input.checked)) durationModeInputs.find(input=>input.value==='rapid').checked=true;
@@ -1292,23 +1564,15 @@ function getDefaultVoiceFileName(){
  let deg = (-pullAngle * 180 / Math.PI) % 360;
  if(deg < 0) deg += 360;
  const angleText = deg.toFixed(2);
-
- // 選択されているモード名を取得
  const customDurationValue = document.getElementById('voiceDuration').value.trim();
  const durationMode = [...document.querySelectorAll('input[name="voiceDurationMode"]')].find(input=>input.checked)?.value||'rapid';
  let modeText = '';
- if(customDurationValue !== ''){
-   modeText = `${customDurationValue}秒`;
- }else if(durationMode === 'gauge'){
-   modeText = 'ゲージ';
- }else if(durationMode === 'rapid'){
-   modeText = '速射';
- }
-
+ if(customDurationValue !== '') modeText = `${customDurationValue}秒`;
+ else if(durationMode === 'gauge') modeText = 'ゲージ';
+ else if(durationMode === 'rapid') modeText = '速射';
  return `${angleText}°_${modeText}_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
 }
 document.getElementById('voiceFileName').value=getDefaultVoiceFileName();
-// 既存の文字をタップしたら全選択し、すぐ上書きできるようにする。
 ['voiceDuration','voiceCommandName','voiceFileName'].forEach(id=>{
  const el=document.getElementById(id);
  el.addEventListener('focus',()=>{try{el.select()}catch(_){}});
@@ -1349,11 +1613,9 @@ document.getElementById('voiceCancel').addEventListener('click',()=>voiceModal.c
 voiceModal.addEventListener('click',e=>{if(e.target===voiceModal)voiceModal.classList.remove('open')});
 function voiceXmlEscape(v){return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;')}
 function voiceDataToBase64(bytes){let bin='';for(let i=0;i<bytes.length;i+=0x8000)bin+=String.fromCharCode(...bytes.subarray(i,Math.min(i+0x8000,bytes.length)));return btoa(bin)}
-// 1. ジェスチャ生成関数（任意の角度に対応できるよう拡張）
 function makeVoiceGesture(lengthPx,durationSec,deviceScale,targetPullAngle=pullAngle){
  const bytes=Uint8Array.from(atob(voiceGestureTemplateB64),c=>c.charCodeAt(0));
  const target=targetPullAngle-Math.PI;
- // 実機テンプレートの座標を維持し、端末のスケールに合わせて始点をスナップ。
  const baseX=voiceGesturePoints[0].x,baseY=voiceGesturePoints[0].y;
  const x1=Math.round(baseX*deviceScale)/deviceScale;
  const y1=Math.round(baseY*deviceScale)/deviceScale;
@@ -1416,42 +1678,25 @@ document.getElementById('voiceGenerate').addEventListener('click',()=>{
   const blob=new Blob([xml],{type:'application/octet-stream'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=fileName.toLowerCase().endsWith('.voicecontrolcommands')?fileName:fileName+'.voicecontrolcommands';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);voiceModal.classList.remove('open');
  }catch(err){alert(err.message||'ファイル生成に失敗しました。')}
 });
-// 2. 既存バイナリから角度を取り出して新規テンプレートで一括打ち直しする処理（角度軸修正版）
 function convertGestureDuration(b64, durationSec, lengthPx, deviceScale){
-  try{
-    const raw = atob(b64.trim());
-    const matches = [...raw.matchAll(/\{([0-9.]+),\s*([0-9.]+)\}/g)];
-    if(!matches || matches.length < 2) throw new Error('ジェスチャーの座標を読み取れませんでした。');
-    
-    // 実際のファイルデータから「始点」と「終点」を取得
-    const startX = parseFloat(matches[0][1]);
-    const startY = parseFloat(matches[0][2]);
-    const endX = parseFloat(matches[matches.length - 1][1]);
-    const endY = parseFloat(matches[matches.length - 1][2]);
-    
-    const dx = endX - startX;
-    const dy = endY - startY;
-    
-    // ジェスチャ作成関数の内部計算（-Math.PI）と打ち消し合って100%同じ角度になるよう調整
-    const extractedPullAngle = Math.atan2(dy, dx) + Math.PI;
-
-    return makeVoiceGesture(lengthPx, durationSec, deviceScale, extractedPullAngle);
-  }catch(e){
-    throw e;
-  }
+  const raw = atob(b64.trim());
+  const matches = [...raw.matchAll(/\{([0-9.]+),\s*([0-9.]+)\}/g)];
+  if(!matches || matches.length < 2) throw new Error('ジェスチャーの座標を読み取れませんでした。');
+  const startX = parseFloat(matches[0][1]);
+  const startY = parseFloat(matches[0][2]);
+  const endX = parseFloat(matches[matches.length - 1][1]);
+  const endY = parseFloat(matches[matches.length - 1][2]);
+  const extractedPullAngle = Math.atan2(endY - startY, endX - startX) + Math.PI;
+  return makeVoiceGesture(lengthPx, durationSec, deviceScale, extractedPullAngle);
 }
-// 既存ジェスチャのバイナリから角度と元の所要時間（秒）を推定する。
 function extractGestureInfo(b64){
   const info={angleText:null,durationSec:null};
   try{
     const raw=atob(b64.trim());
     const matches=[...raw.matchAll(/\{([0-9.]+),\s*([0-9.]+)\}/g)];
     if(matches.length>=2){
-      const startX=parseFloat(matches[0][1]);
-      const startY=parseFloat(matches[0][2]);
-      const endX=parseFloat(matches[matches.length-1][1]);
-      const endY=parseFloat(matches[matches.length-1][2]);
-      const dx=endX-startX, dy=endY-startY;
+      const dx=parseFloat(matches[matches.length-1][1])-parseFloat(matches[0][1]);
+      const dy=parseFloat(matches[matches.length-1][2])-parseFloat(matches[0][2]);
       if(Math.hypot(dx,dy)>1e-4){
         const extractedPullAngle=Math.atan2(dy,dx)+Math.PI;
         let deg=(-extractedPullAngle*180/Math.PI)%360;
@@ -1477,7 +1722,6 @@ function extractGestureInfo(b64){
   return info;
 }
 
-// 既存Voice Controlファイルを読み込み、各コマンドの読み上げ語句と引っ張る速度を個別に編集・保存する。
 const existingVoiceInput=document.getElementById('existingVoiceFile');
 const existingVoiceList=document.getElementById('existingVoiceCommands');
 const existingVoicePickBtn=document.getElementById('existingVoicePickBtn');
@@ -1699,7 +1943,6 @@ if(existingVoiceSaveBtn){
    const deviceScale=deviceProfile.deviceScale;
    const isoNow=new Date().toISOString().replace(/\.\d{3}Z$/,'Z');
 
-   // 先に全コマンドの入力値を検証する
    const plans=existingVoiceEntries.map(item=>{
     const newName=item.nameInput.value.trim();
     if(!newName)throw new Error(`${item.index+1}番目のコマンド名を入力してください。`);
@@ -1718,7 +1961,6 @@ if(existingVoiceSaveBtn){
     return {item,newName,targetDuration};
    });
 
-   // 検証通過後にXMLへ反映する
    plans.forEach(({item,newName,targetDuration})=>{
     let customCommands=plistKeyValue(item.dict,'CustomCommands');
     if(!customCommands||customCommands.tagName!=='dict'){
@@ -1770,7 +2012,6 @@ if(existingVoiceSaveBtn){
   }
  });
 }
-
 </script>
 </body>
 </html>
