@@ -85,15 +85,24 @@ input{ -webkit-touch-callout:none; }
 #voiceModal .voiceActions{display:flex;gap:8px;margin-top:16px}
 #voiceModal .voiceActions button{flex:1;height:46px;font-size:15px}
 #voiceGenerate{background:#315a42;border-color:#4c8764}
-#voiceConvertBtn,#existingVoicePickBtn{width:100%}
-.existingCommandRow{border:1px solid #3d4658;border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px}
 .nativeFilePicker{position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:auto;cursor:pointer}
 .filePickerOverlay{position:relative;width:100%;min-height:48px}
-#voiceConvertBtn,#existingVoicePickBtn,.existingCommandRow button{width:100%;min-height:48px;height:48px;padding:0 12px;border:1px solid #3d4658;border-radius:13px;background:#242b38;color:#fff;font-size:16px;font-weight:700}
-#existingVoiceCommands{gap:8px!important}
-.existingCommandRow{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid #3d4658;border-radius:12px;background:#1a1f29}
-.existingCommandRow input{width:100%;height:44px;border:1px solid #485367;border-radius:9px;background:#0e1219;color:#fff;padding:0 10px;font-size:16px}
-.existingCommandRow button{width:100%}
+#existingVoicePickBtn{width:100%;min-height:48px;height:48px;padding:0 12px;border:1px solid #3d4658;border-radius:13px;background:#242b38;color:#fff;font-size:16px;font-weight:700}
+#existingVoiceCommands{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.existingBulkBar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 10px;border:1px solid #3d4658;border-radius:10px;background:#121720;margin-top:10px}
+.existingBulkBar span{font-size:12px;color:#b8c0ce;margin-right:auto}
+.existingBulkBtn{height:32px;min-height:32px;padding:0 10px;font-size:12px;border-radius:8px;background:#242b38;border:1px solid #485367;color:#fff}
+.existingCommandRow{display:flex;flex-direction:column;gap:8px;padding:12px;border:1px solid #3d4658;border-radius:12px;background:#1a1f29}
+.existingCommandHead{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.existingCommandTitle{font-weight:700;font-size:14px;color:#fff}
+.existingCommandMeta{font-size:11px;color:#9eb3d4;background:#10151f;border:1px solid #2e384b;border-radius:999px;padding:2px 8px}
+.existingSubLabel{font-size:12px;color:#b8c0ce;margin:0}
+.existingCommandRow input[type="text"],.existingCommandRow input[type="number"]{width:100%;height:42px;border:1px solid #485367;border-radius:9px;background:#0e1219;color:#fff;padding:0 10px;font-size:16px;-webkit-user-select:text;user-select:text}
+.existingSpeedGroup{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.existingSpeedChip{display:flex;align-items:center;justify-content:center;min-height:38px;padding:4px 6px;border:1px solid #485367;border-radius:8px;background:#0e1219;color:#d5dbe5;font-size:12px;cursor:pointer;text-align:center;line-height:1.2}
+.existingSpeedChip.active{border-color:#4f91ff;background:#17263b;color:#fff;font-weight:700}
+.existingSaveArea{display:flex;flex-direction:column;gap:8px;margin-top:12px;padding-top:12px;border-top:1px dashed #3d4658}
+#existingVoiceSaveBtn{width:100%;min-height:48px;height:48px;padding:0 12px;border:1px solid #4c8764;border-radius:13px;background:#315a42;color:#fff;font-size:16px;font-weight:700}
 
 .voiceInputRow{display:flex;align-items:stretch;gap:6px}.voiceInputRow input{flex:1;min-width:0}.voiceClear{width:44px;min-width:44px;padding:0;margin:0;border-radius:8px;background:#e8edf5;color:#1769d2;border:1px solid #c8d8ed;font-size:22px;font-weight:700;line-height:1}.voiceClear:active{background:#d4e3f7}.voiceInputRow input:focus{outline:2px solid #1684ff;outline-offset:1px}
 #voiceBtn{grid-column:1/-1;grid-row:3}
@@ -137,21 +146,30 @@ input{ -webkit-touch-callout:none; }
   <div class="voiceField"><label for="voiceCommandName">読み上げ語句（何も入力しない場合は1になります）</label><input id="voiceCommandName" type="text" maxlength="80" value="" placeholder="タップして入力"></div>
   <div class="voiceField"><label for="voiceFileName">ファイル名</label><input id="voiceFileName" type="text" maxlength="100" value="" placeholder="タップして入力" autocomplete="off"></div>
    <div class="voiceActions"><button id="voiceCancel" type="button">キャンセル</button><button id="voiceGenerate" type="button">保存</button></div>
-  <!-- 既存ファイル一括変換エリア -->
+  <!-- 既存ファイル編集エリア（引っ張る速度変更・音声コマンド変更を統合） -->
   <div style="border-top: 1px solid #3d4658; margin-top: 16px; padding-top: 14px;">
-    <h3 style="font-size: 15px; margin: 0 0 6px; color: #fff;">既存ファイルを一括変換</h3>
-    <p class="voiceHint" style="margin: 0 0 10px;">お手持ちの voicecontrolcommands ファイル内の全コマンドを上記で選択した時間（速射/ゲージ等）に一括変換します。</p>
-    <div class="filePickerOverlay">
-      <button id="voiceConvertBtn" type="button">引っ張る速度を変更</button>
-      <input id="voiceConvertFile" class="nativeFilePicker" type="file" accept=".voicecontrolcommands">
-    </div>
-    <div id="existingVoiceChange" style="margin-top: 10px;">
-      <strong style="display:block;font-size:14px;margin-bottom:6px;color:#fff;">既存ファイルの音声コマンドを変更</strong>
+    <h3 style="font-size: 15px; margin: 0 0 6px; color: #fff;">既存ファイルを編集</h3>
+    <p class="voiceHint" style="margin: 0 0 10px;">お手持ちの voicecontrolcommands ファイルを選択すると、中のコマンドを一覧表示し、読み上げ語句や引っ張る速度をコマンドごとに編集して保存できます。</p>
+    <div id="existingVoiceChange">
       <div class="filePickerOverlay">
-        <button id="existingVoicePickBtn" type="button">音声コマンドを変更</button>
+        <button id="existingVoicePickBtn" type="button">既存ファイルを選択して編集</button>
         <input id="existingVoiceFile" class="nativeFilePicker" type="file" accept=".voicecontrolcommands">
       </div>
-      <div id="existingVoiceCommands" style="display:flex;flex-direction:column;gap:8px;margin-top:8px;"></div>
+      <div id="existingVoiceFileInfo" class="voiceHint" style="margin: 8px 0 0; display: none;"></div>
+      <div id="existingBulkBar" class="existingBulkBar" style="display: none;">
+        <span>全コマンドの速度を一括設定:</span>
+        <button type="button" class="existingBulkBtn" data-bulk-speed="keep">変更しない</button>
+        <button type="button" class="existingBulkBtn" data-bulk-speed="rapid">速射</button>
+        <button type="button" class="existingBulkBtn" data-bulk-speed="gauge">ゲージ</button>
+      </div>
+      <div id="existingVoiceCommands"></div>
+      <div id="existingSaveArea" class="existingSaveArea" style="display: none;">
+        <div class="voiceField" style="margin: 0;">
+          <label for="existingVoiceSaveName">保存ファイル名</label>
+          <input id="existingVoiceSaveName" type="text" maxlength="100" value="" placeholder="ファイル名を入力" autocomplete="off">
+        </div>
+        <button id="existingVoiceSaveBtn" type="button">編集内容を保存</button>
+      </div>
     </div>
   </div>
 
@@ -806,121 +824,335 @@ function convertGestureDuration(b64, durationSec, lengthPx, deviceScale){
     throw e;
   }
 }
-// 既存Voice Controlファイルを読み込み、各コマンド名と元角度を表示して個別に変更・保存する。
+// 既存ジェスチャのバイナリから角度と元の所要時間（秒）を推定する。
+function extractGestureInfo(b64){
+  const info={angleText:null,durationSec:null};
+  try{
+    const raw=atob(b64.trim());
+    const matches=[...raw.matchAll(/\{([0-9.]+),\s*([0-9.]+)\}/g)];
+    if(matches.length>=2){
+      const startX=parseFloat(matches[0][1]);
+      const startY=parseFloat(matches[0][2]);
+      const endX=parseFloat(matches[matches.length-1][1]);
+      const endY=parseFloat(matches[matches.length-1][2]);
+      const dx=endX-startX, dy=endY-startY;
+      if(Math.hypot(dx,dy)>1e-4){
+        const extractedPullAngle=Math.atan2(dy,dx)+Math.PI;
+        let deg=(-extractedPullAngle*180/Math.PI)%360;
+        if(deg<0)deg+=360;
+        info.angleText=deg.toFixed(2)+'°';
+      }
+    }
+    const bytes=new Uint8Array(raw.length);
+    for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
+    const view=new DataView(bytes.buffer);
+    const times=[];
+    for(let i=0;i<=bytes.length-9;i++){
+      if(bytes[i]===0x23){
+        const v=view.getFloat64(i+1,false);
+        if(Number.isFinite(v)&&v>500000000&&v<1800000000)times.push(v);
+      }
+    }
+    if(times.length>=2){
+      const diff=Math.max(...times)-Math.min(...times);
+      if(diff>=0.001&&diff<=30)info.durationSec=diff;
+    }
+  }catch(_){}
+  return info;
+}
+
+// 既存Voice Controlファイルを読み込み、各コマンドの読み上げ語句と引っ張る速度を個別に編集・保存する。
 const existingVoiceInput=document.getElementById('existingVoiceFile');
 const existingVoiceList=document.getElementById('existingVoiceCommands');
 const existingVoicePickBtn=document.getElementById('existingVoicePickBtn');
-let existingVoiceXmlDocument=null, existingVoiceFileName='';
+const existingVoiceFileInfo=document.getElementById('existingVoiceFileInfo');
+const existingBulkBar=document.getElementById('existingBulkBar');
+const existingSaveArea=document.getElementById('existingSaveArea');
+const existingVoiceSaveName=document.getElementById('existingVoiceSaveName');
+const existingVoiceSaveBtn=document.getElementById('existingVoiceSaveBtn');
+
+let existingVoiceXmlDocument=null;
+let existingVoiceEntries=[];
+
 function plistKeyValue(dict,key){
  const keys=[...dict.children].filter(n=>n.tagName==='key');
- const k=keys.find(n=>n.textContent===key);return k?.nextElementSibling||null;
+ const k=keys.find(n=>n.textContent===key);
+ return k?.nextElementSibling||null;
 }
+
 function downloadExistingVoiceXml(doc,name){
- const blob=new Blob([new XMLSerializer().serializeToString(doc)],{type:'application/octet-stream'});
- const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;
+ let xmlStr=new XMLSerializer().serializeToString(doc);
+ if(!xmlStr.trimStart().startsWith('<?xml')){
+  xmlStr='<?xml version="1.0" encoding="UTF-8"?>\n'+xmlStr;
+ }
+ const blob=new Blob([xmlStr],{type:'application/octet-stream'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;
  a.download=name.toLowerCase().endsWith('.voicecontrolcommands')?name:name+'.voicecontrolcommands';
- document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+ document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),2000);
 }
+
+function setEntrySpeedMode(item,mode){
+ if(!item.hasGesture)return;
+ item.speedMode=mode;
+ item.chips.forEach(chip=>chip.classList.toggle('active',chip.dataset.mode===mode));
+ if(mode!=='custom'&&item.customInput)item.customInput.value='';
+}
+
+if(existingBulkBar){
+ existingBulkBar.querySelectorAll('.existingBulkBtn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+   const mode=btn.dataset.bulkSpeed;
+   existingVoiceEntries.forEach(item=>{
+    if(item.hasGesture)setEntrySpeedMode(item,mode);
+   });
+  });
+ });
+}
+
+if(existingVoiceSaveName){
+ existingVoiceSaveName.addEventListener('focus',()=>{try{existingVoiceSaveName.select();}catch(_){}});
+}
+
 if(existingVoicePickBtn&&existingVoiceInput){
  existingVoiceInput.addEventListener('click',()=>{existingVoiceInput.value='';});
  existingVoicePickBtn.addEventListener('click',()=>{existingVoiceInput.click();});
  existingVoiceInput.addEventListener('change',async()=>{
-  existingVoiceList.innerHTML='';existingVoiceXmlDocument=null;
-  const file=existingVoiceInput.files?.[0];if(!file)return;
+  existingVoiceList.innerHTML='';
+  existingVoiceXmlDocument=null;
+  existingVoiceEntries=[];
+  existingVoiceFileInfo.style.display='none';
+  existingBulkBar.style.display='none';
+  existingSaveArea.style.display='none';
+
+  const file=existingVoiceInput.files?.[0];
+  if(!file)return;
+
   try{
-   const text=await file.text();const doc=new DOMParser().parseFromString(text,'application/xml');
+   const text=await file.text();
+   const doc=new DOMParser().parseFromString(text,'application/xml');
    if(doc.querySelector('parsererror'))throw new Error('XML形式のファイルを読み込めませんでした。');
-   const table=plistKeyValue(doc.querySelector('plist dict'),'CommandsTable');
+   const rootDict=doc.querySelector('plist > dict')||doc.querySelector('plist dict');
+   const table=rootDict?plistKeyValue(rootDict,'CommandsTable'):null;
    if(!table||table.tagName!=='dict')throw new Error('CommandsTableが見つかりません。');
-   existingVoiceXmlDocument=doc;existingVoiceFileName=file.name;
-   const entries=[...table.children].filter(n=>n.tagName==='key').map(k=>({id:k.textContent,dict:k.nextElementSibling}));
+
+   const entries=[...table.children].filter(n=>n.tagName==='key').map(k=>({id:k.textContent,dict:k.nextElementSibling})).filter(e=>e.dict&&e.dict.tagName==='dict');
    if(!entries.length)throw new Error('コマンドが見つかりません。');
+
+   existingVoiceXmlDocument=doc;
+   existingVoiceFileInfo.textContent=`読み込み済み: ${file.name}（${entries.length}件のコマンド）`;
+   existingVoiceFileInfo.style.display='block';
+   existingVoiceSaveName.value=file.name.replace(/\.voicecontrolcommands$/i,'');
+
+   let gestureCount=0;
+
    entries.forEach((entry,i)=>{
-    const namesDict=plistKeyValue(entry.dict,'CustomCommands');let commandName='(名前不明)';
-    if(namesDict){const ja=plistKeyValue(namesDict,'ja_JP');if(ja?.tagName==='array')commandName=[...ja.querySelectorAll('string')].map(x=>x.textContent).join(', ')||commandName;}
-    const row=document.createElement('div');row.className='existingCommandRow';
-    const label=document.createElement('div');label.textContent=`${i+1}. コマンド名`;label.style.fontWeight='700';label.style.fontSize='14px';row.appendChild(label);
-    const input=document.createElement('input');input.type='text';input.maxLength=80;input.value=commandName;input.setAttribute('aria-label','変更するコマンド名');
-    const btn=document.createElement('button');btn.type='button';btn.textContent='名前を変更して保存';
-    btn.addEventListener('click',()=>{
-     try{
-      const newName=input.value.trim();if(!newName)throw new Error('コマンド名を入力してください。');
-      const customCommands=plistKeyValue(entry.dict,'CustomCommands');if(!customCommands||customCommands.tagName!=='dict')throw new Error('CustomCommandsが見つかりません。');
-      const ja=plistKeyValue(customCommands,'ja_JP');if(!ja||ja.tagName!=='array')throw new Error('日本語コマンド名が見つかりません。');
-      const strings=[...ja.querySelectorAll('string')];if(!strings.length)throw new Error('コマンド名が見つかりません。');
-      strings[0].textContent=newName;while(strings.length>1){strings.pop().remove();}
-      downloadExistingVoiceXml(doc,file.name);
-     }catch(err){alert(err.message||'名前の変更に失敗しました。');}
-    });row.append(input,btn);
+    const namesDict=plistKeyValue(entry.dict,'CustomCommands');
+    let langKey='ja_JP';
+    let commandName='';
+    if(namesDict&&namesDict.tagName==='dict'){
+     let langArray=plistKeyValue(namesDict,'ja_JP');
+     if(!langArray){
+      const firstKey=[...namesDict.children].find(n=>n.tagName==='key');
+      if(firstKey&&firstKey.nextElementSibling?.tagName==='array'){
+       langKey=firstKey.textContent;
+       langArray=firstKey.nextElementSibling;
+      }
+     }
+     if(langArray?.tagName==='array'){
+      commandName=[...langArray.querySelectorAll('string')].map(x=>x.textContent).filter(Boolean).join(', ');
+     }
+    }
+
+    const gestureEl=plistKeyValue(entry.dict,'CustomGesture');
+    const hasGesture=!!(gestureEl&&gestureEl.tagName==='data'&&gestureEl.textContent.trim());
+    const originalGestureB64=hasGesture?gestureEl.textContent.trim():'';
+    const gestureInfo=hasGesture?extractGestureInfo(originalGestureB64):{angleText:null,durationSec:null};
+    if(hasGesture)gestureCount++;
+
+    const row=document.createElement('div');
+    row.className='existingCommandRow';
+
+    const head=document.createElement('div');
+    head.className='existingCommandHead';
+    const title=document.createElement('div');
+    title.className='existingCommandTitle';
+    title.textContent=`${i+1}. コマンド`;
+    head.appendChild(title);
+
+    const metaParts=[];
+    if(gestureInfo.angleText)metaParts.push(`角度 ${gestureInfo.angleText}`);
+    if(gestureInfo.durationSec!==null)metaParts.push(`現在 ${gestureInfo.durationSec.toFixed(2)}秒`);
+    if(!hasGesture)metaParts.push('ジェスチャなし');
+    if(metaParts.length){
+     const meta=document.createElement('span');
+     meta.className='existingCommandMeta';
+     meta.textContent=metaParts.join(' / ');
+     head.appendChild(meta);
+    }
+    row.appendChild(head);
+
+    const nameLabel=document.createElement('div');
+    nameLabel.className='existingSubLabel';
+    nameLabel.textContent='読み上げ語句';
+    const nameInput=document.createElement('input');
+    nameInput.type='text';
+    nameInput.maxLength=80;
+    nameInput.value=commandName;
+    nameInput.placeholder='読み上げ語句を入力';
+    nameInput.setAttribute('aria-label',`${i+1}番目の読み上げ語句`);
+    nameInput.addEventListener('focus',()=>{try{nameInput.select();}catch(_){}});
+    row.append(nameLabel,nameInput);
+
+    const item={
+     index:i,
+     dict:entry.dict,
+     langKey,
+     nameInput,
+     hasGesture,
+     gestureEl,
+     originalGestureB64,
+     speedMode:'keep',
+     chips:[],
+     customInput:null
+    };
+
+    if(hasGesture){
+     const speedLabel=document.createElement('div');
+     speedLabel.className='existingSubLabel';
+     speedLabel.textContent='引っ張る速度（なぞる時間）';
+
+     const speedGroup=document.createElement('div');
+     speedGroup.className='existingSpeedGroup';
+     const modes=[
+      {value:'keep',label:'変更しない'},
+      {value:'rapid',label:'速射(0.01秒)'},
+      {value:'gauge',label:'ゲージ(0.5秒)'}
+     ];
+     modes.forEach(m=>{
+      const chip=document.createElement('button');
+      chip.type='button';
+      chip.className='existingSpeedChip'+(m.value==='keep'?' active':'');
+      chip.dataset.mode=m.value;
+      chip.textContent=m.label;
+      chip.addEventListener('click',()=>setEntrySpeedMode(item,m.value));
+      speedGroup.appendChild(chip);
+      item.chips.push(chip);
+     });
+
+     const customInput=document.createElement('input');
+     customInput.type='number';
+     customInput.min='0.01';
+     customInput.max='10';
+     customInput.step='0.001';
+     customInput.placeholder='自由入力（0.01〜10秒）';
+     customInput.setAttribute('aria-label',`${i+1}番目の自由入力時間（秒）`);
+     customInput.addEventListener('focus',()=>{try{customInput.select();}catch(_){}});
+     customInput.addEventListener('input',()=>{
+      if(customInput.value.trim()!==''){
+       item.speedMode='custom';
+       item.chips.forEach(chip=>chip.classList.remove('active'));
+      }else{
+       setEntrySpeedMode(item,'keep');
+      }
+     });
+     item.customInput=customInput;
+
+     row.append(speedLabel,speedGroup,customInput);
+    }
+
+    existingVoiceEntries.push(item);
     existingVoiceList.appendChild(row);
    });
-  }catch(err){existingVoiceList.textContent=err.message||'ファイルの読み込みに失敗しました。';}
+
+   if(gestureCount>1)existingBulkBar.style.display='flex';
+   existingSaveArea.style.display='flex';
+  }catch(err){
+   existingVoiceList.textContent=err.message||'ファイルの読み込みに失敗しました。';
+  }
  });
 }
 
-// 3. ファイル選択イベント処理
-const voiceConvertBtn = document.getElementById('voiceConvertBtn');
-const voiceConvertFile = document.getElementById('voiceConvertFile');
+if(existingVoiceSaveBtn){
+ existingVoiceSaveBtn.addEventListener('click',()=>{
+  if(!existingVoiceXmlDocument||!existingVoiceEntries.length)return;
+  try{
+   const deviceProfile=getVoiceDeviceProfile();
+   const lengthPx=deviceProfile.lengthPx;
+   const deviceScale=deviceProfile.deviceScale;
+   const isoNow=new Date().toISOString().replace(/\.\d{3}Z$/,'Z');
 
-if(voiceConvertBtn && voiceConvertFile){
-  voiceConvertFile.addEventListener('click', ()=>{
-    voiceConvertFile.value = '';
-  });
-
-  voiceConvertFile.addEventListener('change', e => {
-    const file = e.target.files?.[0];
-    if(!file) return;
-
-    const deviceProfile = getVoiceDeviceProfile();
-    const lengthPx = deviceProfile.lengthPx;
-    const deviceScale = deviceProfile.deviceScale;
-
-    const customDurationValue = document.getElementById('voiceDuration').value.trim();
-    const durationMode = durationModeInputs.find(input => input.checked)?.value || 'rapid';
-    const durationSec = customDurationValue !== '' ? Number(customDurationValue) : (durationMode === 'gauge' ? 0.5 : 0.01);
-
-    if(!Number.isFinite(durationSec) || durationSec < 0.01 || durationSec > 10){
-      alert('時間は0.01〜10秒の範囲で設定してください。');
-      return;
-    }
-
-    let suffix = '_converted';
-    if(customDurationValue !== ''){
-      suffix = `_${durationSec}s`;
-    }else if(durationMode === 'gauge'){
-      suffix = '_ゲージ';
-    }else if(durationMode === 'rapid'){
-      suffix = '_速射';
-    }
-
-    const reader = new FileReader();
-    reader.onload = evt => {
-      try{
-        const xmlText = evt.target.result;
-        let convertedCount = 0;
-        const convertedXml = xmlText.replace(/<key>CustomGesture<\/key>\s*<data>([\s\S]*?)<\/data>/g, (match, b64) => {
-          convertedCount++;
-          return `<key>CustomGesture</key><data>${convertGestureDuration(b64, durationSec, lengthPx, deviceScale)}</data>`;
-        });
-        if(convertedCount === 0) throw new Error('ファイル内にCustomGestureが見つかりませんでした。');
-
-        const blob = new Blob([convertedXml], {type: 'application/octet-stream'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        const originalName = file.name.replace(/\.voicecontrolcommands$/i, '');
-        a.download = `${originalName}${suffix}.voicecontrolcommands`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 2000);
-        voiceModal.classList.remove('open');
-      }catch(err){
-        alert('ファイルの変換に失敗しました。ファイル形式をご確認ください。');
+   // 先に全コマンドの入力値を検証する
+   const plans=existingVoiceEntries.map(item=>{
+    const newName=item.nameInput.value.trim();
+    if(!newName)throw new Error(`${item.index+1}番目のコマンド名を入力してください。`);
+    let targetDuration=null;
+    if(item.hasGesture&&item.speedMode!=='keep'){
+     if(item.speedMode==='rapid')targetDuration=0.01;
+     else if(item.speedMode==='gauge')targetDuration=0.5;
+     else if(item.speedMode==='custom'){
+      const v=Number(item.customInput.value.trim());
+      if(!Number.isFinite(v)||v<0.01||v>10){
+       throw new Error(`${item.index+1}番目の時間は0.01〜10秒の範囲で入力してください。`);
       }
-    };
-    reader.readAsText(file);
-  });
+      targetDuration=v;
+     }
+    }
+    return {item,newName,targetDuration};
+   });
+
+   // 検証通過後にXMLへ反映する
+   plans.forEach(({item,newName,targetDuration})=>{
+    let customCommands=plistKeyValue(item.dict,'CustomCommands');
+    if(!customCommands||customCommands.tagName!=='dict'){
+     const k=existingVoiceXmlDocument.createElement('key');
+     k.textContent='CustomCommands';
+     customCommands=existingVoiceXmlDocument.createElement('dict');
+     item.dict.append(k,customCommands);
+    }
+    let langArray=plistKeyValue(customCommands,item.langKey);
+    if(!langArray||langArray.tagName!=='array'){
+     const k=existingVoiceXmlDocument.createElement('key');
+     k.textContent=item.langKey;
+     langArray=existingVoiceXmlDocument.createElement('array');
+     customCommands.append(k,langArray);
+    }
+    const strings=[...langArray.querySelectorAll('string')];
+    if(strings.length){
+     strings[0].textContent=newName;
+     while(strings.length>1)strings.pop().remove();
+    }else{
+     const s=existingVoiceXmlDocument.createElement('string');
+     s.textContent=newName;
+     langArray.appendChild(s);
+    }
+
+    if(item.hasGesture&&item.gestureEl){
+     if(targetDuration!==null){
+      item.gestureEl.textContent=convertGestureDuration(item.originalGestureB64,targetDuration,lengthPx,deviceScale);
+     }else{
+      item.gestureEl.textContent=item.originalGestureB64;
+     }
+    }
+
+    const modDateEl=plistKeyValue(item.dict,'CustomModifyDate');
+    if(modDateEl&&modDateEl.tagName==='date'){
+     modDateEl.textContent=isoNow;
+    }
+   });
+
+   let saveName=existingVoiceSaveName.value.trim().replace(/[\\/:*?"<>|]/g,'-');
+   if(!saveName)saveName='edited-commands';
+   downloadExistingVoiceXml(existingVoiceXmlDocument,saveName);
+
+   const prevText=existingVoiceSaveBtn.textContent;
+   existingVoiceSaveBtn.textContent='保存しました！';
+   setTimeout(()=>{existingVoiceSaveBtn.textContent=prevText;},1500);
+  }catch(err){
+   alert(err.message||'ファイルの保存に失敗しました。');
+  }
+ });
 }
 
 </script>
