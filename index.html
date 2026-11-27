@@ -69,31 +69,6 @@ button.repeatPressed{
   box-shadow:0 0 0 2px rgba(96,165,250,.22) inset;
 }
 
-/* 検出ステータストースト */
-#detectToast{
-  position:fixed;
-  top:max(14px,env(safe-area-inset-top));
-  left:50%;
-  transform:translateX(-50%) translateY(-12px);
-  z-index:60;
-  padding:8px 14px;
-  border-radius:999px;
-  background:rgba(15,23,42,.92);
-  border:1px solid rgba(96,165,250,.45);
-  color:#f8fafc;
-  font-size:12.5px;
-  font-weight:700;
-  white-space:nowrap;
-  pointer-events:none;
-  opacity:0;
-  transition:opacity .18s ease,transform .18s ease;
-  box-shadow:0 8px 24px rgba(0,0,0,.45);
-}
-#detectToast.show{
-  opacity:1;
-  transform:translateX(-50%) translateY(0);
-}
-
 /* ステージ・画像表示 */
 #wrap{
   position:absolute;inset:0;
@@ -181,43 +156,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   touch-action:manipulation;
 }
 
-/* 1st〜4th 自動カーソル合わせボタン行 */
-#presetRow{
-  grid-column:1/-1;grid-row:1;
-  display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:6px;
-}
-.presetBtn{
-  height:36px;
-  min-width:0;
-  padding:0 6px;
-  border-radius:10px;
-  font-size:13px;
-  font-weight:800;
-  background:#141b28;
-  border:1px solid var(--border-strong);
-  color:#e2e8f0;
-  gap:5px;
-  letter-spacing:.02em;
-  touch-action:manipulation;
-}
-.presetDot{
-  width:8px;height:8px;border-radius:50%;flex-shrink:0;
-}
-.presetBtn[data-slot="0"] .presetDot{background:#ef4444}
-.presetBtn[data-slot="1"] .presetDot{background:#3b82f6}
-.presetBtn[data-slot="2"] .presetDot{background:#22c55e}
-.presetBtn[data-slot="3"] .presetDot{background:#f59e0b}
-.presetBtn.active{
-  background:rgba(59,130,246,.22);
-  border-color:#60a5fa;
-  color:#fff;
-  box-shadow:0 0 0 1px rgba(96,165,250,.35) inset;
-}
-
 #fileBtn{
-  grid-column:1;grid-row:2/4;
+  grid-column:1;grid-row:1/3;
   height:100%;min-width:0;width:100%;
   flex-direction:column;gap:5px;
   padding:8px 6px;
@@ -238,8 +178,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   gap:2px;
   height:52px;
 }
-#count{grid-column:2;grid-row:2;width:100%;min-width:0}
-#angleControls{grid-column:2;grid-row:3;width:100%;min-width:0}
+#count{grid-column:2;grid-row:1;width:100%;min-width:0}
+#angleControls{grid-column:2;grid-row:2;width:100%;min-width:0}
 
 #minus,#plus,#angleControls button{
   width:100%;min-width:0;height:44px;
@@ -281,7 +221,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 }
 
 #zoomBtn{
-  grid-column:3;grid-row:2;
+  grid-column:3;grid-row:1;
   width:100%;min-width:0;height:52px;
   padding:0 6px;font-size:14px;
 }
@@ -293,14 +233,14 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 }
 
 #gaugeBtn{
-  grid-column:3;grid-row:3;
+  grid-column:3;grid-row:2;
   width:100%;min-width:0;height:52px;
   padding:0 6px;font-size:14px;
 }
 #gaugeBtn.active{background:var(--accent);border-color:#60a5fa}
 
 #voiceBtn{
-  grid-column:1/-1;grid-row:4;
+  grid-column:1/-1;grid-row:3;
   width:100%;height:46px;
   font-size:15px;padding:0 14px;
   background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);
@@ -321,7 +261,6 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   #minus,#plus,#angleControls button{height:40px;font-size:22px}
   #angleDisplay .angleValue{font-size:13px}
   #zoomBtn,#gaugeBtn{height:48px;font-size:13px;gap:4px}
-  .presetBtn{height:34px;font-size:12px}
   #voiceBtn{height:44px;font-size:14px}
 }
 
@@ -595,15 +534,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 </style>
 </head>
 <body>
-<div id="detectToast" role="status" aria-live="polite"></div>
-
 <div id="bar">
-  <div id="presetRow" role="group" aria-label="画像から味方位置を自動検出してカーソルを合わせる">
-    <button type="button" class="presetBtn" data-slot="0"><span class="presetDot" aria-hidden="true"></span><span>1st</span></button>
-    <button type="button" class="presetBtn" data-slot="1"><span class="presetDot" aria-hidden="true"></span><span>2nd</span></button>
-    <button type="button" class="presetBtn" data-slot="2"><span class="presetDot" aria-hidden="true"></span><span>3rd</span></button>
-    <button type="button" class="presetBtn" data-slot="3"><span class="presetDot" aria-hidden="true"></span><span>4th</span></button>
-  </div>
   <button id="fileBtn" type="button">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
     <span>画像選択</span>
@@ -743,9 +674,9 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
       <p class="emptyTitle">スクショを選択してガイドを表示</p>
       <p class="emptySub">ここをタップするか、下の「画像選択」から<br>モンストの画面画像を選んでください</p>
       <div class="emptyTips">
-        <div class="emptyTip"><b>1st〜4thボタン</b><span>HPバー下のアイコンから自動検出</span></div>
         <div class="emptyTip"><b>矢印をドラッグ</b><span>カーソルの位置を移動</span></div>
         <div class="emptyTip"><b>画面をなぞる</b><span>引っ張る角度を調整</span></div>
+        <div class="emptyTip"><b>角度を2回タップ</b><span>数値を直接入力</span></div>
       </div>
     </div>
   </div>
@@ -760,7 +691,6 @@ const file=document.getElementById('file'), fileBtn=document.getElementById('fil
 const stage=document.getElementById('stage'), photo=document.getElementById('photo'), cv=document.getElementById('cv');
 const ctx=cv.getContext('2d'), empty=document.getElementById('empty');
 const nEl=document.getElementById('n'), plus=document.getElementById('plus'), minus=document.getElementById('minus');
-const detectToast=document.getElementById('detectToast');
 
 let reflections=3, imgW=0, imgH=0;
 let zoomMode=false, zoomScale=1, zoomStartDist=0, zoomStartScale=1;
@@ -768,20 +698,6 @@ let cursor={x:0,y:0};
 let pullAngle=-Math.PI/2;
 let active=null, lastX=0, lastY=0;
 let touchStartX=0, touchStartY=0;
-
-// 自動検出キャッシュ（画像が変わるたびにリセット）
-let autoDetectCache=null;
-let lastClickedSlot=-1;
-let slotCandidateCursor=[0,0,0,0];
-let toastTimer=null;
-
-function showDetectToast(msg){
-  if(!detectToast)return;
-  detectToast.textContent=msg;
-  detectToast.classList.add('show');
-  if(toastTimer)clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>detectToast.classList.remove('show'),2200);
-}
 
 fileBtn.onclick=()=>file.click();
 empty.onclick=()=>{ if(stage.hidden) file.click(); };
@@ -797,10 +713,6 @@ file.onchange=e=>{
    stage.hidden=false;
    empty.hidden=true;
    empty.style.display='none';
-   autoDetectCache=null;
-   lastClickedSlot=-1;
-   slotCandidateCursor=[0,0,0,0];
-   clearPresetActive();
    fitStage();
    const b=bounds();
    if(typeof window._cursorRelX==='number' && typeof window._cursorRelY==='number'){
@@ -860,8 +772,7 @@ function bounds(){
     l: Math.max(0, currentCX - currentW / 2),
     r: Math.min(imgW, currentCX + currentW / 2),
     t: Math.max(0, currentCY - currentH / 2),
-    b: Math.min(imgH, currentCY + currentH / 2),
-    scale
+    b: Math.min(imgH, currentCY + currentH / 2)
   };
 }
 
@@ -1038,7 +949,6 @@ cv.addEventListener('pointermove',e=>{
    if(active==='move'){
      cursor.x=Math.max(0,Math.min(imgW,cursor.x+(p.x-lastX)));
      cursor.y=Math.max(0,Math.min(imgH,cursor.y+(p.y-lastY)));
-     clearPresetActive();
    }else{
      const vx=p.x-touchStartX, vy=p.y-touchStartY;
      if(Math.hypot(vx,vy)>0.01){
@@ -1146,308 +1056,6 @@ bindRepeat(minus,()=>{reflections=reflections===0?20:reflections-1;updateCount()
 bindRepeat(anglePlus,()=>changeAngle(0.01),'fast');
 bindRepeat(angleMinus,()=>changeAngle(-0.01),'fast');
 updateCount();
-
-/* =====================================================================
- * 1st / 2nd / 3rd / 4th ボール絵中心 自動検出エンジン (実測レイアウト準拠)
- * 1) HPバー下にある味方4体のアイコン枠（右端の守護獣枠を除いた左4つ）を切り出す
- * 2) 盤面内を円形正規化相互相関(NCC)でマルチスケール探索（実測比 約0.63倍）
- * 3) ボール絵の真上（1st=赤 / 2nd=青 / 3rd=緑 / 4th=黄）の文字色スコアを加点
- * 4) 4体間で重ならない最適組み合わせを決定（再タップで次候補に切替可能）
- * ===================================================================== */
-const presetBtns=[...document.querySelectorAll('.presetBtn')];
-const slotLabels=['1st','2nd','3rd','4th'];
-
-function clearPresetActive(){
-  presetBtns.forEach(b=>b.classList.remove('active'));
-  lastClickedSlot=-1;
-}
-
-function rgbToHsv(r, g, b){
-  r/=255; g/=255; b/=255;
-  const max=Math.max(r,g,b), min=Math.min(r,g,b), d=max-min;
-  let h=0;
-  if(d>1e-5){
-    if(max===r) h=60*(((g-b)/d)%6);
-    else if(max===g) h=60*((b-r)/d+2);
-    else h=60*((r-g)/d+4);
-    if(h<0) h+=360;
-  }
-  return [h, max>1e-5 ? d/max : 0, max];
-}
-
-// 各スロットの「1st / 2nd / 3rd / 4th」文字色判定（HSV）
-const labelColorChecks=[
-  (h,s,v)=> s>0.42 && v>0.42 && (h<20 || h>336),   // 1st: 赤
-  (h,s,v)=> s>0.36 && v>0.42 && (h>=185 && h<=245), // 2nd: 青・水色
-  (h,s,v)=> s>0.36 && v>0.38 && (h>=85 && h<=155),  // 3rd: 緑
-  (h,s,v)=> s>0.40 && v>0.48 && (h>=34 && h<=68)    // 4th: 黄
-];
-
-// 画像データから (cx, cy) 中心・半径 radius の円形パッチを抽出し、ゼロ平均・単位ノルム化
-function sampleCircularPatch(imgData, W, H, cx, cy, radius, gridN){
-  const data=imgData.data;
-  const half=(gridN-1)/2;
-  const raw=[];
-  let sumR=0, sumG=0, sumB=0, cnt=0;
-
-  for(let gy=0;gy<gridN;gy++){
-    const ny=(gy-half)/half;
-    for(let gx=0;gx<gridN;gx++){
-      const nx=(gx-half)/half;
-      if(nx*nx + ny*ny > 0.88*0.88) continue;
-      const px=Math.round(cx + nx*radius);
-      const py=Math.round(cy + ny*radius);
-      if(px<0||px>=W||py<0||py>=H){
-        raw.push(0,0,0); cnt++; continue;
-      }
-      const idx=(py*W+px)*4;
-      const r=data[idx], g=data[idx+1], b=data[idx+2];
-      raw.push(r,g,b);
-      sumR+=r; sumG+=g; sumB+=b; cnt++;
-    }
-  }
-  const mR=sumR/cnt, mG=sumG/cnt, mB=sumB/cnt;
-  const vec=new Float32Array(raw.length);
-  let norm2=0;
-  for(let i=0;i<raw.length;i+=3){
-    const dr=raw[i]-mR, dg=raw[i+1]-mG, db=raw[i+2]-mB;
-    vec[i]=dr; vec[i+1]=dg; vec[i+2]=db;
-    norm2+=dr*dr+dg*dg+db*db;
-  }
-  const norm=Math.sqrt(norm2)||1;
-  for(let i=0;i<vec.length;i++) vec[i]/=norm;
-  return { vec, mean:[mR,mG,mB] };
-}
-
-function nccScore(a, b){
-  const va=a.vec, vb=b.vec;
-  let dot=0;
-  for(let i=0;i<va.length;i++) dot+=va[i]*vb[i];
-  // 明るさ・全体色味が極端に違う誤爆を軽く減点
-  const meanDiff=Math.hypot(a.mean[0]-b.mean[0], a.mean[1]-b.mean[1], a.mean[2]-b.mean[2])/441.67;
-  return dot - meanDiff*0.12;
-}
-
-// ボール中心 (cx, cy) の真上（1st〜4th 文字が表示される帯）の該当色スコアを計算
-function labelTopScore(imgData, W, H, cx, cy, ballR, slotIndex){
-  const check=labelColorChecks[slotIndex];
-  const data=imgData.data;
-  const x0=Math.max(0, Math.round(cx - ballR*0.80));
-  const x1=Math.min(W-1, Math.round(cx + ballR*0.42));
-  const y0=Math.max(0, Math.round(cy - ballR*1.52));
-  const y1=Math.min(H-1, Math.round(cy - ballR*0.85));
-  let hit=0, total=0;
-  for(let y=y0;y<=y1;y++){
-    for(let x=x0;x<=x1;x++){
-      const idx=(y*W+x)*4;
-      const [h,s,v]=rgbToHsv(data[idx],data[idx+1],data[idx+2]);
-      if(check(h,s,v)) hit++;
-      total++;
-    }
-  }
-  if(!total) return 0;
-  const ratio=hit/total;
-  // 文字は小窓の約4%〜45%を占める（背景ベタ塗り誤爆は抑える）
-  if(ratio < 0.03) return 0;
-  if(ratio > 0.65) return 0.04;
-  return Math.min(0.22, ratio * 0.9);
-}
-
-function detectAllPartyBalls(){
-  const b=bounds();
-  const bw=b.r-b.l;
-  const bh=b.b-b.t;
-  const baseScale=b.scale; // 1170幅基準のスケール
-
-  // 高速かつ高精度な解析解像度（盤面幅 約260px 相当）
-  const workScale=Math.min(1, 260 / bw);
-  const wW=Math.max(120, Math.round(imgW*workScale));
-  const wH=Math.max(120, Math.round(imgH*workScale));
-
-  const workCv=document.createElement('canvas');
-  workCv.width=wW; workCv.height=wH;
-  const wctx=workCv.getContext('2d', { willReadFrequently:true });
-  wctx.drawImage(photo, 0, 0, wW, wH);
-  const imgData=wctx.getImageData(0, 0, wW, wH);
-
-  const bl=b.l*workScale, br=b.r*workScale, bt=b.t*workScale, bb=b.b*workScale;
-  const bbw=br-bl;
-  const ws=baseScale*workScale; // 1170基準1pxの縮小キャンバス上でのpx数
-
-  // 実測した下部パーティ欄（右端に守護獣枠があるため、1st〜4thは左からx=131.5, 353.8, 576.2, 798.5 @1170幅）
-  const uiWidth = 1170 * ws;
-  const uiLeft = (wW - uiWidth) / 2;
-  const slotBaseXs = [131.5, 353.8, 576.2, 798.5];
-  // HPバー直下の4体アイコンY中心（盤面下端 bb から +0.2465 * 盤面幅）
-  const slotCenterY = bb + bbw * 0.2465;
-  // アイコン中央部の切り出し半径（文字やSS枠の干渉を避ける中央領域：1170基準で半径約56px）
-  const srcRadius = Math.max(8, 56 * ws);
-
-  // 下部パーティ枠が画像内に写っていない場合のフォールバック
-  if(slotCenterY + srcRadius >= wH - 1){
-    const fb=[0.19,0.397,0.603,0.81].map(rx=>([{x:b.l+bw*rx, y:b.t+bh*0.865, score:0}]));
-    return { assigned:fb.map(l=>l[0]), candidatesPerSlot:fb, fallback:true };
-  }
-
-  // 1. HPバー下の4アイコンから円形テンプレートを作成
-  const gridN=13;
-  const templates=slotBaseXs.map(bx=>{
-    const cx=uiLeft + bx*ws;
-    return sampleCircularPatch(imgData, wW, wH, cx, slotCenterY, srcRadius, gridN);
-  });
-
-  // 2. 盤面ボール絵上での対応半径（実測縮尺比 約0.625倍 → 56 * 0.625 = 35 * ws）
-  //    ボール絵全体の半径は 66 * ws
-  const ballFullR = 66 * ws;
-  const matchBaseR = srcRadius * 0.625;
-  const matchScales = [0.92, 1.00, 1.08];
-  const step = Math.max(3, Math.round(ballFullR * 0.20));
-  const margin = Math.max(4, Math.round(ballFullR * 0.55));
-
-  // 粗探索：盤面全体を走査
-  const rawMaps=[[],[],[],[]];
-  for(let y=Math.round(bt+margin); y<=Math.round(bb-margin); y+=step){
-    for(let x=Math.round(bl+margin); x<=Math.round(br-margin); x+=step){
-      const bestSc=[-9,-9,-9,-9];
-      const bestR=[matchBaseR,matchBaseR,matchBaseR,matchBaseR];
-      for(const ms of matchScales){
-        const r=matchBaseR*ms;
-        const patch=sampleCircularPatch(imgData, wW, wH, x, y, r, gridN);
-        for(let i=0;i<4;i++){
-          const v=nccScore(templates[i], patch);
-          if(v>bestSc[i]){ bestSc[i]=v; bestR[i]=r; }
-        }
-      }
-      for(let i=0;i<4;i++){
-        // 顔アイコンが一定以上似ている候補にだけ真上ラベル色スコアを加点
-        let sc=bestSc[i];
-        if(sc > 0.22){
-          sc += labelTopScore(imgData, wW, wH, x, y, ballFullR, i);
-        }
-        rawMaps[i].push({ x, y, r:bestR[i], score:sc, imgScore:bestSc[i] });
-      }
-    }
-  }
-
-  // 3. 各スロットの上位候補を非極大抑制(NMS)で抽出し、1px刻みでボール中心を精密合わせ
-  const nmsDist = ballFullR * 1.25;
-  const refinedPerSlot=[];
-  for(let i=0;i<4;i++){
-    rawMaps[i].sort((a,c)=>c.score-a.score);
-    const peaks=[];
-    for(const pt of rawMaps[i]){
-      if(peaks.every(p=>Math.hypot(p.wx-pt.x, p.wy-pt.y) >= nmsDist)){
-        let bx=pt.x, by=pt.y, bestNcc=pt.imgScore;
-        for(let dy=-step; dy<=step; dy++){
-          const ny=pt.y+dy;
-          if(ny<bt+margin*0.4 || ny>bb-margin*0.4) continue;
-          for(let dx=-step; dx<=step; dx++){
-            const nx=pt.x+dx;
-            if(nx<bl+margin*0.4 || nx>br-margin*0.4) continue;
-            const patch=sampleCircularPatch(imgData, wW, wH, nx, ny, pt.r, gridN);
-            const v=nccScore(templates[i], patch);
-            if(v>bestNcc){ bestNcc=v; bx=nx; by=ny; }
-          }
-        }
-        const lbl=labelTopScore(imgData, wW, wH, bx, by, ballFullR, i);
-        peaks.push({
-          x: bx / workScale,
-          y: by / workScale,
-          wx: bx,
-          wy: by,
-          score: bestNcc + lbl,
-          imgScore: bestNcc,
-          lblScore: lbl
-        });
-        if(peaks.length >= 8) break;
-      }
-    }
-    refinedPerSlot.push(peaks);
-  }
-
-  // 4. 4体全体で重ならない最適割り当てを探索
-  const minSepImg = (ballFullR * 1.05) / workScale;
-  let bestCombo=null, bestTotal=-1e9;
-  const c0=refinedPerSlot[0].slice(0,6);
-  const c1=refinedPerSlot[1].slice(0,6);
-  const c2=refinedPerSlot[2].slice(0,6);
-  const c3=refinedPerSlot[3].slice(0,6);
-  const ok=(a,b)=>Math.hypot(a.x-b.x, a.y-b.y) >= minSepImg;
-
-  for(const p0 of c0){
-    for(const p1 of c1){
-      if(!ok(p0,p1)) continue;
-      for(const p2 of c2){
-        if(!ok(p0,p2)||!ok(p1,p2)) continue;
-        for(const p3 of c3){
-          if(!ok(p0,p3)||!ok(p1,p3)||!ok(p2,p3)) continue;
-          const total=p0.score+p1.score+p2.score+p3.score;
-          if(total>bestTotal){ bestTotal=total; bestCombo=[p0,p1,p2,p3]; }
-        }
-      }
-    }
-  }
-
-  const assigned = bestCombo || [0,1,2,3].map(i=>
-    refinedPerSlot[i][0] || {x:b.l+bw*(0.19+0.207*i), y:b.t+bh*0.865, score:0}
-  );
-
-  // 再タップ切替用に、割り当て結果＋次点候補を最大4件まで保持
-  const candidatesPerSlot = assigned.map((primary, idx)=>{
-    const list=[primary];
-    for(const cand of refinedPerSlot[idx]){
-      if(list.every(p=>Math.hypot(p.x-cand.x, p.y-cand.y) >= minSepImg*0.75)){
-        list.push(cand);
-      }
-      if(list.length >= 4) break;
-    }
-    return list;
-  });
-
-  return { assigned, candidatesPerSlot, fallback:false };
-}
-
-function snapCursorToSlot(slotIndex){
-  if(stage.hidden || !imgW || !imgH){
-    alert('先に画像を選択してください。');
-    return;
-  }
-  if(!autoDetectCache){
-    autoDetectCache = detectAllPartyBalls();
-  }
-  const cands = autoDetectCache.candidatesPerSlot[slotIndex];
-  if(!cands || !cands.length) return;
-
-  if(lastClickedSlot === slotIndex && cands.length > 1){
-    slotCandidateCursor[slotIndex] = (slotCandidateCursor[slotIndex] + 1) % cands.length;
-  }else{
-    slotCandidateCursor[slotIndex] = 0;
-  }
-  lastClickedSlot = slotIndex;
-
-  const target = cands[slotCandidateCursor[slotIndex]];
-  cursor.x = Math.max(0, Math.min(imgW, target.x));
-  cursor.y = Math.max(0, Math.min(imgH, target.y));
-
-  presetBtns.forEach((b, idx)=>b.classList.toggle('active', idx===slotIndex));
-  draw();
-
-  if(autoDetectCache.fallback){
-    showDetectToast(`${slotLabels[slotIndex]}：下部アイコンが画面外のため標準位置へ移動`);
-  }else if(slotCandidateCursor[slotIndex] === 0){
-    showDetectToast(`${slotLabels[slotIndex]} に合わせました（再タップで別候補）`);
-  }else{
-    showDetectToast(`${slotLabels[slotIndex]}：候補 ${slotCandidateCursor[slotIndex]+1}/${cands.length} に切替`);
-  }
-}
-
-presetBtns.forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    snapCursorToSlot(Number(btn.dataset.slot));
-  });
-});
-
-/* ===================================================================== */
 
 const gaugeBtn=document.getElementById('gaugeBtn');
 function saveGuideImage(){
