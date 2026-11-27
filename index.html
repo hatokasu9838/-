@@ -7,19 +7,18 @@
 <style>
 :root{
   --safe-area-bottom:env(safe-area-inset-bottom,0px);
-  --bg:#0e1014;
-  --surface:#171a21;
-  --surface-2:#1f232d;
-  --surface-3:#282d3a;
-  --border:rgba(255,255,255,.10);
-  --border-strong:rgba(255,255,255,.18);
-  --text:#f3f4f6;
-  --text-muted:#9ca3af;
-  --accent:#3b82f6;
-  --accent-hover:#2563eb;
-  --accent-soft:rgba(59,130,246,.16);
-  --success:#10b981;
-  --danger:#ef4444;
+  --bg:#06090f;
+  --panel:#0d1420;
+  --panel-2:#121c2d;
+  --well:#05080e;
+  --steel:#2a5582;
+  --steel-bright:#498fd4;
+  --cyan:#38a8ff;
+  --cyan-deep:#0f56b3;
+  --gold:#f59e0b;
+  --text:#f4f8ff;
+  --text-sub:#8fb0d4;
+  --danger:#ff5252;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{
@@ -38,32 +37,37 @@ img,canvas,button,div,span{-webkit-user-drag:none}
 input{-webkit-touch-callout:none}
 button,input{font-family:inherit}
 
+/* モンスト調メタリックボタン */
 button{
   position:relative;
-  border:1px solid var(--border);
-  background:var(--surface-2);
+  border:1px solid var(--steel);
+  background:linear-gradient(180deg,#1c324f 0%,#102036 52%,#0a1424 100%);
+  box-shadow:inset 0 1px 0 rgba(150,210,255,.26),inset 0 -1px 0 rgba(0,0,0,.65),0 2px 4px rgba(0,0,0,.45);
   color:var(--text);
-  border-radius:10px;
-  height:48px;
+  text-shadow:0 1px 2px rgba(0,0,0,.9);
+  border-radius:7px;
+  height:46px;
   padding:0 10px;
-  font-size:14px;
-  font-weight:600;
+  font-size:13.5px;
+  font-weight:700;
+  letter-spacing:.02em;
   cursor:pointer;
   touch-action:none;
   display:inline-flex;
   align-items:center;
   justify-content:center;
   gap:5px;
-  transition:background .12s ease,border-color .12s ease,transform .06s ease;
+  transition:filter .1s ease,transform .06s ease;
 }
 button:active{
-  transform:scale(.98);
-  background:var(--surface-3);
+  transform:translateY(1px) scale(.985);
+  filter:brightness(1.16);
 }
-button svg{flex-shrink:0}
+button svg{flex-shrink:0;filter:drop-shadow(0 1px 1px rgba(0,0,0,.8))}
 button.repeatPressed{
-  background:var(--accent)!important;
-  border-color:var(--accent)!important;
+  background:linear-gradient(180deg,#3ea8ff 0%,#1672d6 52%,#0d4ea3 100%)!important;
+  border-color:#6bc6ff!important;
+  box-shadow:inset 0 1px 0 rgba(210,242,255,.65),0 0 10px rgba(56,168,255,.45)!important;
   color:#fff!important;
 }
 
@@ -72,7 +76,9 @@ button.repeatPressed{
   position:absolute;inset:0;
   display:flex;justify-content:center;align-items:center;
   overflow:hidden;
-  background:var(--bg);
+  background:
+    radial-gradient(circle at 50% 35%,rgba(24,56,96,.22),transparent 65%),
+    var(--bg);
 }
 #stage{
   position:relative;
@@ -85,61 +91,94 @@ button.repeatPressed{
 canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 #file{display:none}
 
-/* 初期画面 */
+/* 初期画面（ゲームHUD調フレーム） */
 #empty[hidden],#stage[hidden]{display:none!important}
 #empty{
   position:absolute;inset:0;
   display:flex;align-items:center;justify-content:center;
-  padding:20px 18px 186px;
+  padding:18px 16px 176px;
   cursor:pointer;
 }
-.emptyCard{
-  width:min(100%, 348px);
-  padding:24px 20px;
-  border-radius:16px;
-  background:var(--surface);
-  border:1px solid var(--border);
-  display:flex;flex-direction:column;align-items:center;gap:10px;
-  text-align:center;
+.hudFrame{
+  width:min(100%,356px);
+  background:linear-gradient(180deg,rgba(16,25,40,.96) 0%,rgba(9,14,24,.98) 100%);
+  border:1.5px solid var(--steel-bright);
+  border-radius:8px;
+  box-shadow:
+    0 0 0 1px #03060c,
+    inset 0 1px 0 rgba(160,215,255,.3),
+    0 14px 36px rgba(0,0,0,.75);
+  overflow:hidden;
 }
-.emptyIcon{
-  width:52px;height:52px;
-  border-radius:14px;
-  background:var(--surface-2);
-  border:1px solid var(--border);
-  color:var(--text);
+.hudTitleBar{
+  position:relative;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px 8px 15px;
+  background:linear-gradient(180deg,#2c3c52 0%,#1a2434 55%,#121926 100%);
+  border-bottom:1px solid #356394;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18);
+}
+.hudTitleBar::before{
+  content:"";
+  position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:linear-gradient(180deg,#5cc2ff,#1a78db);
+}
+.hudTitleText{
+  font-size:13.5px;font-weight:800;color:#fff;
+  text-shadow:0 1px 2px rgba(0,0,0,.95);
+  letter-spacing:.04em;
+}
+.hudSpecTag{
+  font-size:10.5px;font-weight:700;
+  color:#9ad4ff;
+  background:rgba(6,12,22,.75);
+  border:1px solid rgba(73,143,212,.55);
+  padding:2px 7px;border-radius:4px;
+  font-variant-numeric:tabular-nums;
+}
+.hudFrameBody{
+  padding:16px 14px 14px;
+  display:flex;flex-direction:column;gap:12px;
+}
+.hudDropZone{
+  display:flex;align-items:center;gap:12px;
+  padding:13px 12px;
+  background:var(--well);
+  border:1px solid #26496e;
+  border-radius:6px;
+  box-shadow:inset 0 2px 6px rgba(0,0,0,.8);
+}
+.hudDropIcon{
+  width:42px;height:42px;flex-shrink:0;
+  border-radius:6px;
+  background:linear-gradient(180deg,#2668b3 0%,#123b70 100%);
+  border:1px solid #59b3ff;
+  box-shadow:inset 0 1px 0 rgba(200,235,255,.45);
   display:flex;align-items:center;justify-content:center;
-  margin-bottom:2px;
+  color:#fff;
 }
-.emptyTitle{
-  font-size:16px;font-weight:700;margin:0;color:var(--text);
+.hudDropText{display:flex;flex-direction:column;gap:3px;text-align:left}
+.hudDropText strong{font-size:14px;font-weight:800;color:#fff}
+.hudDropText span{font-size:11.5px;color:var(--text-sub);line-height:1.4}
+.hudKeyList{
+  display:grid;grid-template-columns:1fr;gap:5px;
 }
-.emptySub{
-  font-size:12.5px;color:var(--text-muted);margin:0;line-height:1.55;
+.hudKeyRow{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:6px 10px;
+  background:rgba(18,30,48,.65);
+  border:1px solid rgba(58,108,163,.32);
+  border-radius:5px;
+  font-size:11.5px;
 }
-.emptyTips{
-  width:100%;
-  margin-top:8px;
-  padding:10px 12px;
-  border-radius:12px;
-  background:rgba(255,255,255,.03);
-  border:1px solid var(--border);
-  display:flex;flex-direction:column;gap:7px;
-  text-align:left;
+.hudKeyRow b{
+  color:#7cc8ff;font-weight:700;white-space:nowrap;
 }
-.emptyTip{
-  font-size:12px;color:var(--text-muted);
-  display:flex;align-items:center;gap:8px;
-}
-.emptyTip b{
-  color:var(--text);font-weight:600;
-  background:var(--surface-2);
-  border:1px solid var(--border);
-  padding:2px 8px;border-radius:6px;
-  font-size:11px;white-space:nowrap;
+.hudKeyRow span{
+  color:#d9e9fc;font-weight:500;text-align:right;
 }
 
-/* 下部コントロールバー */
+/* 下部コントロールバー（モンストHUDコンソール） */
 #bar{
   position:fixed;
   left:50%;
@@ -149,36 +188,37 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   width:min(96vw,540px);
   max-width:calc(100vw - 12px);
   display:grid;
-  grid-template-columns:minmax(80px,1fr) minmax(168px,196px) 88px;
+  grid-template-columns:minmax(78px,1fr) minmax(172px,202px) 86px;
   gap:6px;
-  padding:8px;
+  padding:7px;
   z-index:20;
-  background:rgba(23,26,33,.92);
-  -webkit-backdrop-filter:blur(12px);
-  backdrop-filter:blur(12px);
-  border:1px solid var(--border);
-  border-radius:14px;
-  box-shadow:0 8px 28px rgba(0,0,0,.45);
+  background:linear-gradient(180deg,rgba(18,28,44,.96) 0%,rgba(8,13,22,.98) 100%);
+  border:1.5px solid var(--steel-bright);
+  border-radius:9px;
+  box-shadow:
+    0 0 0 1px #02050a,
+    inset 0 1px 0 rgba(160,218,255,.32),
+    0 10px 28px rgba(0,0,0,.75);
   touch-action:manipulation;
 }
 
 #fileBtn{
   grid-column:1;grid-row:1/3;
   height:100%;min-width:0;width:100%;
-  flex-direction:column;gap:5px;
-  padding:8px 6px;
-  font-size:12.5px;line-height:1.15;
-  background:var(--surface-2);
-  border-color:var(--border-strong);
+  flex-direction:column;gap:4px;
+  padding:6px 4px;
+  font-size:12px;line-height:1.15;
 }
 
+/* 凹みデジタルカウンター枠 */
 #count,#angleControls{
   display:grid;
-  grid-template-columns:42px 1fr 42px;
+  grid-template-columns:40px 1fr 40px;
   align-items:center;
-  background:var(--bg);
-  border:1px solid var(--border);
-  border-radius:10px;
+  background:var(--well);
+  border:1px solid #284e78;
+  box-shadow:inset 0 2px 5px rgba(0,0,0,.85),0 1px 0 rgba(130,195,255,.15);
+  border-radius:7px;
   padding:3px;
   gap:3px;
   height:48px;
@@ -189,14 +229,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 #minus,#plus,#angleControls button{
   width:100%;min-width:0;height:40px;
   padding:0;
-  font-size:20px;font-weight:500;line-height:1;
-  border-radius:7px;
-  background:var(--surface-2);
-  border:1px solid transparent;
-  color:var(--text);
-}
-#minus:active,#plus:active,#angleControls button:active{
-  background:var(--surface-3);
+  font-size:19px;font-weight:800;line-height:1;
+  border-radius:5px;
 }
 #minus,#plus{touch-action:manipulation}
 
@@ -207,85 +241,102 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   font-variant-numeric:tabular-nums;
 }
 #count span .maxLabel{
-  font-size:8.5px;line-height:9px;height:9px;font-weight:700;
-  color:var(--danger);letter-spacing:.04em;
+  font-size:8.5px;line-height:9px;height:9px;font-weight:800;
+  color:#ff6b6b;letter-spacing:.05em;
+  text-shadow:0 0 6px rgba(255,82,82,.6);
 }
 #count span .num{
-  font-size:18px;font-weight:700;
-  color:var(--text);line-height:19px;
+  font-size:18px;font-weight:800;
+  color:#fff;line-height:19px;
+  text-shadow:0 1px 2px rgba(0,0,0,.95);
 }
 #count span small{
-  font-size:10px;font-weight:500;line-height:11px;
-  color:var(--text-muted);
+  font-size:10px;font-weight:700;line-height:11px;
+  color:var(--text-sub);
 }
-#count span.max .num{color:var(--danger)}
+#count span.max .num{color:#ff6b6b}
 
 #angleDisplay{
   text-align:center;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  line-height:1.1;
+  line-height:1.08;
   cursor:pointer;
   padding:2px;
-  border-radius:6px;
+  border-radius:5px;
   font-variant-numeric:tabular-nums;
 }
-#angleDisplay>span:first-child{
-  font-size:10px;font-weight:500;line-height:11px;color:var(--text-muted);display:block;
+#angleDisplay .angleMeta{
+  font-size:9.5px;font-weight:700;line-height:11px;
+  color:var(--text-sub);
+  display:flex;align-items:center;gap:3px;
+}
+#angleDisplay .angleMeta b{
+  color:#6dc2ff;font-weight:800;
 }
 #angleDisplay .angleValue{
-  font-size:13.5px;line-height:17px;font-weight:700;
-  color:var(--text);
-  border-bottom:1px dashed rgba(255,255,255,.25);
+  font-size:14px;line-height:17px;font-weight:800;
+  color:#fff;
+  text-shadow:0 1px 2px rgba(0,0,0,.95);
+  border-bottom:1px dashed rgba(109,194,255,.45);
 }
 
 #zoomBtn{
   grid-column:3;grid-row:1;
   width:100%;min-width:0;height:48px;
-  padding:0 6px;font-size:13.5px;
+  padding:0 5px;font-size:13px;
 }
 #zoomBtn.active{
-  background:var(--accent);
-  border-color:var(--accent);
+  background:linear-gradient(180deg,#ffae34 0%,#d96b06 52%,#9e4700 100%);
+  border-color:#ffd073;
+  box-shadow:inset 0 1px 0 rgba(255,240,195,.65),0 0 10px rgba(245,158,11,.4);
   color:#fff;
 }
 
 #gaugeBtn{
   grid-column:3;grid-row:2;
   width:100%;min-width:0;height:48px;
-  padding:0 6px;font-size:13.5px;
+  padding:0 5px;font-size:13px;
 }
 
+/* メインアクション（モンストのアクティブブルーボタン） */
 #voiceBtn{
   grid-column:1/-1;grid-row:3;
-  width:100%;height:44px;
-  font-size:14px;font-weight:600;padding:0 14px;
-  background:var(--accent);
-  border-color:var(--accent);
+  width:100%;height:42px;
+  font-size:14px;font-weight:800;padding:0 14px;
+  background:linear-gradient(180deg,#3da7ff 0%,#1670d4 52%,#0c4b9e 100%);
+  border:1px solid #6bc6ff;
+  box-shadow:inset 0 1px 0 rgba(205,240,255,.65),inset 0 -1px 0 rgba(4,24,58,.85),0 2px 8px rgba(18,104,204,.45);
   color:#fff;
 }
-#voiceBtn:active{background:var(--accent-hover)}
+#voiceBtn::before,#voiceBtn::after{
+  content:"";
+  width:0;height:0;
+  border-top:4px solid transparent;
+  border-bottom:4px solid transparent;
+  opacity:.85;
+}
+#voiceBtn::before{border-left:5px solid #bfe6ff;margin-right:2px}
+#voiceBtn::after{border-right:5px solid #bfe6ff;margin-left:2px}
 
 @media(max-width:430px){
   #bar{
-    grid-template-columns:minmax(70px,1fr) 156px 78px;
-    gap:5px;padding:7px;
+    grid-template-columns:minmax(68px,1fr) 160px 76px;
+    gap:5px;padding:6px;
   }
-  button{height:44px;font-size:13px}
-  #fileBtn{font-size:11.5px}
-  #count,#angleControls{grid-template-columns:38px 1fr 38px;height:44px}
-  #minus,#plus,#angleControls button{height:36px;font-size:19px}
+  button{height:44px;font-size:12.5px}
+  #fileBtn{font-size:11px}
+  #count,#angleControls{grid-template-columns:36px 1fr 36px;height:44px}
+  #minus,#plus,#angleControls button{height:36px;font-size:18px}
   #angleDisplay .angleValue{font-size:13px}
-  #zoomBtn,#gaugeBtn{height:44px;font-size:12.5px;gap:4px}
-  #voiceBtn{height:42px;font-size:13.5px}
+  #zoomBtn,#gaugeBtn{height:44px;font-size:12px;gap:3px}
+  #voiceBtn{height:40px;font-size:13px}
 }
 
-/* 音声コマンドモーダル */
+/* 音声コマンドモーダル（モンストのダイアログ枠） */
 #voiceModal{
   display:none;
   position:fixed;inset:0;z-index:1000;
-  background:rgba(0,0,0,.68);
-  -webkit-backdrop-filter:blur(4px);
-  backdrop-filter:blur(4px);
+  background:rgba(2,5,11,.78);
   align-items:center;justify-content:center;
   padding:14px;
 }
@@ -295,55 +346,73 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   max-height:90dvh;
   display:flex;flex-direction:column;
   overflow:hidden;
-  background:var(--surface);
-  border:1px solid var(--border-strong);
-  border-radius:16px;
-  box-shadow:0 20px 50px rgba(0,0,0,.6);
+  background:linear-gradient(180deg,#111b2b 0%,#090e18 100%);
+  border:1.5px solid var(--steel-bright);
+  border-radius:9px;
+  box-shadow:0 0 0 1px #020409,inset 0 1px 0 rgba(165,220,255,.32),0 20px 50px rgba(0,0,0,.85);
 }
 
 .voiceHeader{
-  padding:14px 16px 12px;
-  border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg,#2a3a50 0%,#182232 55%,#111824 100%);
+  border-bottom:1px solid #356394;
+  padding:11px 14px 10px;
   flex-shrink:0;
 }
 .voiceHeaderTop{
   display:flex;align-items:center;justify-content:space-between;gap:10px;
-  margin-bottom:12px;
+  margin-bottom:10px;
 }
 #voiceModal h2{
-  font-size:16px;font-weight:700;margin:0;color:var(--text);
+  position:relative;
+  padding-left:10px;
+  font-size:15.5px;font-weight:800;margin:0;color:#fff;
+  text-shadow:0 1px 2px rgba(0,0,0,.95);
+  letter-spacing:.03em;
+}
+#voiceModal h2::before{
+  content:"";
+  position:absolute;left:0;top:2px;bottom:2px;width:4px;
+  border-radius:1px;
+  background:linear-gradient(180deg,#64c7ff,#1674db);
 }
 #voiceCloseX{
-  width:32px;height:32px;min-width:32px;
-  padding:0;border-radius:8px;
-  background:var(--surface-2);
-  border:1px solid var(--border);
-  color:var(--text-muted);font-size:19px;line-height:1;
+  width:30px;height:30px;min-width:30px;
+  padding:0;border-radius:6px;
+  font-size:18px;line-height:1;
 }
 
+/* モンスト戦績画面風の切替タブ */
 .voiceTabs{
-  display:grid;grid-template-columns:1fr 1fr;gap:4px;
-  padding:3px;
-  background:var(--bg);
-  border:1px solid var(--border);
-  border-radius:10px;
+  display:grid;grid-template-columns:1fr 1fr;gap:6px;
 }
 .voiceTabBtn{
-  height:34px;
-  border:none;
-  background:transparent;
-  color:var(--text-muted);
-  font-size:13px;font-weight:600;
-  border-radius:7px;
+  height:35px;
+  border:1px solid #2b5480;
+  background:linear-gradient(180deg,#182c46 0%,#0e1b2d 100%);
+  color:#8fb3d9;
+  font-size:12.5px;font-weight:800;
+  border-radius:6px;
   padding:0 8px;
 }
 .voiceTabBtn.active{
-  background:var(--surface-2);
-  color:var(--text);
+  border-color:#6bc6ff;
+  background:linear-gradient(180deg,#3da7ff 0%,#1670d4 52%,#0c4b9e 100%);
+  box-shadow:inset 0 1px 0 rgba(205,240,255,.65),0 2px 6px rgba(18,104,204,.45);
+  color:#fff;
+}
+.voiceTabBtn.active::before{
+  content:"";width:0;height:0;
+  border-top:4px solid transparent;border-bottom:4px solid transparent;
+  border-left:5px solid #bfe6ff;
+}
+.voiceTabBtn.active::after{
+  content:"";width:0;height:0;
+  border-top:4px solid transparent;border-bottom:4px solid transparent;
+  border-right:5px solid #bfe6ff;
 }
 
 .voiceBody{
-  padding:16px;
+  padding:14px;
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
   flex:1;
@@ -351,220 +420,218 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 
 .angleSummary{
   display:flex;align-items:center;justify-content:space-between;
-  padding:10px 14px;
-  border-radius:10px;
-  background:var(--bg);
-  border:1px solid var(--border);
-  margin-bottom:14px;
+  padding:9px 12px;
+  border-radius:6px;
+  background:var(--well);
+  border:1px solid #2a5380;
+  box-shadow:inset 0 2px 5px rgba(0,0,0,.85);
+  margin-bottom:13px;
 }
-.angleSummary span{font-size:12.5px;color:var(--text-muted);font-weight:500}
-.angleSummary strong{font-size:19px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
+.angleSummary span{font-size:12px;color:var(--text-sub);font-weight:700}
+.angleSummary strong{font-size:17px;font-weight:800;color:#6dc4ff;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px rgba(0,0,0,.9)}
 
-#voiceModal .voiceField{display:flex;flex-direction:column;gap:6px;margin:13px 0}
-#voiceModal #customDurationField{margin:8px 0 0;gap:0}
-#voiceModal label{font-size:12.5px;font-weight:600;color:var(--text)}
-.fieldSub{font-size:11.5px;color:var(--text-muted);margin:-2px 0 2px;line-height:1.45}
+#voiceModal .voiceField{display:flex;flex-direction:column;gap:5px;margin:12px 0}
+#voiceModal #customDurationField{margin:7px 0 0;gap:0}
+#voiceModal label{font-size:12px;font-weight:800;color:#d6e9ff}
+.fieldSub{font-size:11px;color:var(--text-sub);margin:-1px 0 2px;line-height:1.45}
 #voiceModal input{
-  width:100%;height:42px;
-  border:1px solid var(--border-strong);
-  border-radius:9px;
-  background:var(--bg);
-  color:var(--text);
-  padding:0 12px;
-  font-size:14.5px;font-weight:500;
+  width:100%;height:40px;
+  border:1px solid #2b5582;
+  border-radius:6px;
+  background:var(--well);
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.8);
+  color:#fff;
+  padding:0 11px;
+  font-size:14px;font-weight:600;
   -webkit-user-select:text;user-select:text;
   transition:border-color .15s ease;
 }
-#voiceModal input::placeholder{color:#6b7280}
+#voiceModal input::placeholder{color:#567294}
 #voiceModal input:focus{
   outline:none;
-  border-color:var(--accent);
+  border-color:#5cbaff;
 }
 
 #voiceModal .durationOptions{
-  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0;
+  display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:0;
 }
 #voiceModal .durationOption{
-  display:flex;align-items:center;gap:9px;
-  padding:10px 12px;
-  border:1px solid var(--border);
-  border-radius:10px;
-  background:var(--surface-2);
+  display:flex;align-items:center;gap:8px;
+  padding:9px 11px;
+  border:1px solid #29507a;
+  border-radius:6px;
+  background:linear-gradient(180deg,#16273e 0%,#0d1828 100%);
+  box-shadow:inset 0 1px 0 rgba(145,205,255,.18);
   cursor:pointer;
-  font-size:13.5px;font-weight:600;color:var(--text);
-  transition:border-color .12s ease,background .12s ease;
+  font-size:13px;font-weight:800;color:#d8ebff;
 }
 #voiceModal .durationOption:has(input:checked){
-  border-color:var(--accent);
-  background:var(--accent-soft);
+  border-color:#68c4ff;
+  background:linear-gradient(180deg,#245994 0%,#143661 100%);
+  box-shadow:inset 0 1px 0 rgba(190,232,255,.45);
+  color:#fff;
 }
 #voiceModal .durationOption input{
   appearance:none;-webkit-appearance:none;
-  width:18px;height:18px;flex:0 0 18px;
+  width:16px;height:16px;flex:0 0 16px;
   margin:0;padding:0;
-  border:1.5px solid var(--text-muted);
+  border:1.5px solid #6fa6db;
   border-radius:50%;
-  background:transparent;
+  background:var(--well);
+  box-shadow:none;
   display:grid;place-content:center;
 }
 #voiceModal .durationOption input:checked{
-  border-color:var(--accent);
-  background:var(--accent);
+  border-color:#8cd3ff;
+  background:#2894ff;
 }
 #voiceModal .durationOption input:checked::before{
   content:"";width:6px;height:6px;border-radius:50%;background:#fff;
 }
-.durationText{display:flex;flex-direction:column;line-height:1.2}
-.durationText small{font-size:11px;font-weight:500;color:var(--text-muted);margin-top:2px}
+.durationText{display:flex;flex-direction:column;line-height:1.15}
+.durationText small{font-size:10.5px;font-weight:600;color:#9bc0e6;margin-top:2px}
 
 .voiceNoticeBox{
-  margin:14px 0 4px;
-  padding:10px 12px;
-  border-radius:9px;
-  background:rgba(255,255,255,.04);
-  border:1px solid var(--border);
-  color:var(--text-muted);
-  font-size:11.5px;line-height:1.5;
+  margin:12px 0 4px;
+  padding:8px 10px;
+  border-radius:6px;
+  background:rgba(8,14,24,.85);
+  border:1px solid rgba(58,108,163,.35);
+  color:var(--text-sub);
+  font-size:11px;line-height:1.45;
 }
-#voiceModal .voiceHint{font-size:12.5px;line-height:1.55;color:var(--text-muted);margin:0 0 12px}
+#voiceModal .voiceHint{font-size:12px;line-height:1.5;color:var(--text-sub);margin:0 0 10px}
 
-#voiceModal .voiceActions{display:flex;gap:8px;margin-top:16px}
-#voiceModal .voiceActions button{flex:1;height:44px;font-size:14px}
-#voiceCancel{
-  background:var(--surface-2);
-  border:1px solid var(--border);
-  color:var(--text);
-}
+#voiceModal .voiceActions{display:flex;gap:8px;margin-top:14px}
+#voiceModal .voiceActions button{flex:1;height:42px;font-size:13.5px}
 #voiceGenerate{
-  background:var(--accent);
-  border:1px solid var(--accent);
+  background:linear-gradient(180deg,#3da7ff 0%,#1670d4 52%,#0c4b9e 100%);
+  border:1px solid #6bc6ff;
+  box-shadow:inset 0 1px 0 rgba(205,240,255,.65),0 2px 8px rgba(18,104,204,.45);
   color:#fff;
 }
-#voiceGenerate:active{background:var(--accent-hover)}
 
 /* 既存ファイル編集エリア */
 .nativeFilePicker{position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:auto;cursor:pointer}
 .filePickerOverlay{position:relative;width:100%}
 #existingVoicePickBtn{
-  width:100%;height:auto;min-height:74px;
-  padding:14px 16px;
+  width:100%;height:auto;min-height:68px;
+  padding:12px 14px;
   flex-direction:column;gap:4px;
-  border:1px dashed var(--border-strong);
-  border-radius:12px;
-  background:var(--bg);
-  color:var(--text);
-  font-size:14px;font-weight:600;
+  border:1px dashed var(--steel-bright);
+  border-radius:7px;
+  background:var(--well);
+  box-shadow:inset 0 2px 5px rgba(0,0,0,.8);
+  color:#fff;
+  font-size:13.5px;font-weight:800;
 }
-#existingVoicePickBtn small{font-size:11.5px;font-weight:400;color:var(--text-muted)}
+#existingVoicePickBtn small{font-size:11px;font-weight:500;color:var(--text-sub)}
 
 #existingVoiceFileInfo{
-  margin:12px 0 0;
-  padding:9px 12px;
-  border-radius:9px;
-  background:rgba(16,185,129,.12);
-  border:1px solid rgba(16,185,129,.35);
-  color:#a7f3d0;
-  font-size:12px;font-weight:500;
+  margin:10px 0 0;
+  padding:8px 10px;
+  border-radius:6px;
+  background:rgba(20,83,45,.32);
+  border:1px solid rgba(74,222,128,.45);
+  color:#bbf7d0;
+  font-size:11.5px;font-weight:700;
 }
 
 .existingBulkBar{
-  display:flex;flex-wrap:wrap;align-items:center;gap:6px;
-  padding:10px;
-  border:1px solid var(--border);
-  border-radius:10px;
-  background:var(--bg);
+  display:flex;flex-wrap:wrap;align-items:center;gap:5px;
+  padding:9px;
+  border:1px solid #29507a;
+  border-radius:6px;
+  background:var(--well);
   margin-top:10px;
 }
 .existingBulkBar span{
-  font-size:11.5px;color:var(--text-muted);font-weight:600;width:100%;margin-bottom:2px;
+  font-size:11px;color:var(--text-sub);font-weight:700;width:100%;margin-bottom:2px;
 }
 .existingBulkBtn{
   flex:1;min-width:0;
-  height:34px;min-height:34px;
-  padding:0 6px;font-size:11.5px;
-  border-radius:7px;
+  height:32px;min-height:32px;
+  padding:0 5px;font-size:11px;
+  border-radius:5px;
 }
 
-#existingVoiceCommands{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+#existingVoiceCommands{display:flex;flex-direction:column;gap:9px;margin-top:10px}
 .existingCommandRow{
-  display:flex;flex-direction:column;gap:8px;
-  padding:12px;
-  border:1px solid var(--border);
-  border-radius:12px;
-  background:var(--bg);
+  display:flex;flex-direction:column;gap:7px;
+  padding:10px;
+  border:1px solid #2b5480;
+  border-radius:7px;
+  background:linear-gradient(180deg,#111d2f 0%,#0a121f 100%);
 }
 .existingCommandHead{
   display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
-  padding-bottom:8px;
-  border-bottom:1px solid var(--border);
+  padding-bottom:7px;
+  border-bottom:1px solid rgba(64,119,179,.3);
 }
 .existingCommandTitle{
-  font-weight:600;font-size:13.5px;color:var(--text);
+  font-weight:800;font-size:13px;color:#fff;
   display:flex;align-items:center;gap:6px;
 }
 .cmdNumBadge{
   display:inline-flex;align-items:center;justify-content:center;
-  padding:2px 7px;border-radius:6px;
-  background:var(--surface-2);
-  border:1px solid var(--border);
-  color:var(--text);
-  font-size:11.5px;font-weight:700;
+  padding:2px 7px;border-radius:4px;
+  background:linear-gradient(180deg,#2d7dd2,#164c8a);
+  border:1px solid #63b5ff;
+  color:#fff;
+  font-size:11px;font-weight:800;
 }
 .existingCommandMeta{
-  font-size:11px;font-weight:500;color:var(--text-muted);
-  background:var(--surface-2);border:1px solid var(--border);
-  border-radius:999px;padding:2px 9px;
+  font-size:11px;font-weight:700;color:#8cc8ff;
+  background:var(--well);border:1px solid #264a70;
+  border-radius:4px;padding:2px 8px;
   font-variant-numeric:tabular-nums;
 }
 .existingSubLabel{
-  font-size:11.5px;font-weight:600;color:var(--text-muted);margin:2px 0 -2px;
+  font-size:11px;font-weight:700;color:var(--text-sub);margin:2px 0 -2px;
 }
 .existingCommandRow input[type="text"],.existingCommandRow input[type="number"]{
-  width:100%;height:40px;
-  border:1px solid var(--border-strong);
-  border-radius:8px;
-  background:var(--surface);
-  color:var(--text);padding:0 11px;font-size:14px;font-weight:500;
+  width:100%;height:38px;
+  border:1px solid #2b5582;
+  border-radius:6px;
+  background:var(--well);
+  color:#fff;padding:0 10px;font-size:13.5px;font-weight:600;
   -webkit-user-select:text;user-select:text;
 }
-.existingSpeedGroup{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.existingSpeedGroup{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
 .existingSpeedChip{
   display:flex;align-items:center;justify-content:center;
-  height:36px;min-height:36px;padding:4px 5px;
-  border:1px solid var(--border);
-  border-radius:8px;
-  background:var(--surface-2);
-  color:var(--text-muted);font-size:11.5px;font-weight:600;
+  height:34px;min-height:34px;padding:3px 4px;
+  border:1px solid #29507a;
+  border-radius:5px;
+  background:linear-gradient(180deg,#162840,#0d1929);
+  color:#98badc;font-size:11px;font-weight:700;
   cursor:pointer;text-align:center;line-height:1.15;
 }
 .existingSpeedChip.active{
-  border-color:var(--accent);
-  background:var(--accent-soft);
+  border-color:#6bc6ff;
+  background:linear-gradient(180deg,#2d7fd6,#154b8c);
   color:#fff;
 }
 
 .existingSaveArea{
-  display:flex;flex-direction:column;gap:10px;
-  margin-top:14px;padding-top:14px;
-  border-top:1px solid var(--border);
+  display:flex;flex-direction:column;gap:9px;
+  margin-top:12px;padding-top:12px;
+  border-top:1px solid rgba(64,119,179,.35);
 }
 #existingVoiceSaveBtn{
-  width:100%;min-height:44px;height:44px;
+  width:100%;min-height:42px;height:42px;
   padding:0 14px;
-  border:1px solid var(--accent);
-  border-radius:10px;
-  background:var(--accent);
-  color:#fff;font-size:14px;font-weight:600;
+  border:1px solid #6bc6ff;
+  border-radius:7px;
+  background:linear-gradient(180deg,#3da7ff 0%,#1670d4 52%,#0c4b9e 100%);
+  color:#fff;font-size:13.5px;font-weight:800;
 }
-#existingVoiceSaveBtn:active{background:var(--accent-hover)}
 
 /* 隠し統計パネル（通常時は完全に非表示） */
 #sysPanel{
   display:none;
   position:fixed;inset:0;z-index:2000;
-  background:rgba(0,0,0,.72);
-  -webkit-backdrop-filter:blur(4px);
-  backdrop-filter:blur(4px);
+  background:rgba(2,5,11,.80);
   align-items:center;justify-content:center;
   padding:16px;
 }
@@ -574,90 +641,91 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   max-height:85dvh;
   display:flex;flex-direction:column;
   overflow:hidden;
-  background:var(--surface);
-  border:1px solid var(--border-strong);
-  border-radius:16px;
-  box-shadow:0 20px 50px rgba(0,0,0,.65);
+  background:linear-gradient(180deg,#111b2b 0%,#090e18 100%);
+  border:1.5px solid var(--steel-bright);
+  border-radius:9px;
+  box-shadow:0 0 0 1px #020409,0 20px 50px rgba(0,0,0,.85);
 }
 .sysHead{
   display:flex;align-items:center;justify-content:space-between;
-  padding:13px 16px;
-  border-bottom:1px solid var(--border);
+  padding:11px 14px;
+  background:linear-gradient(180deg,#2a3a50 0%,#182232 55%,#111824 100%);
+  border-bottom:1px solid #356394;
 }
-.sysHead h3{margin:0;font-size:15px;font-weight:700;color:var(--text)}
+.sysHead h3{margin:0;font-size:14.5px;font-weight:800;color:#fff}
 .sysClose{
-  width:30px;height:30px;min-width:30px;padding:0;
-  border-radius:8px;font-size:18px;
-  background:var(--surface-2);color:var(--text-muted);
+  width:28px;height:28px;min-width:28px;padding:0;
+  border-radius:6px;font-size:17px;
 }
 .sysBody{
-  padding:15px 16px 18px;
+  padding:14px;
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
-  display:flex;flex-direction:column;gap:12px;
+  display:flex;flex-direction:column;gap:11px;
 }
 .sysDateRow{
   display:flex;align-items:center;justify-content:space-between;
-  font-size:12px;color:var(--text-muted);
+  font-size:11.5px;color:var(--text-sub);font-weight:700;
 }
 .sysBadge{
-  font-size:11px;font-weight:600;
-  padding:2px 8px;border-radius:999px;
-  background:var(--surface-2);border:1px solid var(--border);
-  color:var(--text-muted);
+  font-size:10.5px;font-weight:700;
+  padding:2px 8px;border-radius:4px;
+  background:var(--well);border:1px solid #29507a;
+  color:var(--text-sub);
 }
 .sysBadge.cloud{
-  background:rgba(16,185,129,.14);
-  border-color:rgba(16,185,129,.35);
-  color:#a7f3d0;
+  background:rgba(20,83,45,.35);
+  border-color:rgba(74,222,128,.45);
+  color:#bbf7d0;
 }
 .sysGrid{
   display:grid;grid-template-columns:1fr 1fr;gap:8px;
 }
 .sysBox{
-  padding:12px;border-radius:12px;
-  background:var(--bg);border:1px solid var(--border);
-  display:flex;flex-direction:column;gap:4px;
+  padding:10px 11px;border-radius:6px;
+  background:var(--well);border:1px solid #284e78;
+  box-shadow:inset 0 2px 5px rgba(0,0,0,.8);
+  display:flex;flex-direction:column;gap:3px;
 }
-.sysBox span{font-size:11.5px;color:var(--text-muted)}
+.sysBox span{font-size:11px;color:var(--text-sub);font-weight:700}
 .sysBox strong{
-  font-size:26px;font-weight:700;color:var(--text);
+  font-size:24px;font-weight:800;color:#fff;
   font-variant-numeric:tabular-nums;line-height:1.15;
 }
-.sysBox small{font-size:11px;color:var(--text-muted)}
+.sysBox small{font-size:10.5px;color:var(--text-sub)}
 .sysHistWrap{
-  border:1px solid var(--border);
-  border-radius:10px;
+  border:1px solid #284e78;
+  border-radius:6px;
   overflow:hidden;
-  background:var(--bg);
+  background:var(--well);
 }
 .sysHistHead,.sysHistRow{
-  display:grid;grid-template-columns:1fr 72px 88px;
-  padding:7px 10px;font-size:12px;
+  display:grid;grid-template-columns:1fr 70px 88px;
+  padding:7px 10px;font-size:11.5px;
   font-variant-numeric:tabular-nums;
 }
 .sysHistHead{
-  background:var(--surface-2);
-  color:var(--text-muted);font-weight:600;
-  border-bottom:1px solid var(--border);
+  background:#152338;
+  color:#9dc3eb;font-weight:800;
+  border-bottom:1px solid #284e78;
 }
 .sysHistRow{
-  color:var(--text);
-  border-bottom:1px solid rgba(255,255,255,.05);
+  color:#fff;
+  border-bottom:1px solid rgba(56,112,172,.2);
 }
 .sysHistRow:last-child{border-bottom:none}
 .sysHistHead span:not(:first-child),.sysHistRow span:not(:first-child){text-align:right}
 .sysFoot{
   display:flex;gap:8px;margin-top:2px;
 }
-.sysFoot button{flex:1;height:38px;font-size:12.5px}
-.sysNote{font-size:11px;color:var(--text-muted);line-height:1.5;margin:0}
+.sysFoot button{flex:1;height:36px;font-size:12px}
+.sysNote{font-size:11px;color:var(--text-sub);line-height:1.45;margin:0}
 </style>
 </head>
 <body>
 <div id="bar">
   <button id="fileBtn" type="button">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
     <span>画像選択</span>
   </button>
   <input id="file" type="file" accept="image/*">
@@ -669,23 +737,23 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   </div>
 
   <button id="zoomBtn" type="button">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
     <span class="btnLabel">拡大</span>
   </button>
 
   <button id="gaugeBtn" type="button" aria-label="ガイド画像を保存">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     <span>保存</span>
   </button>
 
   <div id="angleControls">
-    <button id="angleMinus" type="button" aria-label="角度を減らす">−</button>
-    <span id="angleDisplay" title="ダブルタップで直接入力"><span>角度</span><span class="angleValue">000.00°</span></span>
-    <button id="anglePlus" type="button" aria-label="角度を増やす">＋</button>
+    <button id="angleMinus" type="button" aria-label="角度を1段減らす">−</button>
+    <span id="angleDisplay" title="2回タップで直接入力"><span class="angleMeta">角度 <b id="angleStepTag">#256</b></span><span class="angleValue">90.00°</span></span>
+    <button id="anglePlus" type="button" aria-label="角度を1段増やす">＋</button>
   </div>
 
   <button id="voiceBtn" type="button">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
     <span>音声コマンド作成・編集</span>
   </button>
 </div>
@@ -706,8 +774,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   <div class="voiceBody">
    <div id="voiceTabCreate" role="tabpanel">
     <div class="angleSummary">
-     <span>現在のガイド角度</span>
-     <strong id="voiceCurrentAngle">90.00°</strong>
+     <span>ガイド角度（1024分割）</span>
+     <strong id="voiceCurrentAngle">90.00° (#256)</strong>
     </div>
 
     <div class="voiceField" style="margin-top:0">
@@ -729,7 +797,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 
     <div class="voiceField">
      <label for="voiceCommandName">読み上げ語句</label>
-     <p class="fieldSub">空欄の場合は「1」になります。「あ」「1」など4文字以下の短い語句も設定できます。</p>
+     <p class="fieldSub">空欄時は「1」になります。「あ」「1」など短い語句も設定できます。</p>
      <input id="voiceCommandName" type="text" maxlength="80" value="" placeholder="例：1、あ、ルートA">
     </div>
 
@@ -739,7 +807,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
     </div>
 
     <div class="voiceNoticeBox">
-     ※注意：iPhone SEなどの小型端末（@2x）では、生成した角度から0.01°〜0.02°ほどズレが生じる場合があります。
+     ※全1024段階（0.3515625°刻み）で実機と同じステップ角に出力します。
     </div>
 
     <div class="voiceActions">
@@ -753,7 +821,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
     <div id="existingVoiceChange">
      <div class="filePickerOverlay">
       <button id="existingVoicePickBtn" type="button">
-       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
        <span>既存ファイルを選択して編集</span>
        <small>.voicecontrolcommands ファイルに対応</small>
       </button>
@@ -825,16 +893,26 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 
 <div id="wrap">
   <div id="empty">
-    <div class="emptyCard">
-      <div class="emptyIcon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+    <div class="hudFrame">
+      <div class="hudTitleBar">
+        <span class="hudTitleText">ショットガイド</span>
+        <span class="hudSpecTag">1024分割 / 0.35°</span>
       </div>
-      <p class="emptyTitle">画像を選択してガイドを表示</p>
-      <p class="emptySub">ここをタップするか、下の「画像選択」から<br>スクリーンショットを選んでください</p>
-      <div class="emptyTips">
-        <div class="emptyTip"><b>矢印をドラッグ</b><span>カーソルの位置を移動</span></div>
-        <div class="emptyTip"><b>画面をなぞる</b><span>引っ張る角度を調整</span></div>
-        <div class="emptyTip"><b>角度を2回タップ</b><span>数値を直接入力</span></div>
+      <div class="hudFrameBody">
+        <div class="hudDropZone">
+          <div class="hudDropIcon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          </div>
+          <div class="hudDropText">
+            <strong>スクリーンショットを選択</strong>
+            <span>ここをタップ、または下の「画像選択」</span>
+          </div>
+        </div>
+        <div class="hudKeyList">
+          <div class="hudKeyRow"><b>矢印ドラッグ</b><span>発射位置を移動</span></div>
+          <div class="hudKeyRow"><b>画面をなぞる</b><span>1024段階の角度調整</span></div>
+          <div class="hudKeyRow"><b>角度を2回タップ</b><span>角度・ステップ直接入力</span></div>
+        </div>
       </div>
     </div>
   </div>
@@ -848,6 +926,10 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 // 全ユーザー合算集計を行う場合は、Google Apps Script等のウェブアプリURLをここに設定してください（空欄時はこの端末のローカル集計）
 const STATS_API_URL = "";
 
+// モンストの角度仕様：1周1024分割（360° / 1024 = 0.3515625°）
+const MONST_STEPS = 1024;
+const MONST_STEP_DEG = 360 / MONST_STEPS;
+
 const file=document.getElementById('file'), fileBtn=document.getElementById('fileBtn');
 const stage=document.getElementById('stage'), photo=document.getElementById('photo'), cv=document.getElementById('cv');
 const ctx=cv.getContext('2d'), empty=document.getElementById('empty');
@@ -856,9 +938,26 @@ const nEl=document.getElementById('n'), plus=document.getElementById('plus'), mi
 let reflections=3, imgW=0, imgH=0;
 let zoomMode=false, zoomScale=1, zoomStartDist=0, zoomStartScale=1;
 let cursor={x:0,y:0};
+let angleStep=256; // 初期値 90.00° (#256 / 1024)
 let pullAngle=-Math.PI/2;
 let active=null, lastX=0, lastY=0;
 let touchStartX=0, touchStartY=0;
+
+function normalizeStep(step){
+  return ((Math.round(step)%MONST_STEPS)+MONST_STEPS)%MONST_STEPS;
+}
+function getAngleDeg(){
+  return angleStep * MONST_STEP_DEG;
+}
+function setAngleStep(step){
+  angleStep = normalizeStep(step);
+  pullAngle = -getAngleDeg() * Math.PI / 180;
+}
+function snapRadToMonstStep(rad){
+  let deg = (-rad * 180 / Math.PI) % 360;
+  if(deg < 0) deg += 360;
+  setAngleStep(Math.round(deg / MONST_STEP_DEG));
+}
 
 fileBtn.onclick=()=>file.click();
 empty.onclick=()=>{ if(stage.hidden) file.click(); };
@@ -1096,7 +1195,7 @@ cv.addEventListener('pointerdown',e=>{
  touchStartX=p.x;touchStartY=p.y;
  if(active==='angle'){
    const vx=p.x-cursor.x, vy=p.y-cursor.y;
-   if(Math.hypot(vx,vy)>1) pullAngle=Math.atan2(-vy,-vx);
+   if(Math.hypot(vx,vy)>1) snapRadToMonstStep(Math.atan2(-vy,-vx));
    updateAngleUI(); draw();
  }
  e.preventDefault();
@@ -1113,7 +1212,7 @@ cv.addEventListener('pointermove',e=>{
    }else{
      const vx=p.x-touchStartX, vy=p.y-touchStartY;
      if(Math.hypot(vx,vy)>0.01){
-       pullAngle=Math.atan2(-vy,-vx);
+       snapRadToMonstStep(Math.atan2(-vy,-vx));
      }
    }
    lastX=p.x;lastY=p.y;
@@ -1123,9 +1222,12 @@ cv.addEventListener('pointermove',e=>{
 });
 
 function updateAngleUI(){
- let deg = (-pullAngle * 180 / Math.PI) % 360;
- if(deg < 0) deg += 360;
- document.getElementById('angleDisplay').querySelector('.angleValue').textContent = deg.toFixed(2) + '°';
+ const deg = getAngleDeg();
+ const display = document.getElementById('angleDisplay');
+ const valEl = display.querySelector('.angleValue');
+ const stepTag = document.getElementById('angleStepTag');
+ if(valEl) valEl.textContent = deg.toFixed(2) + '°';
+ if(stepTag) stepTag.textContent = '#' + angleStep;
 }
 
 (function enableAngleDirectInput(){
@@ -1134,21 +1236,26 @@ function updateAngleUI(){
  function openEditor(){
   if(display.querySelector('input'))return;
   const valueEl=display.querySelector('.angleValue');
-  let current = (-pullAngle * 180 / Math.PI) % 360;
-  if(current < 0) current += 360;
+  const currentDeg = getAngleDeg();
   const input=document.createElement('input');
-  input.type='number'; input.inputMode='decimal'; input.min='0'; input.max='359.99'; input.step='0.01';
-  input.value=current.toFixed(2); input.setAttribute('aria-label','角度を入力');
-  input.style.cssText='width:74px;max-width:100%;font:inherit;font-weight:700;text-align:center;color:#f3f4f6;background:#0e1014;border:1px solid #3b82f6;border-radius:6px;padding:2px;box-sizing:border-box;';
+  input.type='text'; input.inputMode='decimal';
+  input.value=currentDeg.toFixed(2); input.setAttribute('aria-label','角度または#ステップを入力');
+  input.style.cssText='width:76px;max-width:100%;font:inherit;font-weight:800;text-align:center;color:#fff;background:#05080e;border:1px solid #5cbaff;border-radius:4px;padding:1px 2px;box-sizing:border-box;';
   valueEl.replaceWith(input);
   const finish=(commit)=>{
    if(!input.isConnected)return;
    if(commit){
-     let n=Number(input.value);
-     if(!Number.isFinite(n)||input.value.trim()==='') n=current;
-     n=Math.max(0,Math.min(359.99,n));
-     n=Math.round(n*100)/100;
-     pullAngle = -n * Math.PI / 180;
+     const raw = input.value.trim();
+     if(raw.startsWith('#')){
+       const st = Number(raw.slice(1));
+       if(Number.isFinite(st)) setAngleStep(st);
+     }else{
+       const n = Number(raw);
+       if(Number.isFinite(n) && raw !== ''){
+         const wrapped = ((n % 360) + 360) % 360;
+         setAngleStep(Math.round(wrapped / MONST_STEP_DEG));
+       }
+     }
    }
    const span=document.createElement('span');span.className='angleValue';input.replaceWith(span);updateAngleUI();draw();
   };
@@ -1165,7 +1272,7 @@ function end(e){
    const p=pos(e);
    const vx=p.x-touchStartX, vy=p.y-touchStartY;
    if(Math.hypot(vx,vy)>2){
-     pullAngle=Math.atan2(-vy,-vx);
+     snapRadToMonstStep(Math.atan2(-vy,-vx));
    }
    updateAngleUI(); draw();
  }
@@ -1183,11 +1290,8 @@ function updateCount(){
 }
 
 const angleMinus=document.getElementById('angleMinus'), anglePlus=document.getElementById('anglePlus');
-function changeAngle(delta){
-  let currentDeg = (-pullAngle * 180 / Math.PI) % 360;
-  if(currentDeg < 0) currentDeg += 360;
-  let newDeg = (Math.round(currentDeg * 100) + delta * 100 + 36000) % 36000 / 100;
-  pullAngle = -newDeg * Math.PI / 180;
+function changeAngleStep(deltaSteps){
+  setAngleStep(angleStep + deltaSteps);
   updateAngleUI();
   draw();
 }
@@ -1195,7 +1299,7 @@ function changeAngle(delta){
 function bindRepeat(btn,fn,mode='slow'){
  let timeout=null, stopped=false, step=0;
  const reflectionDelays=[240,120];
- const angleDelays=[70,25];
+ const angleDelays=[85,28];
  const delays=mode==='fast'?angleDelays:reflectionDelays;
  const stop=()=>{stopped=true;if(timeout){clearTimeout(timeout);timeout=null;}btn.classList.remove('repeatPressed');};
  const tick=()=>{
@@ -1214,9 +1318,10 @@ function bindRepeat(btn,fn,mode='slow'){
 
 bindRepeat(plus,()=>{reflections=reflections===20?0:reflections+1;updateCount();draw();});
 bindRepeat(minus,()=>{reflections=reflections===0?20:reflections-1;updateCount();draw();});
-bindRepeat(anglePlus,()=>changeAngle(0.01),'fast');
-bindRepeat(angleMinus,()=>changeAngle(-0.01),'fast');
+bindRepeat(anglePlus,()=>changeAngleStep(1),'fast');
+bindRepeat(angleMinus,()=>changeAngleStep(-1),'fast');
 updateCount();
+updateAngleUI();
 
 const gaugeBtn=document.getElementById('gaugeBtn');
 function saveGuideImage(){
@@ -1230,15 +1335,14 @@ function saveGuideImage(){
   octx.drawImage(photo,0,0,imgW,imgH);
   octx.drawImage(cv,0,0,imgW,imgH);
 
-  let angleDeg = (-pullAngle * 180 / Math.PI) % 360;
-  if(angleDeg < 0) angleDeg += 360;
-  const angleText = angleDeg.toFixed(2) + '°';
+  const angleDeg = getAngleDeg();
+  const angleText = `${angleDeg.toFixed(2)}° (#${angleStep})`;
   octx.save();
   octx.textAlign='center';
   octx.textBaseline='middle';
-  octx.font='700 28px -apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif';
+  octx.font='800 26px -apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif';
   octx.lineWidth=7;
-  octx.strokeStyle='rgba(0,0,0,.75)';
+  octx.strokeStyle='rgba(0,0,0,.82)';
   octx.strokeText(angleText,cursor.x,cursor.y);
   octx.fillStyle='#fff';
   octx.fillText(angleText,cursor.x,cursor.y);
@@ -1458,7 +1562,7 @@ requestAnimationFrame(updateBarScale);
 })();
 
 // Voice Control gesture generator
-const voiceGestureTemplateB64="YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0b3BYJG9iamVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRyb290gAGvECULDBUdKCkqKzEyNzg+Q0lKS01XXWBhZ2hpc3l8fYOEjpKWl5ydVSRudWxs1A0ODxAREhMUViRjbGFzc1lBbGxFdmVudHNXVmVyc2lvbl8QF0FyZVBvaW50c0RldmljZVJlbGF0aXZlgCSAAoAjCNIWDRccWk5TLm9iamVjdHOkGBkaG4ADgBGAGIAegCLTHhYNHyMnV05TLmtleXOjICEigASABYAGoyQlJoAHgA2AD4AQV0ZpbmdlcnNWRm9yY2VzVFRpbWXTHhYNLC4woS2ACKEvgAmADBAB0zMNNDU2MVtOUy5wb2ludHZhbFpOUy5zcGVjaWFsgAqAC18QKHsxODYuMzMzMzMzMzMzMzMzMzEsIDM3Mi4zMzMzMzMzMzMzMzMzMX3SOTo7PFokY2xhc3NuYW1lWCRjbGFzc2VzV05TVmFsdWWiOz1YTlNPYmplY3TSOTo/QF8QE05TTXV0YWJsZURpY3Rpb25hcnmjQUI9XxATTlNNdXRhYmxlRGljdGlvbmFyeVxOU0RpY3Rpb25hcnnTHhYNREYwoS2ACKFHgA6ADCIAAAAAI0HIQj0TBh5g0jk6QkyiQj3THhYNTlInoyAhIoAEgAWABqNTVFWAEoAVgBeAENMeFg1YWjChLYAIoVuAE4AM0zMNNF42MYAUgAtfECh7MTg2LjMzMzMzMzMzMzMzMzMxLCAzNzIuMzMzMzMzMzMzMzMzMzF90x4WDWJkMKEtgAihZYAWgAwiP4AAACNByEI9EwiRl9MeFg1qbiejICEigASABYAGo29wcYAZgByAHYAQ0x4WDXR2MKEtgAihd4AagAzTMw00ejYxgBuAC18QGXsxOTcsIDQ3My4zMzMzMzMzMzMzMzMzMX3THhYNfoAwoS2ACKFlgBaADCNByEI9Ewn3+dMeFg2FiSejICEigASABYAGo4qLjIAfgCCAIYAQ0x4WDY+QMKCggAzTHhYNk5QwoKCADCNByEI9EwoBHdI5OpiZXk5TTXV0YWJsZUFycmF5o5qbPV5OU011dGFibGVBcnJheVdOU0FycmF5FAAAAAAAAAAAAAAAAAAAAAHSOTqen18QGkFYTXV0YWJsZVJlcGxheWFibGVHZXN0dXJlo6ChPV8QGkFYTXV0YWJsZVJlcGxheWFibGVHZXN0dXJlXxATQVhSZXBsYXlhYmxlR2VzdHVyZQAIABEAGgAkACkAMgA3AEkATABRAFMAewCBAIoAkQCbAKMAvQC/AMEAwwDEAMkA1ADZANsA3QDfAOEA4wDqAPIA9gD4APoA/AEAAQIBBAEGAQgBEAEXARwBIwElAScBKQErAS0BLwE2AUIBTQFPAVEBfAGBAYwBlQGdAaABqQGuAcQByAHeAesB8gH0AfYB+AH6AfwCAQIKAg8CEgIZAh0CHwIhAiMCJwIpAisCLQIvAjYCOAI6AjwCPgJAAkcCSQJLAnYCfQJ/AoECgwKFAocCjAKVApwCoAKiAqQCpgKqAqwCrgKwArICuQK7Ar0CvwLBAsMCygLMAs4C6gLxAvMC9QL3AvkC+wMEAwsDDwMRAxMDFQMZAxsDHQMfAyEDKAMpAyoDLAMzAzQDNQM3A0ADRQNUA1gDZwNvA4ADhQOiA6YDwwAAAAAAAAIBAAAAAAAAAKIAAAAAAAAAAAAAAAAAAAPZ";
+const voiceGestureTemplateB64="YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0b3BYJG9iamVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRyb290gAGvECULDBUdKCkqKzEyNzg+Q0lKS01XXWBhZ2hpc3l8fYOEjpKWl5ydVSRudWxs1A0ODxAREhMUViRjbGFzc1lBbGxFdmVudHNXVmVyc2lvbl8QF0FyZVBvaW50c0RldmljZVJlbGF0aXZlgCSAAoAjCNIWDRccWk5TLm9iamVjdHOkGBkaG4ADgBGAGIAegCLTHhYNHyMnV05TLmtleXOjICEigASABYAGoyQlJoAHgA2AD4AQV0ZpbmdlcnNWRm9yY2VzVFRpbWXTHhYNLC4woS2ACKEvgAmADBAB0zMNNDU2MVtOUy5wb2ludHZhbFpOUy5zcGVjaWFsgAqAC18QKHsxODYuMzMzMzMzMzMzMzMzMzEsIDM3Mi4zMzMzMzMzMzMzMzMzMX3SOTo7PFokY2xhc3NuYW1lWCRjbGFzc2VzV05TVmFsdWWiOz1YTlNPYmplY3TSOTo/QF8QE05TTXV0YWJsZURpY3Rpb25hcnmjQUI9XxATTlNNdXRhYmxlRGljdGlvbmFyeVxOU0RpY3Rpb25hcnnTHhYNREYwoS2ACKFHgA6ADCIAAAAAI0HIQj0TBh5g0jk6QkyiQj3THhYNTlInoyAhIoAEgAWABqNTVFWAEoAVgBeAENMeFg1YWjChLYAIoVuAE4AM0zMNNF42MYAUgAtfECh7MTg2LjMzMzMzMzMzMzMzMzMxLCAzNzIuMzMzMzMzMzMzMzMzMzF90x4WDWJkMKEtgAihZYAWgAwiP4AAACNByEI9EwiRl9MeFg1qbiejICEigASABYAGo29wcYAZgByAHYAQ0x4WDXR2MKEtgAihd4AagAzTMw00ejYxgBuAC18QGXsxOTcsIDQ3My4zMzMzMzMzMzMzMzMzMX3THhYNfoAwoS2ACKFlgBaADCNByEI9Ewn3+dMeFg2FiSejICEigASABYAGo4qLjIAfgCCAIYAQ0x4WDY+QMKCggAzTHhYNk5QwoKCADCNByEI9EwoBHdI5OpiZXk5TTXV0YWJsZVJlcGxheWFibGVHZXN0dXJlo6ChPV8QGkFYTXV0YWJsZVJlcGxheWFibGVHZXN0dXJlXxATQVhSZXBsYXlhYmxlR2VzdHVyZQAIABEAGgAkACkAMgA3AEkATABRAFMAewCBAIoAkQCbAKMAvQC/AMEAwwDEAMkA1ADZANsA3QDfAOEA4wDqAPIA9gD4APoA/AEAAQIBBAEGAQgBEAEXARwBIwElAScBKQErAS0BLwE2AUIBTQFPAVEBfAGBAYwBlQGdAaABqQGuAcQByAHeAesB8gH0AfYB+AH6AfwCAQIKAg8CEgIZAh0CHwIhAiMCJwIpAisCLQIvAjYCOAI6AjwCPgJAAkcCSQJLAnYCfQJ/AoECgwKFAocCjAKVApwCoAKiAqQCpgKqAqwCrgKwArICuQK7Ar0CvwLBAsMCygLMAs4C6gLxAvMC9QL3AvkC+wMEAwsDDwMRAxMDFQMZAxsDHQMfAyEDKAMpAyoDLAMzAzQDNQM3A0ADRQNUA1gDZwNvA4ADhQOiA6YDwwAAAAAAAAIBAAAAAAAAAKIAAAAAAAAAAAAAAAAAAAPZ";
 const voiceGesturePoints=[
  {offset:340,length:40,x:186.33333333333331,y:372.33333333333331},
  {offset:590,length:40,x:186.33333333333331,y:372.33333333333331},
@@ -1476,13 +1580,11 @@ let voiceFileNameEdited=false;
 function getVoiceDeviceProfile(){
  const shortSide=Math.min(window.screen.width,window.screen.height);
  const isIPad=(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)||/iPad/i.test(navigator.userAgent)||shortSide>=700;
- // SafariのdevicePixelRatioを優先し、取得できない場合だけ端末種別から補う。
  const deviceScale=Number(window.devicePixelRatio)|| (isIPad?2:3);
  return {isIPad,deviceScale,lengthPx:Math.round(isIPad?140:100)};
 }
 const durationModeInputs=[...document.querySelectorAll('input[name="voiceDurationMode"]')];
 const customDurationInput=document.getElementById('voiceDuration');
-// 自由入力欄に数値が入っている場合は、速射・ゲージの選択を解除して入力値を優先する。
 function updateDurationMode(){
  if(customDurationInput.value.trim()!=='') durationModeInputs.forEach(input=>input.checked=false);
  else if(!durationModeInputs.some(input=>input.checked)) durationModeInputs.find(input=>input.value==='rapid').checked=true;
@@ -1499,11 +1601,9 @@ customDurationInput.addEventListener('input',()=>{
 });
 function getDefaultVoiceFileName(){
  const d=new Date();const pad=n=>String(n).padStart(2,'0');
- let deg = (-pullAngle * 180 / Math.PI) % 360;
- if(deg < 0) deg += 360;
+ const deg = getAngleDeg();
  const angleText = deg.toFixed(2);
 
- // 選択されているモード名を取得
  const customDurationValue = document.getElementById('voiceDuration').value.trim();
  const durationMode = [...document.querySelectorAll('input[name="voiceDurationMode"]')].find(input=>input.checked)?.value||'rapid';
  let modeText = '';
@@ -1518,7 +1618,6 @@ function getDefaultVoiceFileName(){
  return `${angleText}°_${modeText}_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
 }
 document.getElementById('voiceFileName').value=getDefaultVoiceFileName();
-// 既存の文字をタップしたら全選択し、すぐ上書きできるようにする。
 ['voiceDuration','voiceCommandName','voiceFileName'].forEach(id=>{
  const el=document.getElementById(id);
  el.addEventListener('focus',()=>{try{el.select()}catch(_){}});
@@ -1527,9 +1626,7 @@ document.getElementById('voiceFileName').addEventListener('input',()=>{voiceFile
 function updateVoiceModalAngleBadge(){
  const badge=document.getElementById('voiceCurrentAngle');
  if(!badge)return;
- let deg=(-pullAngle*180/Math.PI)%360;
- if(deg<0)deg+=360;
- badge.textContent=deg.toFixed(2)+'°';
+ badge.textContent=`${getAngleDeg().toFixed(2)}° (#${angleStep})`;
 }
 function switchVoiceTab(tabName){
  document.querySelectorAll('.voiceTabBtn').forEach(btn=>{
@@ -1559,11 +1656,10 @@ document.getElementById('voiceCancel').addEventListener('click',()=>voiceModal.c
 voiceModal.addEventListener('click',e=>{if(e.target===voiceModal)voiceModal.classList.remove('open')});
 function voiceXmlEscape(v){return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;')}
 function voiceDataToBase64(bytes){let bin='';for(let i=0;i<bytes.length;i+=0x8000)bin+=String.fromCharCode(...bytes.subarray(i,Math.min(i+0x8000,bytes.length)));return btoa(bin)}
-// 1. ジェスチャ生成関数（任意の角度に対応できるよう拡張）
+
 function makeVoiceGesture(lengthPx,durationSec,deviceScale,targetPullAngle=pullAngle){
  const bytes=Uint8Array.from(atob(voiceGestureTemplateB64),c=>c.charCodeAt(0));
  const target=targetPullAngle-Math.PI;
- // 実機テンプレートの座標を維持し、端末のスケールに合わせて始点をスナップ。
  const baseX=voiceGesturePoints[0].x,baseY=voiceGesturePoints[0].y;
  const x1=Math.round(baseX*deviceScale)/deviceScale;
  const y1=Math.round(baseY*deviceScale)/deviceScale;
@@ -1606,6 +1702,7 @@ function makeVoiceGesture(lengthPx,durationSec,deviceScale,targetPullAngle=pullA
  voiceGestureTimes.forEach(t=>view.setFloat64(t.offset,t0+(t.value-t0)*factor,false));
  return voiceDataToBase64(bytes);
 }
+
 document.getElementById('voiceGenerate').addEventListener('click',()=>{
  try{
   const deviceProfile=getVoiceDeviceProfile();
@@ -1626,31 +1723,21 @@ document.getElementById('voiceGenerate').addEventListener('click',()=>{
   const blob=new Blob([xml],{type:'application/octet-stream'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=fileName.toLowerCase().endsWith('.voicecontrolcommands')?fileName:fileName+'.voicecontrolcommands';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);if(window._recStat)window._recStat('gen');voiceModal.classList.remove('open');
  }catch(err){alert(err.message||'ファイル生成に失敗しました。')}
 });
-// 2. 既存バイナリから角度を取り出して新規テンプレートで一括打ち直しする処理（角度軸修正版）
-function convertGestureDuration(b64, durationSec, lengthPx, deviceScale){
-  try{
-    const raw = atob(b64.trim());
-    const matches = [...raw.matchAll(/\{([0-9.]+),\s*([0-9.]+)\}/g)];
-    if(!matches || matches.length < 2) throw new Error('ジェスチャーの座標を読み取れませんでした。');
-    
-    // 実際のファイルデータから「始点」と「終点」を取得
-    const startX = parseFloat(matches[0][1]);
-    const startY = parseFloat(matches[0][2]);
-    const endX = parseFloat(matches[matches.length - 1][1]);
-    const endY = parseFloat(matches[matches.length - 1][2]);
-    
-    const dx = endX - startX;
-    const dy = endY - startY;
-    
-    // ジェスチャ作成関数の内部計算（-Math.PI）と打ち消し合って100%同じ角度になるよう調整
-    const extractedPullAngle = Math.atan2(dy, dx) + Math.PI;
 
-    return makeVoiceGesture(lengthPx, durationSec, deviceScale, extractedPullAngle);
-  }catch(e){
-    throw e;
-  }
+function convertGestureDuration(b64, durationSec, lengthPx, deviceScale){
+  const raw = atob(b64.trim());
+  const matches = [...raw.matchAll(/\{([0-9.]+),\s*([0-9.]+)\}/g)];
+  if(!matches || matches.length < 2) throw new Error('ジェスチャーの座標を読み取れませんでした。');
+  const startX = parseFloat(matches[0][1]);
+  const startY = parseFloat(matches[0][2]);
+  const endX = parseFloat(matches[matches.length - 1][1]);
+  const endY = parseFloat(matches[matches.length - 1][2]);
+  const dx = endX - startX;
+  const dy = endY - startY;
+  const extractedPullAngle = Math.atan2(dy, dx) + Math.PI;
+  return makeVoiceGesture(lengthPx, durationSec, deviceScale, extractedPullAngle);
 }
-// 既存ジェスチャのバイナリから角度と元の所要時間（秒）を推定する。
+
 function extractGestureInfo(b64){
   const info={angleText:null,durationSec:null};
   try{
@@ -1666,7 +1753,8 @@ function extractGestureInfo(b64){
         const extractedPullAngle=Math.atan2(dy,dx)+Math.PI;
         let deg=(-extractedPullAngle*180/Math.PI)%360;
         if(deg<0)deg+=360;
-        info.angleText=deg.toFixed(2)+'°';
+        const st=normalizeStep(Math.round(deg/MONST_STEP_DEG));
+        info.angleText=`${deg.toFixed(2)}° (#${st})`;
       }
     }
     const bytes=new Uint8Array(raw.length);
@@ -1687,7 +1775,6 @@ function extractGestureInfo(b64){
   return info;
 }
 
-// 既存Voice Controlファイルを読み込み、各コマンドの読み上げ語句と引っ張る速度を個別に編集・保存する。
 const existingVoiceInput=document.getElementById('existingVoiceFile');
 const existingVoiceList=document.getElementById('existingVoiceCommands');
 const existingVoicePickBtn=document.getElementById('existingVoicePickBtn');
@@ -1909,7 +1996,6 @@ if(existingVoiceSaveBtn){
    const deviceScale=deviceProfile.deviceScale;
    const isoNow=new Date().toISOString().replace(/\.\d{3}Z$/,'Z');
 
-   // 先に全コマンドの入力値を検証する
    const plans=existingVoiceEntries.map(item=>{
     const newName=item.nameInput.value.trim();
     if(!newName)throw new Error(`${item.index+1}番目のコマンド名を入力してください。`);
@@ -1928,7 +2014,6 @@ if(existingVoiceSaveBtn){
     return {item,newName,targetDuration};
    });
 
-   // 検証通過後にXMLへ反映する
    plans.forEach(({item,newName,targetDuration})=>{
     let customCommands=plistKeyValue(item.dict,'CustomCommands');
     if(!customCommands||customCommands.tagName!=='dict'){
