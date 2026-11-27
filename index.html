@@ -88,6 +88,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 #file{display:none}
 
 /* 初期画面（画像未選択） */
+#empty[hidden],#stage[hidden]{display:none!important}
 #empty{
   position:absolute;inset:0;
   display:flex;align-items:center;justify-content:center;
@@ -155,8 +156,42 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   touch-action:manipulation;
 }
 
+/* 1st〜4th 自動カーソル合わせボタン行 */
+#presetRow{
+  grid-column:1/-1;grid-row:1;
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:6px;
+}
+.presetBtn{
+  height:36px;
+  min-width:0;
+  padding:0 6px;
+  border-radius:10px;
+  font-size:13px;
+  font-weight:800;
+  background:#141b28;
+  border:1px solid var(--border-strong);
+  color:#e2e8f0;
+  gap:5px;
+  letter-spacing:.02em;
+}
+.presetDot{
+  width:8px;height:8px;border-radius:50%;flex-shrink:0;
+}
+.presetBtn[data-slot="0"] .presetDot{background:#ef4444}
+.presetBtn[data-slot="1"] .presetDot{background:#3b82f6}
+.presetBtn[data-slot="2"] .presetDot{background:#f59e0b}
+.presetBtn[data-slot="3"] .presetDot{background:#22c55e}
+.presetBtn.active{
+  background:rgba(59,130,246,.22);
+  border-color:#60a5fa;
+  color:#fff;
+  box-shadow:0 0 0 1px rgba(96,165,250,.35) inset;
+}
+
 #fileBtn{
-  grid-column:1;grid-row:1/3;
+  grid-column:1;grid-row:2/4;
   height:100%;min-width:0;width:100%;
   flex-direction:column;gap:5px;
   padding:8px 6px;
@@ -177,8 +212,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   gap:2px;
   height:52px;
 }
-#count{grid-column:2;grid-row:1;width:100%;min-width:0}
-#angleControls{grid-column:2;grid-row:2;width:100%;min-width:0}
+#count{grid-column:2;grid-row:2;width:100%;min-width:0}
+#angleControls{grid-column:2;grid-row:3;width:100%;min-width:0}
 
 #minus,#plus,#angleControls button{
   width:100%;min-width:0;height:44px;
@@ -220,7 +255,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 }
 
 #zoomBtn{
-  grid-column:3;grid-row:1;
+  grid-column:3;grid-row:2;
   width:100%;min-width:0;height:52px;
   padding:0 6px;font-size:14px;
 }
@@ -232,14 +267,14 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 }
 
 #gaugeBtn{
-  grid-column:3;grid-row:2;
+  grid-column:3;grid-row:3;
   width:100%;min-width:0;height:52px;
   padding:0 6px;font-size:14px;
 }
 #gaugeBtn.active{background:var(--accent);border-color:#60a5fa}
 
 #voiceBtn{
-  grid-column:1/-1;grid-row:3;
+  grid-column:1/-1;grid-row:4;
   width:100%;height:46px;
   font-size:15px;padding:0 14px;
   background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);
@@ -260,6 +295,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   #minus,#plus,#angleControls button{height:40px;font-size:22px}
   #angleDisplay .angleValue{font-size:13px}
   #zoomBtn,#gaugeBtn{height:48px;font-size:13px;gap:4px}
+  .presetBtn{height:34px;font-size:12px}
   #voiceBtn{height:44px;font-size:14px}
 }
 
@@ -549,6 +585,12 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 </head>
 <body>
 <div id="bar">
+  <div id="presetRow" role="group" aria-label="味方位置にカーソルを合わせる">
+    <button type="button" class="presetBtn" data-slot="0"><span class="presetDot" aria-hidden="true"></span><span>1st</span></button>
+    <button type="button" class="presetBtn" data-slot="1"><span class="presetDot" aria-hidden="true"></span><span>2nd</span></button>
+    <button type="button" class="presetBtn" data-slot="2"><span class="presetDot" aria-hidden="true"></span><span>3rd</span></button>
+    <button type="button" class="presetBtn" data-slot="3"><span class="presetDot" aria-hidden="true"></span><span>4th</span></button>
+  </div>
   <button id="fileBtn" type="button">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
     <span>画像選択</span>
@@ -725,7 +767,7 @@ file.onchange=e=>{
      window._cursorRelY=cursor.y/imgH;
    }
    imgW=photo.naturalWidth; imgH=photo.naturalHeight;
-   stage.hidden=false; empty.hidden=true;
+   stage.hidden=false; empty.hidden=true; empty.style.display='none';
    fitStage();
    // 画像を変更しても、カーソルの現在位置と角度を維持します。
    const b=bounds();
@@ -982,6 +1024,7 @@ cv.addEventListener('pointermove',e=>{
      // Move the whole cursor with the selected arm; the arm stays in the hand.
      cursor.x=Math.max(0,Math.min(imgW,cursor.x+(p.x-lastX)));
      cursor.y=Math.max(0,Math.min(imgH,cursor.y+(p.y-lastY)));
+     clearPresetActive();
    }else{
      // 指の位置から連続値の角度を直接計算。1°刻みにはしません。
      const vx=p.x-touchStartX, vy=p.y-touchStartY;
@@ -1081,7 +1124,38 @@ function bindRepeat(btn,fn,mode='slow'){
  });
  ['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,stop));
 }
-bindRepeat(plus,()=>{reflections=reflections===20?0:reflections+1;updateCount();draw();});
+bindRepeat(plus,()=>{reflections=reflections===20?0:reflections+1;
+// 1st〜4th の標準初期配置（盤面 bounds に対する比率）へカーソルを移動する
+const presetSlots = [
+  { rx: 0.19,  ry: 0.865 }, // 1st
+  { rx: 0.397, ry: 0.865 }, // 2nd
+  { rx: 0.603, ry: 0.865 }, // 3rd
+  { rx: 0.81,  ry: 0.865 }  // 4th
+];
+const presetBtns = [...document.querySelectorAll('.presetBtn')];
+function clearPresetActive(){
+  presetBtns.forEach(b => b.classList.remove('active'));
+}
+function snapCursorToSlot(slotIndex){
+  if(stage.hidden || !imgW || !imgH){
+    alert('先に画像を選択してください。');
+    return;
+  }
+  const slot = presetSlots[slotIndex];
+  if(!slot) return;
+  const b = bounds();
+  cursor.x = b.l + (b.r - b.l) * slot.rx;
+  cursor.y = b.t + (b.b - b.t) * slot.ry;
+  presetBtns.forEach((b, idx) => b.classList.toggle('active', idx === slotIndex));
+  draw();
+}
+presetBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    snapCursorToSlot(Number(btn.dataset.slot));
+  });
+});
+
+updateCount();draw();});
 bindRepeat(minus,()=>{reflections=reflections===0?20:reflections-1;updateCount();draw();});
 bindRepeat(anglePlus,()=>changeAngle(0.01),'fast');
 bindRepeat(angleMinus,()=>changeAngle(-0.01),'fast');
