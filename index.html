@@ -7,18 +7,20 @@
 <style>
 :root{
   --safe-area-bottom:env(safe-area-inset-bottom,0px);
-  --bg:#06090f;
-  --panel:#0d1420;
-  --panel-2:#121c2d;
-  --well:#05080e;
-  --steel:#2a5582;
-  --steel-bright:#498fd4;
-  --cyan:#38a8ff;
-  --cyan-deep:#0f56b3;
-  --gold:#f59e0b;
-  --text:#f4f8ff;
-  --text-sub:#8fb0d4;
-  --danger:#ff5252;
+  --bg:#0e1015;
+  --surface:#181b22;
+  --surface-2:#222630;
+  --well:#101218;
+  --border:rgba(255,255,255,.12);
+  --border-strong:rgba(255,255,255,.22);
+  --accent:#3b82f6;
+  --accent-hover:#2563eb;
+  --amber:#f59e0b;
+  --emerald:#10b981;
+  --danger:#ef4444;
+  --text:#f3f4f6;
+  --text-sub:#9ca3af;
+  --font-sans:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{
@@ -26,7 +28,7 @@ html,body{
   -webkit-text-size-adjust:100%;
   background:var(--bg);
   color:var(--text);
-  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+  font-family:var(--font-sans);
   height:100%;
   overflow:hidden;
   touch-action:manipulation;
@@ -37,48 +39,40 @@ img,canvas,button,div,span{-webkit-user-drag:none}
 input{-webkit-touch-callout:none}
 button,input{font-family:inherit}
 
-/* モンスト調メタリックボタン */
 button{
   position:relative;
-  border:1px solid var(--steel);
-  background:linear-gradient(180deg,#1c324f 0%,#102036 52%,#0a1424 100%);
-  box-shadow:inset 0 1px 0 rgba(150,210,255,.26),inset 0 -1px 0 rgba(0,0,0,.65),0 2px 4px rgba(0,0,0,.45);
+  border:1px solid var(--border);
+  background:var(--surface-2);
   color:var(--text);
-  text-shadow:0 1px 2px rgba(0,0,0,.9);
-  border-radius:7px;
-  height:46px;
+  border-radius:10px;
+  height:44px;
   padding:0 10px;
-  font-size:13.5px;
+  font-size:13px;
   font-weight:700;
-  letter-spacing:.02em;
   cursor:pointer;
   touch-action:none;
   display:inline-flex;
   align-items:center;
   justify-content:center;
   gap:5px;
-  transition:filter .1s ease,transform .06s ease;
+  transition:background .12s ease,border-color .12s ease,transform .06s ease;
 }
 button:active{
-  transform:translateY(1px) scale(.985);
-  filter:brightness(1.16);
+  transform:scale(.975);
+  background:#2c313d;
 }
-button svg{flex-shrink:0;filter:drop-shadow(0 1px 1px rgba(0,0,0,.8))}
+button svg{flex-shrink:0}
 button.repeatPressed{
-  background:linear-gradient(180deg,#3ea8ff 0%,#1672d6 52%,#0d4ea3 100%)!important;
-  border-color:#6bc6ff!important;
-  box-shadow:inset 0 1px 0 rgba(210,242,255,.65),0 0 10px rgba(56,168,255,.45)!important;
+  background:var(--accent)!important;
+  border-color:#93c5fd!important;
   color:#fff!important;
 }
 
-/* ステージ・画像表示 */
 #wrap{
   position:absolute;inset:0;
   display:flex;justify-content:center;align-items:center;
   overflow:hidden;
-  background:
-    radial-gradient(circle at 50% 35%,rgba(24,56,96,.22),transparent 65%),
-    var(--bg);
+  background:var(--bg);
 }
 #stage{
   position:relative;
@@ -91,146 +85,172 @@ button.repeatPressed{
 canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 #file{display:none}
 
-/* 初期画面（ゲームHUD調フレーム） */
+/* 初期画面（シンプル） */
 #empty[hidden],#stage[hidden]{display:none!important}
 #empty{
   position:absolute;inset:0;
   display:flex;align-items:center;justify-content:center;
-  padding:18px 16px 176px;
+  padding:20px 20px 180px;
   cursor:pointer;
 }
-.hudFrame{
-  width:min(100%,356px);
-  background:linear-gradient(180deg,rgba(16,25,40,.96) 0%,rgba(9,14,24,.98) 100%);
-  border:1.5px solid var(--steel-bright);
-  border-radius:8px;
-  box-shadow:
-    0 0 0 1px #03060c,
-    inset 0 1px 0 rgba(160,215,255,.3),
-    0 14px 36px rgba(0,0,0,.75);
-  overflow:hidden;
+.emptyCard{
+  width:min(100%,350px);
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:22px 18px;
+  text-align:center;
+  box-shadow:0 16px 40px rgba(0,0,0,.45);
 }
-.hudTitleBar{
-  position:relative;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:8px 12px 8px 15px;
-  background:linear-gradient(180deg,#2c3c52 0%,#1a2434 55%,#121926 100%);
-  border-bottom:1px solid #356394;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.18);
-}
-.hudTitleBar::before{
-  content:"";
-  position:absolute;left:0;top:0;bottom:0;width:4px;
-  background:linear-gradient(180deg,#5cc2ff,#1a78db);
-}
-.hudTitleText{
-  font-size:13.5px;font-weight:800;color:#fff;
-  text-shadow:0 1px 2px rgba(0,0,0,.95);
-  letter-spacing:.04em;
-}
-.hudSpecTag{
-  font-size:10.5px;font-weight:700;
-  color:#9ad4ff;
-  background:rgba(6,12,22,.75);
-  border:1px solid rgba(73,143,212,.55);
-  padding:2px 7px;border-radius:4px;
-  font-variant-numeric:tabular-nums;
-}
-.hudFrameBody{
-  padding:16px 14px 14px;
-  display:flex;flex-direction:column;gap:12px;
-}
-.hudDropZone{
-  display:flex;align-items:center;gap:12px;
-  padding:13px 12px;
-  background:var(--well);
-  border:1px solid #26496e;
-  border-radius:6px;
-  box-shadow:inset 0 2px 6px rgba(0,0,0,.8);
-}
-.hudDropIcon{
-  width:42px;height:42px;flex-shrink:0;
-  border-radius:6px;
-  background:linear-gradient(180deg,#2668b3 0%,#123b70 100%);
-  border:1px solid #59b3ff;
-  box-shadow:inset 0 1px 0 rgba(200,235,255,.45);
+.emptyIcon{
+  width:48px;height:48px;
+  margin:0 auto 12px;
+  border-radius:12px;
+  background:rgba(59,130,246,.14);
+  border:1px solid rgba(59,130,246,.35);
+  color:#60a5fa;
   display:flex;align-items:center;justify-content:center;
+}
+.emptyTitle{
+  font-size:15.5px;font-weight:700;color:var(--text);margin:0 0 6px;
+}
+.emptySub{
+  font-size:12px;color:var(--text-sub);margin:0 0 16px;line-height:1.5;
+}
+.emptyTips{
+  list-style:none;margin:0;padding:12px 0 0;
+  border-top:1px solid var(--border);
+  display:flex;flex-direction:column;gap:7px;
+  text-align:left;font-size:12px;color:var(--text-sub);
+}
+.emptyTips li{
+  display:flex;justify-content:space-between;gap:8px;
+}
+.emptyTips b{color:var(--text);font-weight:600}
+
+/* ブロック編集フローティングバー */
+#blockToolbar{
+  display:none;
+  position:fixed;
+  top:max(10px,env(safe-area-inset-top));
+  left:50%;
+  transform:translateX(-50%);
+  z-index:30;
+  width:min(96vw,520px);
+  background:rgba(24,27,34,.94);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--border-strong);
+  border-radius:14px;
+  padding:8px 10px;
+  box-shadow:0 12px 32px rgba(0,0,0,.55);
+  flex-direction:column;
+  gap:7px;
+}
+#blockToolbar.open{display:flex}
+.blockBarTop{
+  display:flex;align-items:center;justify-content:space-between;gap:6px;
+}
+.blockBarTitle{
+  font-size:12px;font-weight:700;color:#fbbf24;
+  display:flex;align-items:center;gap:6px;
+}
+.blockBarHint{
+  font-size:11px;color:var(--text-sub);
+}
+.blockBarBtns{
+  display:grid;
+  grid-template-columns:1.1fr auto 1fr 1fr .9fr;
+  gap:5px;
+  align-items:center;
+}
+.blockBarBtns button{
+  height:36px;padding:0 7px;font-size:12px;border-radius:8px;
+}
+#blockAddBtn{
+  background:rgba(245,158,11,.18);
+  border-color:rgba(245,158,11,.5);
+  color:#fcd34d;
+}
+.blockSizeGroup{
+  display:inline-flex;
+  background:var(--well);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:2px;gap:2px;
+}
+.blockSizeBtn{
+  height:30px!important;min-width:28px;padding:0 6px!important;
+  font-size:11px!important;border:none!important;background:transparent!important;
+  color:var(--text-sub)!important;border-radius:6px!important;
+}
+.blockSizeBtn.active{
+  background:var(--surface-2)!important;
+  color:#fff!important;
+}
+#blockDelSelBtn{
+  color:#fca5a5;
+  border-color:rgba(239,68,68,.35);
+}
+#blockClearBtn{
+  color:var(--text-sub);
+}
+#blockDoneBtn{
+  background:var(--accent);
+  border-color:var(--accent);
   color:#fff;
 }
-.hudDropText{display:flex;flex-direction:column;gap:3px;text-align:left}
-.hudDropText strong{font-size:14px;font-weight:800;color:#fff}
-.hudDropText span{font-size:11.5px;color:var(--text-sub);line-height:1.4}
-.hudKeyList{
-  display:grid;grid-template-columns:1fr;gap:5px;
-}
-.hudKeyRow{
-  display:flex;align-items:center;justify-content:space-between;gap:8px;
-  padding:6px 10px;
-  background:rgba(18,30,48,.65);
-  border:1px solid rgba(58,108,163,.32);
-  border-radius:5px;
-  font-size:11.5px;
-}
-.hudKeyRow b{
-  color:#7cc8ff;font-weight:700;white-space:nowrap;
-}
-.hudKeyRow span{
-  color:#d9e9fc;font-weight:500;text-align:right;
-}
 
-/* 下部コントロールバー（モンストHUDコンソール） */
+/* 下部コントロールバー */
 #bar{
   position:fixed;
   left:50%;
   bottom:max(8px,env(safe-area-inset-bottom));
   transform:translateX(-50%) scale(var(--auto-menu-scale,1));
   transform-origin:bottom center;
-  width:min(96vw,540px);
+  width:min(96vw,544px);
   max-width:calc(100vw - 12px);
   display:grid;
-  grid-template-columns:minmax(78px,1fr) minmax(172px,202px) 86px;
+  grid-template-columns:minmax(78px,1fr) minmax(176px,206px) 84px;
   gap:6px;
-  padding:7px;
+  padding:8px;
   z-index:20;
-  background:linear-gradient(180deg,rgba(18,28,44,.96) 0%,rgba(8,13,22,.98) 100%);
-  border:1.5px solid var(--steel-bright);
-  border-radius:9px;
-  box-shadow:
-    0 0 0 1px #02050a,
-    inset 0 1px 0 rgba(160,218,255,.32),
-    0 10px 28px rgba(0,0,0,.75);
+  background:rgba(24,27,34,.94);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--border);
+  border-radius:16px;
+  box-shadow:0 12px 32px rgba(0,0,0,.5);
   touch-action:manipulation;
 }
 
 #fileBtn{
   grid-column:1;grid-row:1/3;
   height:100%;min-width:0;width:100%;
-  flex-direction:column;gap:4px;
+  flex-direction:column;gap:5px;
   padding:6px 4px;
   font-size:12px;line-height:1.15;
 }
 
-/* 凹みデジタルカウンター枠 */
 #count,#angleControls{
   display:grid;
-  grid-template-columns:40px 1fr 40px;
+  grid-template-columns:38px 1fr 38px;
   align-items:center;
   background:var(--well);
-  border:1px solid #284e78;
-  box-shadow:inset 0 2px 5px rgba(0,0,0,.85),0 1px 0 rgba(130,195,255,.15);
-  border-radius:7px;
+  border:1px solid var(--border);
+  border-radius:10px;
   padding:3px;
   gap:3px;
-  height:48px;
+  height:46px;
 }
 #count{grid-column:2;grid-row:1;width:100%;min-width:0}
 #angleControls{grid-column:2;grid-row:2;width:100%;min-width:0}
 
 #minus,#plus,#angleControls button{
-  width:100%;min-width:0;height:40px;
+  width:100%;min-width:0;height:38px;
   padding:0;
-  font-size:19px;font-weight:800;line-height:1;
-  border-radius:5px;
+  font-size:18px;font-weight:700;line-height:1;
+  border-radius:8px;
 }
 #minus,#plus{touch-action:manipulation}
 
@@ -241,102 +261,111 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   font-variant-numeric:tabular-nums;
 }
 #count span .maxLabel{
-  font-size:8.5px;line-height:9px;height:9px;font-weight:800;
-  color:#ff6b6b;letter-spacing:.05em;
-  text-shadow:0 0 6px rgba(255,82,82,.6);
+  font-size:9px;line-height:9px;height:9px;font-weight:800;
+  color:#f87171;letter-spacing:.06em;
 }
 #count span .num{
   font-size:18px;font-weight:800;
-  color:#fff;line-height:19px;
-  text-shadow:0 1px 2px rgba(0,0,0,.95);
+  color:var(--text);line-height:19px;
 }
 #count span small{
-  font-size:10px;font-weight:700;line-height:11px;
+  font-size:9.5px;font-weight:600;line-height:11px;
   color:var(--text-sub);
 }
-#count span.max .num{color:#ff6b6b}
+#count span.max .num{color:#f87171}
 
 #angleDisplay{
   text-align:center;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  line-height:1.08;
+  line-height:1.05;
   cursor:pointer;
   padding:2px;
-  border-radius:5px;
+  border-radius:6px;
   font-variant-numeric:tabular-nums;
 }
 #angleDisplay .angleMeta{
-  font-size:9.5px;font-weight:700;line-height:11px;
+  font-size:9.5px;font-weight:600;line-height:11px;
   color:var(--text-sub);
   display:flex;align-items:center;gap:3px;
 }
 #angleDisplay .angleMeta b{
-  color:#6dc2ff;font-weight:800;
+  color:#60a5fa;font-weight:700;
 }
 #angleDisplay .angleValue{
-  font-size:14px;line-height:17px;font-weight:800;
-  color:#fff;
-  text-shadow:0 1px 2px rgba(0,0,0,.95);
-  border-bottom:1px dashed rgba(109,194,255,.45);
+  font-size:14.5px;line-height:18px;font-weight:800;
+  color:var(--text);
+  border-bottom:1px dashed rgba(255,255,255,.3);
 }
 
 #zoomBtn{
   grid-column:3;grid-row:1;
-  width:100%;min-width:0;height:48px;
-  padding:0 5px;font-size:13px;
+  width:100%;min-width:0;height:46px;
+  padding:0 5px;font-size:12.5px;
 }
 #zoomBtn.active{
-  background:linear-gradient(180deg,#ffae34 0%,#d96b06 52%,#9e4700 100%);
-  border-color:#ffd073;
-  box-shadow:inset 0 1px 0 rgba(255,240,195,.65),0 0 10px rgba(245,158,11,.4);
+  background:var(--emerald);
+  border-color:#6ee7b7;
   color:#fff;
 }
 
 #gaugeBtn{
   grid-column:3;grid-row:2;
-  width:100%;min-width:0;height:48px;
-  padding:0 5px;font-size:13px;
+  width:100%;min-width:0;height:46px;
+  padding:0 5px;font-size:12.5px;
 }
 
-/* メインアクション（モンストのアクティブブルーボタン） */
+#blockBtn{
+  grid-column:1;grid-row:3;
+  width:100%;min-width:0;height:42px;
+  padding:0 6px;font-size:12px;
+}
+#blockBtn.active{
+  background:rgba(245,158,11,.22);
+  border-color:#fbbf24;
+  color:#fde68a;
+}
+.blockBadge{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:16px;height:16px;padding:0 4px;
+  border-radius:999px;
+  background:rgba(255,255,255,.14);
+  font-size:10px;font-weight:800;
+}
+#blockBtn.active .blockBadge{
+  background:#f59e0b;color:#111827;
+}
+
 #voiceBtn{
-  grid-column:1/-1;grid-row:3;
+  grid-column:2/-1;grid-row:3;
   width:100%;height:42px;
-  font-size:14px;font-weight:800;padding:0 14px;
-  background:linear-gradient(180deg,#3da7ff 0%,#1670d4 52%,#0c4b9e 100%);
-  border:1px solid #6bc6ff;
-  box-shadow:inset 0 1px 0 rgba(205,240,255,.65),inset 0 -1px 0 rgba(4,24,58,.85),0 2px 8px rgba(18,104,204,.45);
+  font-size:13.5px;font-weight:700;padding:0 12px;
+  background:var(--accent);
+  border-color:rgba(147,197,253,.45);
   color:#fff;
 }
-#voiceBtn::before,#voiceBtn::after{
-  content:"";
-  width:0;height:0;
-  border-top:4px solid transparent;
-  border-bottom:4px solid transparent;
-  opacity:.85;
-}
-#voiceBtn::before{border-left:5px solid #bfe6ff;margin-right:2px}
-#voiceBtn::after{border-right:5px solid #bfe6ff;margin-left:2px}
+#voiceBtn:active{background:var(--accent-hover)}
 
 @media(max-width:430px){
   #bar{
-    grid-template-columns:minmax(68px,1fr) 160px 76px;
+    grid-template-columns:minmax(72px,1fr) 162px 76px;
     gap:5px;padding:6px;
   }
-  button{height:44px;font-size:12.5px}
+  button{height:42px;font-size:12px}
   #fileBtn{font-size:11px}
-  #count,#angleControls{grid-template-columns:36px 1fr 36px;height:44px}
-  #minus,#plus,#angleControls button{height:36px;font-size:18px}
-  #angleDisplay .angleValue{font-size:13px}
-  #zoomBtn,#gaugeBtn{height:44px;font-size:12px;gap:3px}
-  #voiceBtn{height:40px;font-size:13px}
+  #count,#angleControls{grid-template-columns:34px 1fr 34px;height:42px}
+  #minus,#plus,#angleControls button{height:34px;font-size:17px}
+  #angleDisplay .angleValue{font-size:13.5px}
+  #zoomBtn,#gaugeBtn{height:42px;font-size:12px;gap:3px}
+  #blockBtn,#voiceBtn{height:40px}
+  #blockBtn{font-size:11px;padding:0 4px;gap:3px}
+  #voiceBtn{font-size:12.5px}
 }
 
-/* 音声コマンドモーダル（モンストのダイアログ枠） */
+/* 音声コマンドモーダル */
 #voiceModal{
   display:none;
   position:fixed;inset:0;z-index:1000;
-  background:rgba(2,5,11,.78);
+  background:rgba(0,0,0,.72);
   align-items:center;justify-content:center;
   padding:14px;
 }
@@ -346,16 +375,16 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   max-height:90dvh;
   display:flex;flex-direction:column;
   overflow:hidden;
-  background:linear-gradient(180deg,#111b2b 0%,#090e18 100%);
-  border:1.5px solid var(--steel-bright);
-  border-radius:9px;
-  box-shadow:0 0 0 1px #020409,inset 0 1px 0 rgba(165,220,255,.32),0 20px 50px rgba(0,0,0,.85);
+  background:var(--surface);
+  border:1px solid var(--border-strong);
+  border-radius:16px;
+  box-shadow:0 24px 60px rgba(0,0,0,.75);
 }
 
 .voiceHeader{
-  background:linear-gradient(180deg,#2a3a50 0%,#182232 55%,#111824 100%);
-  border-bottom:1px solid #356394;
-  padding:11px 14px 10px;
+  background:var(--surface-2);
+  border-bottom:1px solid var(--border);
+  padding:12px 14px 10px;
   flex-shrink:0;
 }
 .voiceHeaderTop{
@@ -363,52 +392,30 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   margin-bottom:10px;
 }
 #voiceModal h2{
-  position:relative;
-  padding-left:10px;
-  font-size:15.5px;font-weight:800;margin:0;color:#fff;
-  text-shadow:0 1px 2px rgba(0,0,0,.95);
-  letter-spacing:.03em;
-}
-#voiceModal h2::before{
-  content:"";
-  position:absolute;left:0;top:2px;bottom:2px;width:4px;
-  border-radius:1px;
-  background:linear-gradient(180deg,#64c7ff,#1674db);
+  font-size:15.5px;font-weight:700;margin:0;color:var(--text);
 }
 #voiceCloseX{
   width:30px;height:30px;min-width:30px;
-  padding:0;border-radius:6px;
+  padding:0;border-radius:8px;
   font-size:18px;line-height:1;
 }
 
-/* モンスト戦績画面風の切替タブ */
 .voiceTabs{
   display:grid;grid-template-columns:1fr 1fr;gap:6px;
 }
 .voiceTabBtn{
-  height:35px;
-  border:1px solid #2b5480;
-  background:linear-gradient(180deg,#182c46 0%,#0e1b2d 100%);
-  color:#8fb3d9;
-  font-size:12.5px;font-weight:800;
-  border-radius:6px;
+  height:34px;
+  border:1px solid var(--border);
+  background:var(--well);
+  color:var(--text-sub);
+  font-size:12.5px;font-weight:700;
+  border-radius:8px;
   padding:0 8px;
 }
 .voiceTabBtn.active{
-  border-color:#6bc6ff;
-  background:linear-gradient(180deg,#3da7ff 0%,#1670d4 52%,#0c4b9e 100%);
-  box-shadow:inset 0 1px 0 rgba(205,240,255,.65),0 2px 6px rgba(18,104,204,.45);
+  border-color:var(--accent);
+  background:var(--accent);
   color:#fff;
-}
-.voiceTabBtn.active::before{
-  content:"";width:0;height:0;
-  border-top:4px solid transparent;border-bottom:4px solid transparent;
-  border-left:5px solid #bfe6ff;
-}
-.voiceTabBtn.active::after{
-  content:"";width:0;height:0;
-  border-top:4px solid transparent;border-bottom:4px solid transparent;
-  border-right:5px solid #bfe6ff;
 }
 
 .voiceBody{
@@ -421,35 +428,36 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 .angleSummary{
   display:flex;align-items:center;justify-content:space-between;
   padding:9px 12px;
-  border-radius:6px;
+  border-radius:10px;
   background:var(--well);
-  border:1px solid #2a5380;
-  box-shadow:inset 0 2px 5px rgba(0,0,0,.85);
+  border:1px solid var(--border);
   margin-bottom:13px;
 }
-.angleSummary span{font-size:12px;color:var(--text-sub);font-weight:700}
-.angleSummary strong{font-size:17px;font-weight:800;color:#6dc4ff;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px rgba(0,0,0,.9)}
+.angleSummary span{font-size:12px;color:var(--text-sub);font-weight:600}
+.angleSummary strong{
+  font-size:17px;font-weight:800;color:#60a5fa;
+  font-variant-numeric:tabular-nums;
+}
 
 #voiceModal .voiceField{display:flex;flex-direction:column;gap:5px;margin:12px 0}
 #voiceModal #customDurationField{margin:7px 0 0;gap:0}
-#voiceModal label{font-size:12px;font-weight:800;color:#d6e9ff}
+#voiceModal label{font-size:12px;font-weight:700;color:var(--text)}
 .fieldSub{font-size:11px;color:var(--text-sub);margin:-1px 0 2px;line-height:1.45}
 #voiceModal input{
   width:100%;height:40px;
-  border:1px solid #2b5582;
-  border-radius:6px;
+  border:1px solid var(--border);
+  border-radius:10px;
   background:var(--well);
-  box-shadow:inset 0 2px 4px rgba(0,0,0,.8);
   color:#fff;
   padding:0 11px;
-  font-size:14px;font-weight:600;
+  font-size:14px;font-weight:500;
   -webkit-user-select:text;user-select:text;
   transition:border-color .15s ease;
 }
-#voiceModal input::placeholder{color:#567294}
+#voiceModal input::placeholder{color:#6b7280}
 #voiceModal input:focus{
   outline:none;
-  border-color:#5cbaff;
+  border-color:var(--accent);
 }
 
 #voiceModal .durationOptions{
@@ -458,45 +466,41 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 #voiceModal .durationOption{
   display:flex;align-items:center;gap:8px;
   padding:9px 11px;
-  border:1px solid #29507a;
-  border-radius:6px;
-  background:linear-gradient(180deg,#16273e 0%,#0d1828 100%);
-  box-shadow:inset 0 1px 0 rgba(145,205,255,.18);
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:var(--well);
   cursor:pointer;
-  font-size:13px;font-weight:800;color:#d8ebff;
+  font-size:13px;font-weight:700;color:var(--text);
 }
 #voiceModal .durationOption:has(input:checked){
-  border-color:#68c4ff;
-  background:linear-gradient(180deg,#245994 0%,#143661 100%);
-  box-shadow:inset 0 1px 0 rgba(190,232,255,.45);
-  color:#fff;
+  border-color:var(--accent);
+  background:rgba(59,130,246,.16);
 }
 #voiceModal .durationOption input{
   appearance:none;-webkit-appearance:none;
   width:16px;height:16px;flex:0 0 16px;
   margin:0;padding:0;
-  border:1.5px solid #6fa6db;
+  border:1.5px solid #6b7280;
   border-radius:50%;
   background:var(--well);
-  box-shadow:none;
   display:grid;place-content:center;
 }
 #voiceModal .durationOption input:checked{
-  border-color:#8cd3ff;
-  background:#2894ff;
+  border-color:var(--accent);
+  background:var(--accent);
 }
 #voiceModal .durationOption input:checked::before{
   content:"";width:6px;height:6px;border-radius:50%;background:#fff;
 }
 .durationText{display:flex;flex-direction:column;line-height:1.15}
-.durationText small{font-size:10.5px;font-weight:600;color:#9bc0e6;margin-top:2px}
+.durationText small{font-size:10.5px;font-weight:500;color:var(--text-sub);margin-top:2px}
 
 .voiceNoticeBox{
   margin:12px 0 4px;
   padding:8px 10px;
-  border-radius:6px;
-  background:rgba(8,14,24,.85);
-  border:1px solid rgba(58,108,163,.35);
+  border-radius:8px;
+  background:var(--well);
+  border:1px solid var(--border);
   color:var(--text-sub);
   font-size:11px;line-height:1.45;
 }
@@ -505,9 +509,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 #voiceModal .voiceActions{display:flex;gap:8px;margin-top:14px}
 #voiceModal .voiceActions button{flex:1;height:42px;font-size:13.5px}
 #voiceGenerate{
-  background:linear-gradient(180deg,#3da7ff 0%,#1670d4 52%,#0c4b9e 100%);
-  border:1px solid #6bc6ff;
-  box-shadow:inset 0 1px 0 rgba(205,240,255,.65),0 2px 8px rgba(18,104,204,.45);
+  background:var(--accent);
+  border-color:rgba(147,197,253,.45);
   color:#fff;
 }
 
@@ -518,120 +521,118 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   width:100%;height:auto;min-height:68px;
   padding:12px 14px;
   flex-direction:column;gap:4px;
-  border:1px dashed var(--steel-bright);
-  border-radius:7px;
+  border:1.5px dashed rgba(96,165,250,.5);
+  border-radius:12px;
   background:var(--well);
-  box-shadow:inset 0 2px 5px rgba(0,0,0,.8);
-  color:#fff;
-  font-size:13.5px;font-weight:800;
+  color:#93c5fd;
+  font-size:13.5px;font-weight:700;
 }
-#existingVoicePickBtn small{font-size:11px;font-weight:500;color:var(--text-sub)}
+#existingVoicePickBtn small{font-size:11px;font-weight:400;color:var(--text-sub)}
 
 #existingVoiceFileInfo{
   margin:10px 0 0;
   padding:8px 10px;
-  border-radius:6px;
-  background:rgba(20,83,45,.32);
-  border:1px solid rgba(74,222,128,.45);
-  color:#bbf7d0;
-  font-size:11.5px;font-weight:700;
+  border-radius:8px;
+  background:rgba(16,185,129,.15);
+  border:1px solid rgba(16,185,129,.4);
+  color:#a7f3d0;
+  font-size:11.5px;font-weight:600;
 }
 
 .existingBulkBar{
   display:flex;flex-wrap:wrap;align-items:center;gap:5px;
   padding:9px;
-  border:1px solid #29507a;
-  border-radius:6px;
+  border:1px solid var(--border);
+  border-radius:10px;
   background:var(--well);
   margin-top:10px;
 }
 .existingBulkBar span{
-  font-size:11px;color:var(--text-sub);font-weight:700;width:100%;margin-bottom:2px;
+  font-size:11px;color:var(--text-sub);font-weight:600;width:100%;margin-bottom:2px;
 }
 .existingBulkBtn{
   flex:1;min-width:0;
   height:32px;min-height:32px;
   padding:0 5px;font-size:11px;
-  border-radius:5px;
+  border-radius:7px;
 }
 
 #existingVoiceCommands{display:flex;flex-direction:column;gap:9px;margin-top:10px}
 .existingCommandRow{
   display:flex;flex-direction:column;gap:7px;
   padding:10px;
-  border:1px solid #2b5480;
-  border-radius:7px;
-  background:linear-gradient(180deg,#111d2f 0%,#0a121f 100%);
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:var(--well);
 }
 .existingCommandHead{
   display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
   padding-bottom:7px;
-  border-bottom:1px solid rgba(64,119,179,.3);
+  border-bottom:1px solid var(--border);
 }
 .existingCommandTitle{
-  font-weight:800;font-size:13px;color:#fff;
+  font-weight:700;font-size:13px;color:var(--text);
   display:flex;align-items:center;gap:6px;
 }
 .cmdNumBadge{
   display:inline-flex;align-items:center;justify-content:center;
-  padding:2px 7px;border-radius:4px;
-  background:linear-gradient(180deg,#2d7dd2,#164c8a);
-  border:1px solid #63b5ff;
-  color:#fff;
-  font-size:11px;font-weight:800;
+  padding:1px 7px;border-radius:6px;
+  background:rgba(59,130,246,.22);
+  color:#93c5fd;
+  font-size:11px;font-weight:700;
 }
 .existingCommandMeta{
-  font-size:11px;font-weight:700;color:#8cc8ff;
-  background:var(--well);border:1px solid #264a70;
-  border-radius:4px;padding:2px 8px;
+  font-size:11px;font-weight:600;color:var(--text-sub);
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:6px;padding:2px 8px;
   font-variant-numeric:tabular-nums;
 }
 .existingSubLabel{
-  font-size:11px;font-weight:700;color:var(--text-sub);margin:2px 0 -2px;
+  font-size:11px;font-weight:600;color:var(--text-sub);margin:2px 0 -2px;
 }
 .existingCommandRow input[type="text"],.existingCommandRow input[type="number"]{
   width:100%;height:38px;
-  border:1px solid #2b5582;
-  border-radius:6px;
-  background:var(--well);
-  color:#fff;padding:0 10px;font-size:13.5px;font-weight:600;
+  border:1px solid var(--border);
+  border-radius:8px;
+  background:var(--surface);
+  color:#fff;padding:0 10px;font-size:13.5px;font-weight:500;
   -webkit-user-select:text;user-select:text;
 }
 .existingSpeedGroup{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
 .existingSpeedChip{
   display:flex;align-items:center;justify-content:center;
   height:34px;min-height:34px;padding:3px 4px;
-  border:1px solid #29507a;
-  border-radius:5px;
-  background:linear-gradient(180deg,#162840,#0d1929);
-  color:#98badc;font-size:11px;font-weight:700;
+  border:1px solid var(--border);
+  border-radius:8px;
+  background:var(--surface);
+  color:var(--text-sub);font-size:11px;font-weight:700;
   cursor:pointer;text-align:center;line-height:1.15;
 }
 .existingSpeedChip.active{
-  border-color:#6bc6ff;
-  background:linear-gradient(180deg,#2d7fd6,#154b8c);
+  border-color:var(--accent);
+  background:var(--accent);
   color:#fff;
 }
 
 .existingSaveArea{
   display:flex;flex-direction:column;gap:9px;
   margin-top:12px;padding-top:12px;
-  border-top:1px solid rgba(64,119,179,.35);
+  border-top:1px solid var(--border);
 }
 #existingVoiceSaveBtn{
   width:100%;min-height:42px;height:42px;
   padding:0 14px;
-  border:1px solid #6bc6ff;
-  border-radius:7px;
-  background:linear-gradient(180deg,#3da7ff 0%,#1670d4 52%,#0c4b9e 100%);
-  color:#fff;font-size:13.5px;font-weight:800;
+  border-radius:10px;
+  background:var(--accent);
+  border-color:rgba(147,197,253,.45);
+  color:#fff;font-size:13.5px;font-weight:700;
 }
 
-/* 隠し統計パネル（通常時は完全に非表示） */
+/* 隠し統計パネル */
 #sysPanel{
   display:none;
   position:fixed;inset:0;z-index:2000;
-  background:rgba(2,5,11,.80);
+  background:rgba(0,0,0,.75);
   align-items:center;justify-content:center;
   padding:16px;
 }
@@ -641,21 +642,21 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   max-height:85dvh;
   display:flex;flex-direction:column;
   overflow:hidden;
-  background:linear-gradient(180deg,#111b2b 0%,#090e18 100%);
-  border:1.5px solid var(--steel-bright);
-  border-radius:9px;
-  box-shadow:0 0 0 1px #020409,0 20px 50px rgba(0,0,0,.85);
+  background:var(--surface);
+  border:1px solid var(--border-strong);
+  border-radius:16px;
+  box-shadow:0 20px 50px rgba(0,0,0,.75);
 }
 .sysHead{
   display:flex;align-items:center;justify-content:space-between;
-  padding:11px 14px;
-  background:linear-gradient(180deg,#2a3a50 0%,#182232 55%,#111824 100%);
-  border-bottom:1px solid #356394;
+  padding:12px 14px;
+  background:var(--surface-2);
+  border-bottom:1px solid var(--border);
 }
-.sysHead h3{margin:0;font-size:14.5px;font-weight:800;color:#fff}
+.sysHead h3{margin:0;font-size:14.5px;font-weight:700;color:var(--text)}
 .sysClose{
   width:28px;height:28px;min-width:28px;padding:0;
-  border-radius:6px;font-size:17px;
+  border-radius:8px;font-size:17px;
 }
 .sysBody{
   padding:14px;
@@ -665,37 +666,36 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 }
 .sysDateRow{
   display:flex;align-items:center;justify-content:space-between;
-  font-size:11.5px;color:var(--text-sub);font-weight:700;
+  font-size:11.5px;color:var(--text-sub);font-weight:600;
 }
 .sysBadge{
   font-size:10.5px;font-weight:700;
-  padding:2px 8px;border-radius:4px;
-  background:var(--well);border:1px solid #29507a;
+  padding:2px 8px;border-radius:6px;
+  background:var(--well);border:1px solid var(--border);
   color:var(--text-sub);
 }
 .sysBadge.cloud{
-  background:rgba(20,83,45,.35);
-  border-color:rgba(74,222,128,.45);
-  color:#bbf7d0;
+  background:rgba(16,185,129,.18);
+  border-color:rgba(16,185,129,.45);
+  color:#a7f3d0;
 }
 .sysGrid{
   display:grid;grid-template-columns:1fr 1fr;gap:8px;
 }
 .sysBox{
-  padding:10px 11px;border-radius:6px;
-  background:var(--well);border:1px solid #284e78;
-  box-shadow:inset 0 2px 5px rgba(0,0,0,.8);
+  padding:10px 11px;border-radius:10px;
+  background:var(--well);border:1px solid var(--border);
   display:flex;flex-direction:column;gap:3px;
 }
-.sysBox span{font-size:11px;color:var(--text-sub);font-weight:700}
+.sysBox span{font-size:11px;color:var(--text-sub);font-weight:600}
 .sysBox strong{
-  font-size:24px;font-weight:800;color:#fff;
+  font-size:24px;font-weight:800;color:#60a5fa;
   font-variant-numeric:tabular-nums;line-height:1.15;
 }
 .sysBox small{font-size:10.5px;color:var(--text-sub)}
 .sysHistWrap{
-  border:1px solid #284e78;
-  border-radius:6px;
+  border:1px solid var(--border);
+  border-radius:10px;
   overflow:hidden;
   background:var(--well);
 }
@@ -705,13 +705,13 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   font-variant-numeric:tabular-nums;
 }
 .sysHistHead{
-  background:#152338;
-  color:#9dc3eb;font-weight:800;
-  border-bottom:1px solid #284e78;
+  background:var(--surface-2);
+  color:var(--text);font-weight:700;
+  border-bottom:1px solid var(--border);
 }
 .sysHistRow{
-  color:#fff;
-  border-bottom:1px solid rgba(56,112,172,.2);
+  color:var(--text);
+  border-bottom:1px solid var(--border);
 }
 .sysHistRow:last-child{border-bottom:none}
 .sysHistHead span:not(:first-child),.sysHistRow span:not(:first-child){text-align:right}
@@ -723,9 +723,29 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 </style>
 </head>
 <body>
+
+<!-- ブロック配置モード用フローティングツールバー -->
+<div id="blockToolbar" role="region" aria-label="ブロック編集ツールバー">
+  <div class="blockBarTop">
+    <span class="blockBarTitle">ブロック配置モード</span>
+    <span class="blockBarHint">タップ追加 / ドラッグ移動・自動吸着 / 2回タップ削除</span>
+  </div>
+  <div class="blockBarBtns">
+    <button id="blockAddBtn" type="button">＋ 追加</button>
+    <div class="blockSizeGroup" role="group" aria-label="ブロックサイズ">
+      <button type="button" class="blockSizeBtn" data-size="small">小</button>
+      <button type="button" class="blockSizeBtn active" data-size="medium">中</button>
+      <button type="button" class="blockSizeBtn" data-size="large">大</button>
+    </div>
+    <button id="blockDelSelBtn" type="button">選択削除</button>
+    <button id="blockClearBtn" type="button">全消去</button>
+    <button id="blockDoneBtn" type="button">完了</button>
+  </div>
+</div>
+
 <div id="bar">
   <button id="fileBtn" type="button">
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
     <span>画像選択</span>
   </button>
   <input id="file" type="file" accept="image/*">
@@ -737,23 +757,29 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   </div>
 
   <button id="zoomBtn" type="button">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
     <span class="btnLabel">拡大</span>
   </button>
 
   <button id="gaugeBtn" type="button" aria-label="ガイド画像を保存">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     <span>保存</span>
   </button>
 
   <div id="angleControls">
     <button id="angleMinus" type="button" aria-label="角度を1段減らす">−</button>
-    <span id="angleDisplay" title="2回タップで直接入力"><span class="angleMeta">角度 <b id="angleStepTag">#256</b></span><span class="angleValue">90.00°</span></span>
+    <span id="angleDisplay" title="2回タップで直接入力"><span class="angleMeta">No.<b id="angleStepTag">256</b></span><span class="angleValue">90.00°</span></span>
     <button id="anglePlus" type="button" aria-label="角度を1段増やす">＋</button>
   </div>
 
+  <button id="blockBtn" type="button" aria-pressed="false">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>
+    <span>ブロック</span>
+    <span id="blockCountBadge" class="blockBadge" hidden>0</span>
+  </button>
+
   <button id="voiceBtn" type="button">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
     <span>音声コマンド作成・編集</span>
   </button>
 </div>
@@ -762,7 +788,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
  <div class="voiceCard">
   <div class="voiceHeader">
    <div class="voiceHeaderTop">
-    <h2 id="voiceTitle">音声コマンド</h2>
+    <h2 id="voiceTitle">音声コマンド生成・編集</h2>
     <button id="voiceCloseX" type="button" aria-label="閉じる">×</button>
    </div>
    <div class="voiceTabs" role="tablist">
@@ -775,7 +801,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
    <div id="voiceTabCreate" role="tabpanel">
     <div class="angleSummary">
      <span>ガイド角度（1024分割）</span>
-     <strong id="voiceCurrentAngle">90.00° (#256)</strong>
+     <strong id="voiceCurrentAngle">90.00° (No.256)</strong>
     </div>
 
     <div class="voiceField" style="margin-top:0">
@@ -893,27 +919,17 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 
 <div id="wrap">
   <div id="empty">
-    <div class="hudFrame">
-      <div class="hudTitleBar">
-        <span class="hudTitleText">ショットガイド</span>
-        <span class="hudSpecTag">1024分割 / 0.35°</span>
+    <div class="emptyCard">
+      <div class="emptyIcon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
       </div>
-      <div class="hudFrameBody">
-        <div class="hudDropZone">
-          <div class="hudDropIcon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-          </div>
-          <div class="hudDropText">
-            <strong>スクリーンショットを選択</strong>
-            <span>ここをタップ、または下の「画像選択」</span>
-          </div>
-        </div>
-        <div class="hudKeyList">
-          <div class="hudKeyRow"><b>矢印ドラッグ</b><span>発射位置を移動</span></div>
-          <div class="hudKeyRow"><b>画面をなぞる</b><span>1024段階の角度調整</span></div>
-          <div class="hudKeyRow"><b>角度を2回タップ</b><span>角度・ステップ直接入力</span></div>
-        </div>
-      </div>
+      <p class="emptyTitle">スクリーンショットを選択</p>
+      <p class="emptySub">ここをタップ、または下の「画像選択」から読み込めます</p>
+      <ul class="emptyTips">
+        <li><span>矢印ドラッグ</span><b>発射位置を移動</b></li>
+        <li><span>画面ドラッグ</span><b>角度調整（1024分割）</b></li>
+        <li><span>ブロックボタン</span><b>ブロック配置・連結スナップ</b></li>
+      </ul>
     </div>
   </div>
   <div id="stage" hidden>
@@ -923,7 +939,6 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 </div>
 
 <script>
-// 全ユーザー合算集計を行う場合は、Google Apps Script等のウェブアプリURLをここに設定してください（空欄時はこの端末のローカル集計）
 const STATS_API_URL = "";
 
 // モンストの角度仕様：1周1024分割（360° / 1024 = 0.3515625°）
@@ -938,10 +953,29 @@ const nEl=document.getElementById('n'), plus=document.getElementById('plus'), mi
 let reflections=3, imgW=0, imgH=0;
 let zoomMode=false, zoomScale=1, zoomStartDist=0, zoomStartScale=1;
 let cursor={x:0,y:0};
-let angleStep=256; // 初期値 90.00° (#256 / 1024)
+let angleStep=256; // 初期値 90.00° (No.256 / 1024)
 let pullAngle=-Math.PI/2;
 let active=null, lastX=0, lastY=0;
 let touchStartX=0, touchStartY=0;
+
+// ブロック管理状態
+let blockMode=false;
+let blocks=[]; // {id, x, y, w, h, sizeKey}
+let nextBlockId=1;
+let selectedBlockId=null;
+let blockSizePreset='medium'; // 'small' | 'medium' | 'large'
+let draggingBlockId=null;
+let blockDragOffsetX=0, blockDragOffsetY=0;
+let blockDragMoved=false;
+let activeSnapGuides=[]; // {type:'v'|'h', pos:number}
+let lastBlockTapTime=0, lastBlockTapId=null;
+
+function getBlockSizeForPreset(preset){
+  const b=bounds();
+  const stageW=Math.max(100, b.r - b.l);
+  const ratio = preset==='small' ? (1/11) : (preset==='large' ? (1/7) : (1/9));
+  return stageW * ratio;
+}
 
 function normalizeStep(step){
   return ((Math.round(step)%MONST_STEPS)+MONST_STEPS)%MONST_STEPS;
@@ -965,11 +999,18 @@ file.onchange=e=>{
  const f=e.target.files?.[0]; if(!f)return;
  const url=URL.createObjectURL(f);
  photo.onload=()=>{
-   if(imgW>0 && imgH>0){
-     window._cursorRelX=cursor.x/imgW;
-     window._cursorRelY=cursor.y/imgH;
+   const prevW=imgW, prevH=imgH;
+   if(prevW>0 && prevH>0){
+     window._cursorRelX=cursor.x/prevW;
+     window._cursorRelY=cursor.y/prevH;
    }
    imgW=photo.naturalWidth; imgH=photo.naturalHeight;
+   if(prevW>0 && prevH>0 && blocks.length){
+     const sx=imgW/prevW, sy=imgH/prevH;
+     blocks.forEach(blk=>{
+       blk.x*=sx; blk.y*=sy; blk.w*=sx; blk.h*=sy;
+     });
+   }
    stage.hidden=false;
    empty.hidden=true;
    empty.style.display='none';
@@ -1053,12 +1094,385 @@ function updateBarScale(){
  bar.style.setProperty('--auto-menu-scale',String(scale));
 }
 
+// ==========================================
+// ブロック配置・自動吸着（スナップ）ロジック
+// ==========================================
+function updateBlockCountBadge(){
+ const badge=document.getElementById('blockCountBadge');
+ if(!badge)return;
+ if(blocks.length>0){
+   badge.hidden=false;
+   badge.textContent=String(blocks.length);
+ }else{
+   badge.hidden=true;
+   badge.textContent='0';
+ }
+}
+
+function rectsOverlap(ax,ay,aw,ah,bx,by,bw,bh,eps=1.5){
+ return (ax + eps < bx + bw) && (ax + aw - eps > bx) && (ay + eps < by + bh) && (ay + ah - eps > by);
+}
+
+// 指定位置 (rawX, rawY) に対して、他のブロックや壁へ自動でくっつく座標を計算する
+function snapBlockPosition(rawX, rawY, w, h, ignoreId=null){
+ const b=bounds();
+ // ステージ内にクランプ
+ let x=Math.max(b.l, Math.min(b.r - w, rawX));
+ let y=Math.max(b.t, Math.min(b.b - h, rawY));
+
+ const snapDist = Math.max(18, w * 0.34);
+ const wallSnapDist = Math.max(12, w * 0.22);
+
+ let bestDx = null, bestAbsDx = snapDist + 1, guideX = null;
+ let bestDy = null, bestAbsDy = snapDist + 1, guideY = null;
+
+ // 1. 他ブロックとの隣接・整列スナップ
+ for(const other of blocks){
+   if(other.id === ignoreId) continue;
+
+   // Y方向にある程度近い場合（横連結・上下揃えの対象）
+   const yNear = (y + h + snapDist >= other.y) && (y - snapDist <= other.y + other.h);
+   // X方向にある程度近い場合（縦連結・左右揃えの対象）
+   const xNear = (x + w + snapDist >= other.x) && (x - snapDist <= other.x + other.w);
+
+   if(yNear){
+     // 右辺 -> 他ブロックの左辺にくっつく
+     const dRightToLeft = other.x - (x + w);
+     if(Math.abs(dRightToLeft) < bestAbsDx){
+       bestAbsDx = Math.abs(dRightToLeft);
+       bestDx = dRightToLeft;
+       guideX = other.x;
+     }
+     // 左辺 -> 他ブロックの右辺にくっつく
+     const dLeftToRight = (other.x + other.w) - x;
+     if(Math.abs(dLeftToRight) < bestAbsDx){
+       bestAbsDx = Math.abs(dLeftToRight);
+       bestDx = dLeftToRight;
+       guideX = other.x + other.w;
+     }
+     // 左端揃え
+     const dLeftAlign = other.x - x;
+     if(Math.abs(dLeftAlign) < bestAbsDx){
+       bestAbsDx = Math.abs(dLeftAlign);
+       bestDx = dLeftAlign;
+       guideX = other.x;
+     }
+     // 右端揃え
+     const dRightAlign = (other.x + other.w) - (x + w);
+     if(Math.abs(dRightAlign) < bestAbsDx){
+       bestAbsDx = Math.abs(dRightAlign);
+       bestDx = dRightAlign;
+       guideX = other.x + other.w;
+     }
+   }
+
+   if(xNear){
+     // 下辺 -> 他ブロックの上辺にくっつく
+     const dBottomToTop = other.y - (y + h);
+     if(Math.abs(dBottomToTop) < bestAbsDy){
+       bestAbsDy = Math.abs(dBottomToTop);
+       bestDy = dBottomToTop;
+       guideY = other.y;
+     }
+     // 上辺 -> 他ブロックの下辺にくっつく
+     const dTopToBottom = (other.y + other.h) - y;
+     if(Math.abs(dTopToBottom) < bestAbsDy){
+       bestAbsDy = Math.abs(dTopToBottom);
+       bestDy = dTopToBottom;
+       guideY = other.y + other.h;
+     }
+     // 上端揃え
+     const dTopAlign = other.y - y;
+     if(Math.abs(dTopAlign) < bestAbsDy){
+       bestAbsDy = Math.abs(dTopAlign);
+       bestDy = dTopAlign;
+       guideY = other.y;
+     }
+     // 下端揃え
+     const dBottomAlign = (other.y + other.h) - (y + h);
+     if(Math.abs(dBottomAlign) < bestAbsDy){
+       bestAbsDy = Math.abs(dBottomAlign);
+       bestDy = dBottomAlign;
+       guideY = other.y + other.h;
+     }
+   }
+ }
+
+ // 2. ステージ外枠（壁）へのスナップ
+ const dLeftWall = b.l - x;
+ if(Math.abs(dLeftWall) < wallSnapDist && Math.abs(dLeftWall) < bestAbsDx){
+   bestAbsDx = Math.abs(dLeftWall); bestDx = dLeftWall; guideX = b.l;
+ }
+ const dRightWall = b.r - (x + w);
+ if(Math.abs(dRightWall) < wallSnapDist && Math.abs(dRightWall) < bestAbsDx){
+   bestAbsDx = Math.abs(dRightWall); bestDx = dRightWall; guideX = b.r;
+ }
+ const dTopWall = b.t - y;
+ if(Math.abs(dTopWall) < wallSnapDist && Math.abs(dTopWall) < bestAbsDy){
+   bestAbsDy = Math.abs(dTopWall); bestDy = dTopWall; guideY = b.t;
+ }
+ const dBottomWall = b.b - (y + h);
+ if(Math.abs(dBottomWall) < wallSnapDist && Math.abs(dBottomWall) < bestAbsDy){
+   bestAbsDy = Math.abs(dBottomWall); bestDy = dBottomWall; guideY = b.b;
+ }
+
+ const guides = [];
+ let candX = x + (bestDx !== null ? bestDx : 0);
+ let candY = y + (bestDy !== null ? bestDy : 0);
+ candX = Math.max(b.l, Math.min(b.r - w, candX));
+ candY = Math.max(b.t, Math.min(b.b - h, candY));
+
+ // スナップした結果、別ブロックと完全に重なる場合はその軸のスナップをキャンセル
+ const overlapsAny = (tx, ty) => blocks.some(o => o.id !== ignoreId && rectsOverlap(tx, ty, w, h, o.x, o.y, o.w, o.h, 2));
+ if(overlapsAny(candX, candY)){
+   if(!overlapsAny(candX, y)){
+     candY = y; guideY = null;
+   }else if(!overlapsAny(x, candY)){
+     candX = x; guideX = null;
+   }else{
+     candX = x; candY = y; guideX = null; guideY = null;
+   }
+ }
+
+ if(guideX !== null && Math.abs(candX - x) > 0.01) guides.push({type:'v', pos:guideX});
+ if(guideY !== null && Math.abs(candY - y) > 0.01) guides.push({type:'h', pos:guideY});
+
+ return {x:candX, y:candY, guides};
+}
+
+function addBlockAt(centerX, centerY){
+ if(stage.hidden || !imgW || !imgH){
+   alert('先に画像を選択してください。');
+   return null;
+ }
+ const size = getBlockSizeForPreset(blockSizePreset);
+ const snapped = snapBlockPosition(centerX - size/2, centerY - size/2, size, size, null);
+ const blk = {
+   id: nextBlockId++,
+   x: snapped.x,
+   y: snapped.y,
+   w: size,
+   h: size,
+   sizeKey: blockSizePreset
+ };
+ blocks.push(blk);
+ selectedBlockId = blk.id;
+ activeSnapGuides = snapped.guides;
+ setTimeout(()=>{ if(!draggingBlockId){ activeSnapGuides=[]; draw(); } }, 450);
+ updateBlockCountBadge();
+ draw();
+ return blk;
+}
+
+function addBlockSmart(){
+ if(stage.hidden || !imgW || !imgH){
+   alert('先に画像を選択してください。');
+   return;
+ }
+ const b=bounds();
+ const size=getBlockSizeForPreset(blockSizePreset);
+ // 選択中のブロックがあればその右隣（または下・左・上）に自動で繋げて追加
+ const base = blocks.find(o=>o.id===selectedBlockId) || blocks[blocks.length-1];
+ if(base){
+   const candidates = [
+     {x: base.x + base.w, y: base.y},
+     {x: base.x, y: base.y + base.h},
+     {x: base.x - size, y: base.y},
+     {x: base.x, y: base.y - size}
+   ];
+   for(const c of candidates){
+     if(c.x >= b.l - 0.5 && c.x + size <= b.r + 0.5 && c.y >= b.t - 0.5 && c.y + size <= b.b + 0.5){
+       const cx = Math.max(b.l, Math.min(b.r - size, c.x));
+       const cy = Math.max(b.t, Math.min(b.b - size, c.y));
+       if(!blocks.some(o=>rectsOverlap(cx, cy, size, size, o.x, o.y, o.w, o.h, 2))){
+         addBlockAt(cx + size/2, cy + size/2);
+         return;
+       }
+     }
+   }
+ }
+ addBlockAt((b.l + b.r)/2, (b.t + b.b)/2);
+}
+
+function removeBlockById(id){
+ const idx = blocks.findIndex(blk=>blk.id===id);
+ if(idx<0)return;
+ blocks.splice(idx,1);
+ if(selectedBlockId===id){
+   selectedBlockId = blocks.length ? blocks[blocks.length-1].id : null;
+ }
+ activeSnapGuides=[];
+ updateBlockCountBadge();
+ draw();
+}
+
+function hitTestBlock(p){
+ for(let i=blocks.length-1; i>=0; i--){
+   const blk=blocks[i];
+   if(p.x>=blk.x && p.x<=blk.x+blk.w && p.y>=blk.y && p.y<=blk.y+blk.h){
+     return blk;
+   }
+ }
+ return null;
+}
+
+function setBlockMode(on){
+ blockMode = !!on;
+ const btn=document.getElementById('blockBtn');
+ const bar=document.getElementById('blockToolbar');
+ if(btn){
+   btn.classList.toggle('active', blockMode);
+   btn.setAttribute('aria-pressed', blockMode ? 'true' : 'false');
+ }
+ if(bar) bar.classList.toggle('open', blockMode);
+ if(!blockMode){
+   draggingBlockId=null;
+   activeSnapGuides=[];
+ }
+ draw();
+}
+
+document.getElementById('blockBtn').addEventListener('click',()=>{
+ if(stage.hidden || !imgW || !imgH){
+   alert('先に画像を選択してください。');
+   return;
+ }
+ if(zoomMode){
+   zoomBtn.click();
+ }
+ setBlockMode(!blockMode);
+});
+document.getElementById('blockAddBtn').addEventListener('click',()=>addBlockSmart());
+document.getElementById('blockDelSelBtn').addEventListener('click',()=>{
+ if(selectedBlockId!==null) removeBlockById(selectedBlockId);
+ else if(blocks.length) removeBlockById(blocks[blocks.length-1].id);
+});
+document.getElementById('blockClearBtn').addEventListener('click',()=>{
+ if(!blocks.length)return;
+ blocks=[];
+ selectedBlockId=null;
+ activeSnapGuides=[];
+ updateBlockCountBadge();
+ draw();
+});
+document.getElementById('blockDoneBtn').addEventListener('click',()=>setBlockMode(false));
+
+document.querySelectorAll('.blockSizeBtn').forEach(btn=>{
+ btn.addEventListener('click',()=>{
+   blockSizePreset = btn.dataset.size;
+   document.querySelectorAll('.blockSizeBtn').forEach(b=>b.classList.toggle('active', b===btn));
+   if(selectedBlockId!==null){
+     const blk=blocks.find(o=>o.id===selectedBlockId);
+     if(blk){
+       const newSize=getBlockSizeForPreset(blockSizePreset);
+       const cx=blk.x+blk.w/2, cy=blk.y+blk.h/2;
+       const snapped=snapBlockPosition(cx-newSize/2, cy-newSize/2, newSize, newSize, blk.id);
+       blk.w=newSize; blk.h=newSize; blk.x=snapped.x; blk.y=snapped.y; blk.sizeKey=blockSizePreset;
+       draw();
+     }
+   }
+ });
+});
+
+// ==========================================
+// 描画・物理反射計算
+// ==========================================
 function draw(){
  if(!imgW)return;
  ctx.clearRect(0,0,imgW,imgH);
  const b=bounds();
+ drawBlocks(b);
  drawReflection(b);
  drawCursor();
+}
+
+function drawBlocks(b){
+ const s=(b.r-b.l)/1057;
+ const eps=2.0;
+
+ // 1. 各ブロックの本体塗りつぶし＆斜線テクスチャ（モンストのブロック風）
+ for(const blk of blocks){
+   const isSel = blockMode && (blk.id === selectedBlockId);
+   ctx.save();
+   ctx.fillStyle = isSel ? 'rgba(245, 158, 11, 0.34)' : 'rgba(234, 179, 8, 0.24)';
+   ctx.fillRect(blk.x, blk.y, blk.w, blk.h);
+
+   // ブロック内部の斜線パターン
+   ctx.beginPath();
+   ctx.rect(blk.x, blk.y, blk.w, blk.h);
+   ctx.clip();
+   ctx.strokeStyle = isSel ? 'rgba(254, 240, 138, 0.28)' : 'rgba(253, 224, 71, 0.16)';
+   ctx.lineWidth = 4 * s;
+   const step = 22 * s;
+   for(let d = -blk.h; d < blk.w + blk.h; d += step){
+     ctx.beginPath();
+     ctx.moveTo(blk.x + d, blk.y);
+     ctx.lineTo(blk.x + d - blk.h, blk.y + blk.h);
+     ctx.stroke();
+   }
+
+   // 内側のベベルハイライト
+   ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+   ctx.lineWidth = 3 * s;
+   ctx.strokeRect(blk.x + 2*s, blk.y + 2*s, blk.w - 4*s, blk.h - 4*s);
+   ctx.restore();
+ }
+
+ // 2. 連結判定：隣り合うブロック同士の継ぎ目をシームレスに見せる外周枠線描画
+ for(const blk of blocks){
+   const isSel = blockMode && (blk.id === selectedBlockId);
+   const hasTop = blocks.some(o => o.id !== blk.id && Math.abs((o.y + o.h) - blk.y) <= eps && (o.x + o.w > blk.x + eps) && (o.x < blk.x + blk.w - eps));
+   const hasBottom = blocks.some(o => o.id !== blk.id && Math.abs(o.y - (blk.y + blk.h)) <= eps && (o.x + o.w > blk.x + eps) && (o.x < blk.x + blk.w - eps));
+   const hasLeft = blocks.some(o => o.id !== blk.id && Math.abs((o.x + o.w) - blk.x) <= eps && (o.y + o.h > blk.y + eps) && (o.y < blk.y + blk.h - eps));
+   const hasRight = blocks.some(o => o.id !== blk.id && Math.abs(o.x - (blk.x + blk.w)) <= eps && (o.y + o.h > blk.y + eps) && (o.y < blk.y + blk.h - eps));
+
+   ctx.save();
+   ctx.lineCap = 'square';
+
+   // 連結している境界線は極薄の点線で表示
+   ctx.strokeStyle = 'rgba(253, 224, 71, 0.25)';
+   ctx.lineWidth = 2 * s;
+   ctx.setLineDash([6*s, 6*s]);
+   if(hasTop){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y); ctx.lineTo(blk.x+blk.w, blk.y); ctx.stroke(); }
+   if(hasLeft){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y); ctx.lineTo(blk.x, blk.y+blk.h); ctx.stroke(); }
+   ctx.setLineDash([]);
+
+   // 外周の有効な反射面（太枠）
+   ctx.strokeStyle = isSel ? '#fef08a' : '#f59e0b';
+   ctx.lineWidth = (isSel ? 7 : 5.5) * s;
+   if(!hasTop){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y); ctx.lineTo(blk.x+blk.w, blk.y); ctx.stroke(); }
+   if(!hasBottom){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y+blk.h); ctx.lineTo(blk.x+blk.w, blk.y+blk.h); ctx.stroke(); }
+   if(!hasLeft){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y); ctx.lineTo(blk.x, blk.y+blk.h); ctx.stroke(); }
+   if(!hasRight){ ctx.beginPath(); ctx.moveTo(blk.x+blk.w, blk.y); ctx.lineTo(blk.x+blk.w, blk.y+blk.h); ctx.stroke(); }
+
+   // 編集モード中は中央に小さな移動ハンドル印を表示
+   if(blockMode){
+     const cx = blk.x + blk.w/2, cy = blk.y + blk.h/2;
+     ctx.fillStyle = isSel ? 'rgba(254,240,138,.9)' : 'rgba(255,255,255,.55)';
+     ctx.beginPath();
+     ctx.arc(cx, cy, 5*s, 0, Math.PI*2);
+     ctx.fill();
+   }
+   ctx.restore();
+ }
+
+ // 3. ドラッグ中の自動吸着ガイド線
+ if(blockMode && activeSnapGuides.length){
+   ctx.save();
+   ctx.strokeStyle = 'rgba(56, 189, 248, 0.9)';
+   ctx.lineWidth = 3 * s;
+   ctx.setLineDash([10*s, 8*s]);
+   for(const g of activeSnapGuides){
+     ctx.beginPath();
+     if(g.type === 'v'){
+       ctx.moveTo(g.pos, b.t); ctx.lineTo(g.pos, b.b);
+     }else{
+       ctx.moveTo(b.l, g.pos); ctx.lineTo(b.r, g.pos);
+     }
+     ctx.stroke();
+   }
+   ctx.restore();
+ }
 }
 
 function drawCursor(){
@@ -1086,41 +1500,64 @@ function drawCursor(){
  }
 }
 
-function rayToSegment(px,py,dx,dy,x1,y1,x2,y2){
+function rayToSegment(px,py,dx,dy,x1,y1,x2,y2,nx,ny){
+ // バックフェースカリング：レイが面の正面側から進入する場合のみ衝突判定（連結ブロックの継ぎ目誤判定を防止）
+ if(dx*nx + dy*ny >= -1e-6) return null;
  const sx=x2-x1,sy=y2-y1;
  const den=dx*sy-dy*sx;
  if(Math.abs(den)<1e-9)return null;
  const t=((x1-px)*sy-(y1-py)*sx)/den;
  const u=((x1-px)*dy-(y1-py)*dx)/den;
- if(t>1e-7 && u>=0 && u<=1)return {t,u,x:px+dx*t,y:py+dy*t};
+ if(t>1e-7 && u>=-1e-5 && u<=1+1e-5)return {t,u,x:px+dx*t,y:py+dy*t,nx,ny};
  return null;
+}
+
+function buildColliders(b){
+ const segs = [
+   // 外枠4辺（内側向き法線）
+   {x1:b.l, y1:b.t, x2:b.r, y2:b.t, nx:0, ny:1},
+   {x1:b.r, y1:b.t, x2:b.r, y2:b.b, nx:-1, ny:0},
+   {x1:b.r, y1:b.b, x2:b.l, y2:b.b, nx:0, ny:-1},
+   {x1:b.l, y1:b.b, x2:b.l, y2:b.t, nx:1, ny:0}
+ ];
+ // 配置された全ブロックの4辺（外側向き法線）
+ for(const blk of blocks){
+   segs.push(
+     {x1:blk.x,       y1:blk.y,       x2:blk.x+blk.w, y2:blk.y,       nx:0,  ny:-1}, // 上辺
+     {x1:blk.x+blk.w, y1:blk.y,       x2:blk.x+blk.w, y2:blk.y+blk.h, nx:1,  ny:0},  // 右辺
+     {x1:blk.x+blk.w, y1:blk.y+blk.h, x2:blk.x,       y2:blk.y+blk.h, nx:0,  ny:1},  // 下辺
+     {x1:blk.x,       y1:blk.y+blk.h, x2:blk.x,       y2:blk.y,       nx:-1, ny:0}   // 左辺
+   );
+ }
+ return segs;
+}
+
+function findNearestHit(x,y,dx,dy,colliders){
+ let best=null;
+ for(const s of colliders){
+   const h=rayToSegment(x,y,dx,dy,s.x1,s.y1,s.x2,s.y2,s.nx,s.ny);
+   if(h && (!best || h.t < best.t)) best=h;
+ }
+ return best;
 }
 
 function reflectPath(b){
  let x=cursor.x,y=cursor.y;
  let dx=Math.cos(pullAngle),dy=Math.sin(pullAngle);
+ const colliders=buildColliders(b);
  const pts=[{x,y}];
  for(let k=0;k<reflections;k++){
-   const hits=[
-    rayToSegment(x,y,dx,dy,b.l,b.t,b.r,b.t),
-    rayToSegment(x,y,dx,dy,b.r,b.t,b.r,b.b),
-    rayToSegment(x,y,dx,dy,b.r,b.b,b.l,b.b),
-    rayToSegment(x,y,dx,dy,b.l,b.b,b.l,b.t)
-   ].filter(Boolean).sort((a,c)=>a.t-c.t);
-   if(!hits.length)break;
-   const h=hits[0]; pts.push({x:h.x,y:h.y});
-   if(Math.abs(h.x-b.l)<1e-3||Math.abs(h.x-b.r)<1e-3) dx=-dx;
-   else dy=-dy;
-   x=h.x+dx*.05;y=h.y+dy*.05;
+   const h=findNearestHit(x,y,dx,dy,colliders);
+   if(!h)break;
+   pts.push({x:h.x,y:h.y});
+   if(h.nx !== 0) dx = -dx;
+   if(h.ny !== 0) dy = -dy;
+   x = h.x + h.nx * 0.05;
+   y = h.y + h.ny * 0.05;
  }
  let ex=x+dx*Math.max(imgW,imgH)*2, ey=y+dy*Math.max(imgW,imgH)*2;
- const last=[
-   rayToSegment(x,y,dx,dy,b.l,b.t,b.r,b.t),
-   rayToSegment(x,y,dx,dy,b.r,b.t,b.r,b.b),
-   rayToSegment(x,y,dx,dy,b.r,b.b,b.l,b.b),
-   rayToSegment(x,y,dx,dy,b.l,b.b,b.l,b.t)
- ].filter(Boolean).sort((a,c)=>a.t-c.t)[0];
- if(last){ex=last.x;ey=last.y}
+ const last=findNearestHit(x,y,dx,dy,colliders);
+ if(last){ex=last.x;ey=last.y;}
  pts.push({x:ex,y:ey});
  return pts;
 }
@@ -1189,7 +1626,51 @@ function nearestArm(p){
 cv.addEventListener('pointerdown',e=>{
  if(stage.hidden || zoomMode)return;
  cv.setPointerCapture(e.pointerId);
- const p=pos(e), arm=nearestArm(p);
+ const p=pos(e);
+
+ // ブロック編集モード中のポインタ処理
+ if(blockMode){
+   const hit=hitTestBlock(p);
+   if(hit){
+     const now=Date.now();
+     if(lastBlockTapId===hit.id && (now - lastBlockTapTime)<320){
+       // 同じブロックを素早く2回タップで削除
+       lastBlockTapId=null;
+       lastBlockTapTime=0;
+       draggingBlockId=null;
+       removeBlockById(hit.id);
+       e.preventDefault();
+       return;
+     }
+     lastBlockTapId=hit.id;
+     lastBlockTapTime=now;
+     selectedBlockId=hit.id;
+     draggingBlockId=hit.id;
+     blockDragOffsetX=p.x - hit.x;
+     blockDragOffsetY=p.y - hit.y;
+     blockDragMoved=false;
+     activeSnapGuides=[];
+     draw();
+   }else{
+     // 空き場所をタップしたら新規ブロック配置＆そのままドラッグ移動も可能
+     const b=bounds();
+     if(p.x>=b.l && p.x<=b.r && p.y>=b.t && p.y<=b.b){
+       const created=addBlockAt(p.x, p.y);
+       if(created){
+         draggingBlockId=created.id;
+         blockDragOffsetX=p.x - created.x;
+         blockDragOffsetY=p.y - created.y;
+         blockDragMoved=false;
+         lastBlockTapId=created.id;
+         lastBlockTapTime=Date.now();
+       }
+     }
+   }
+   e.preventDefault();
+   return;
+ }
+
+ const arm=nearestArm(p);
  active=arm>=0?'move':'angle';
  lastX=p.x;lastY=p.y;
  touchStartX=p.x;touchStartY=p.y;
@@ -1202,6 +1683,25 @@ cv.addEventListener('pointerdown',e=>{
 });
 
 cv.addEventListener('pointermove',e=>{
+ if(blockMode){
+   if(draggingBlockId===null)return;
+   const blk=blocks.find(o=>o.id===draggingBlockId);
+   if(!blk)return;
+   const events=e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+   const lastEv=events[events.length-1];
+   const p=pos(lastEv);
+   const rawX=p.x - blockDragOffsetX;
+   const rawY=p.y - blockDragOffsetY;
+   if(Math.hypot(rawX - blk.x, rawY - blk.y) > 2) blockDragMoved=true;
+   const snapped=snapBlockPosition(rawX, rawY, blk.w, blk.h, blk.id);
+   blk.x=snapped.x;
+   blk.y=snapped.y;
+   activeSnapGuides=snapped.guides;
+   draw();
+   e.preventDefault();
+   return;
+ }
+
  if(!active)return;
  const events=e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
  for(const ev of events){
@@ -1227,7 +1727,7 @@ function updateAngleUI(){
  const valEl = display.querySelector('.angleValue');
  const stepTag = document.getElementById('angleStepTag');
  if(valEl) valEl.textContent = deg.toFixed(2) + '°';
- if(stepTag) stepTag.textContent = '#' + angleStep;
+ if(stepTag) stepTag.textContent = String(angleStep);
 }
 
 (function enableAngleDirectInput(){
@@ -1239,8 +1739,8 @@ function updateAngleUI(){
   const currentDeg = getAngleDeg();
   const input=document.createElement('input');
   input.type='text'; input.inputMode='decimal';
-  input.value=currentDeg.toFixed(2); input.setAttribute('aria-label','角度または#ステップを入力');
-  input.style.cssText='width:76px;max-width:100%;font:inherit;font-weight:800;text-align:center;color:#fff;background:#05080e;border:1px solid #5cbaff;border-radius:4px;padding:1px 2px;box-sizing:border-box;';
+  input.value=currentDeg.toFixed(2); input.setAttribute('aria-label','角度または#番号を入力');
+  input.style.cssText='width:78px;max-width:100%;font-size:14px;font-weight:700;text-align:center;color:#fff;background:#101218;border:1px solid #3b82f6;border-radius:6px;padding:1px 2px;box-sizing:border-box;';
   valueEl.replaceWith(input);
   const finish=(commit)=>{
    if(!input.isConnected)return;
@@ -1268,6 +1768,12 @@ function updateAngleUI(){
 })();
 
 function end(e){
+ if(blockMode){
+   draggingBlockId=null;
+   activeSnapGuides=[];
+   draw();
+   return;
+ }
  if(active==='angle' && e){
    const p=pos(e);
    const vx=p.x-touchStartX, vy=p.y-touchStartY;
@@ -1336,13 +1842,13 @@ function saveGuideImage(){
   octx.drawImage(cv,0,0,imgW,imgH);
 
   const angleDeg = getAngleDeg();
-  const angleText = `${angleDeg.toFixed(2)}° (#${angleStep})`;
+  const angleText = `${angleDeg.toFixed(2)}° (No.${angleStep})`;
   octx.save();
   octx.textAlign='center';
   octx.textBaseline='middle';
-  octx.font='800 26px -apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif';
+  octx.font='700 26px -apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif';
   octx.lineWidth=7;
-  octx.strokeStyle='rgba(0,0,0,.82)';
+  octx.strokeStyle='rgba(0,0,0,.85)';
   octx.strokeText(angleText,cursor.x,cursor.y);
   octx.fillStyle='#fff';
   octx.fillText(angleText,cursor.x,cursor.y);
@@ -1369,6 +1875,7 @@ const zoomBtn=document.getElementById('zoomBtn');
 let panX=0,panY=0,panStartX=0,panStartY=0,panBaseX=0,panBaseY=0,panActive=false;
 function applyStageTransform(){stage.style.transform=`translate3d(${panX}px,${panY}px,0) scale(${zoomScale})`;}
 zoomBtn.onclick=()=>{
+ if(blockMode) setBlockMode(false);
  zoomMode=!zoomMode;
  const zl=zoomBtn.querySelector('.btnLabel');if(zl)zl.textContent=zoomMode?'解除':'拡大';else zoomBtn.textContent=zoomMode?'解除':'拡大';
  zoomBtn.classList.toggle('active',zoomMode);
@@ -1536,7 +2043,6 @@ requestAnimationFrame(updateBarScale);
   }
  });
 
- // 隠しトリガー1: 下部バーの「反射」中央表示(#n)を素早く7回連続タップ
  let tapCount=0, lastTapTime=0;
  nEl.addEventListener('pointerdown',e=>{
   const now=Date.now();
@@ -1551,7 +2057,6 @@ requestAnimationFrame(updateBarScale);
   }
  });
 
- // 隠しトリガー2: URL末尾 #stat77 で直接開く（開いたらURLから自動消去、訪問カウントにも加算しない）
  const openedByHash=(location.hash==='#stat77');
  if(openedByHash){
   try{history.replaceState(null,'',location.pathname+location.search);}catch(_){}
@@ -1626,7 +2131,7 @@ document.getElementById('voiceFileName').addEventListener('input',()=>{voiceFile
 function updateVoiceModalAngleBadge(){
  const badge=document.getElementById('voiceCurrentAngle');
  if(!badge)return;
- badge.textContent=`${getAngleDeg().toFixed(2)}° (#${angleStep})`;
+ badge.textContent=`${getAngleDeg().toFixed(2)}° (No.${angleStep})`;
 }
 function switchVoiceTab(tabName){
  document.querySelectorAll('.voiceTabBtn').forEach(btn=>{
@@ -1754,7 +2259,7 @@ function extractGestureInfo(b64){
         let deg=(-extractedPullAngle*180/Math.PI)%360;
         if(deg<0)deg+=360;
         const st=normalizeStep(Math.round(deg/MONST_STEP_DEG));
-        info.angleText=`${deg.toFixed(2)}° (#${st})`;
+        info.angleText=`${deg.toFixed(2)}° (No.${st})`;
       }
     }
     const bytes=new Uint8Array(raw.length);
@@ -1891,7 +2396,7 @@ if(existingVoicePickBtn&&existingVoiceInput){
     head.className='existingCommandHead';
     const title=document.createElement('div');
     title.className='existingCommandTitle';
-    title.innerHTML=`<span class="cmdNumBadge">#${i+1}</span> コマンド`;
+    title.innerHTML=`<span class="cmdNumBadge">No.${i+1}</span> コマンド`;
     head.appendChild(title);
 
     const metaParts=[];
