@@ -35,17 +35,9 @@ html,body{
   touch-action:none;
 }
 body{display:block;position:relative}
-html,body,*,*::before,*::after{
-  -webkit-user-select:none!important;
-  user-select:none!important;
-  -webkit-touch-callout:none!important;
-}
-img,canvas,button,div,span,small,strong,b,p,li,svg{-webkit-user-drag:none}
-input{
-  -webkit-user-select:text!important;
-  user-select:text!important;
-  -webkit-touch-callout:default!important;
-}
+html,body,*{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+img,canvas,button,div,span{-webkit-user-drag:none}
+input{-webkit-touch-callout:default;-webkit-user-select:text;user-select:text}
 button,input{font-family:inherit}
 
 button{
@@ -91,8 +83,18 @@ button.repeatPressed{
   touch-action:none;
   transform-origin:center center;
 }
-#photo{display:block;width:100%;height:100%;max-width:none;max-height:none;object-fit:contain}
-canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+#photo{
+  display:block;width:100%;height:100%;max-width:none;max-height:none;object-fit:contain;
+  pointer-events:none;
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+}
+canvas{
+  position:absolute;inset:0;width:100%;height:100%;
+  touch-action:none;
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+}
 #file{display:none}
 
 /* 初期画面 */
@@ -156,7 +158,6 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   box-shadow:0 12px 32px rgba(0,0,0,.55);
   flex-direction:column;
   gap:7px;
-  touch-action:none;
 }
 #blockToolbar.open{display:flex}
 .blockBarTop{
@@ -196,7 +197,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   color:#fff;
 }
 
-/* 下部コントロールバー（iOS長押し拡大鏡を防止） */
+/* 下部コントロールバー */
 #bar{
   position:fixed;
   left:50%;
@@ -237,7 +238,6 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   padding:3px;
   gap:3px;
   height:46px;
-  touch-action:none;
 }
 #count{grid-column:2;grid-row:1;width:100%;min-width:0}
 #angleControls{grid-column:2;grid-row:2;width:100%;min-width:0}
@@ -255,7 +255,6 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   line-height:1.05;
   font-variant-numeric:tabular-nums;
-  touch-action:none;
 }
 #count span .maxLabel{
   font-size:9px;line-height:9px;height:9px;font-weight:800;
@@ -279,7 +278,6 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   padding:2px;
   border-radius:6px;
   font-variant-numeric:tabular-nums;
-  touch-action:none;
 }
 #angleDisplay .angleMeta{
   font-size:9.5px;font-weight:600;line-height:11px;
@@ -320,7 +318,6 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   grid-template-columns:auto 42px 1fr;
   gap:6px;
   align-items:center;
-  touch-action:none;
 }
 
 #blockBtn{
@@ -391,6 +388,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   background:rgba(0,0,0,.72);
   align-items:center;justify-content:center;
   padding:14px;
+  touch-action:manipulation;
 }
 #voiceModal.open{display:flex}
 #voiceModal .voiceCard{
@@ -475,6 +473,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   color:#fff;
   padding:0 11px;
   font-size:14px;font-weight:500;
+  -webkit-user-select:text;user-select:text;
   transition:border-color .15s ease;
 }
 #voiceModal input::placeholder{color:#6b7280}
@@ -619,6 +618,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   border-radius:8px;
   background:var(--surface);
   color:#fff;padding:0 10px;font-size:13.5px;font-weight:500;
+  -webkit-user-select:text;user-select:text;
 }
 .existingSpeedGroup{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
 .existingSpeedChip{
@@ -969,14 +969,12 @@ const STATS_API_URL = "";
 const MONST_STEPS = 1024;
 const MONST_STEP_DEG = 360 / MONST_STEPS;
 
-// モンストのブロック・キャラ当たり判定仕様（実機・参考画像準拠）：
-// 1. ステージ横幅（左壁〜右壁）に対してブロックは横9マス（1/9幅）、縦はブロック上面（影を除いた内側）に合わせて 0.915 倍
-// 2. キャラボールの当たり判定半径（＝矢印シャフト幅の半分）は基準横幅に対して 48px（直径96px＝ステージ横幅の約8.1%）
-// 3. ブロックの反射判定（白枠）は、ブロック本体（緑枠）の外周からキャラボール当たり判定半径分だけ外側にオフセットした直角外周ポリゴン
-const MONST_GRID_COLS = 9;
-const MONST_BLOCK_ASPECT_H = 0.915; // ブロック内側の石面に合わせた縦横比
-const MONST_BALL_RADIUS_BASE = 48;  // シャフト幅・キャラボール当たり判定半径
-const MONST_CURSOR_RING_BASE = 68;  // 発射カーソルのオレンジ外輪半径
+// モンストのブロック・キャラ当たり判定仕様（実機準拠）：
+// 1. ブロック本体（緑枠）：基準ステージ横幅（1170、内側1057）に対して 117px の均一正方形
+// 2. キャラボール当たり判定半径：基準1057に対して 52px（直径104px＝参考画像のシャフト幅・壁判定54pxと整合）
+// 3. ブロックの反射判定（白枠）：ブロック本体の外周からキャラボール半径分（52px）だけ外側にオフセットした直角外周ポリゴン
+const MONST_BLOCK_SIZE_BASE = 117;
+const MONST_BALL_RADIUS_BASE = 52;
 
 const file=document.getElementById('file'), fileBtn=document.getElementById('fileBtn');
 const stage=document.getElementById('stage'), photo=document.getElementById('photo'), cv=document.getElementById('cv');
@@ -1007,19 +1005,11 @@ function getBallHitRadius(b){
   return MONST_BALL_RADIUS_BASE * s;
 }
 
-function getCursorRingRadius(b){
-  const s=(b.r - b.l) / 1057;
-  return MONST_CURSOR_RING_BASE * s;
-}
-
-// ブロック1マスの均一サイズ（見た目の左壁〜右壁の 1/9 幅 × ブロック内側上面比率）
-function getUniformBlockDimensions(){
+// ブロック1マスの均一サイズ（実機ブロック本体のサイズ）
+function getUniformBlockSize(){
   const b=bounds();
-  const ringR=getCursorRingRadius(b);
-  const visualStageW=Math.max(60, (b.r - b.l) + ringR * 2);
-  const w = visualStageW / MONST_GRID_COLS;
-  const h = w * MONST_BLOCK_ASPECT_H;
-  return {w, h};
+  const s=(b.r - b.l) / 1057;
+  return MONST_BLOCK_SIZE_BASE * s;
 }
 
 function normalizeStep(step){
@@ -1173,9 +1163,9 @@ function rectsOverlap(ax,ay,aw,ah,bx,by,bw,bh,eps=1.5){
  return (ax + eps < bx + bw) && (ax + aw - eps > bx) && (ay + eps < by + bh) && (ay + ah - eps > by);
 }
 
-// ブロック配置可能範囲（ステージの見た目の壁）
+// ブロック配置可能範囲（ステージの見た目の壁＝ボール中心壁よりボール半径分外側）
 function getBlockPlayArea(b){
- const r = getCursorRingRadius(b);
+ const r = getBallHitRadius(b);
  return {
    l: Math.max(0, b.l - r),
    r: Math.min(imgW, b.r + r),
@@ -1288,14 +1278,14 @@ function addBlockAt(centerX, centerY){
    alert('先に画像を選択してください。');
    return null;
  }
- const {w, h} = getUniformBlockDimensions();
- const snapped = snapBlockPosition(centerX - w/2, centerY - h/2, w, h, null);
+ const size = getUniformBlockSize();
+ const snapped = snapBlockPosition(centerX - size/2, centerY - size/2, size, size, null);
  const blk = {
    id: nextBlockId++,
    x: snapped.x,
    y: snapped.y,
-   w: w,
-   h: h
+   w: size,
+   h: size
  };
  blocks.push(blk);
  selectedBlockId = blk.id;
@@ -1313,21 +1303,21 @@ function addBlockSmart(){
  }
  const b=bounds();
  const area=getBlockPlayArea(b);
- const {w, h}=getUniformBlockDimensions();
+ const size=getUniformBlockSize();
  const base = blocks.find(o=>o.id===selectedBlockId) || blocks[blocks.length-1];
  if(base){
    const candidates = [
      {x: base.x + base.w, y: base.y},
      {x: base.x, y: base.y + base.h},
-     {x: base.x - w, y: base.y},
-     {x: base.x, y: base.y - h}
+     {x: base.x - size, y: base.y},
+     {x: base.x, y: base.y - size}
    ];
    for(const c of candidates){
-     if(c.x >= area.l - 0.5 && c.x + w <= area.r + 0.5 && c.y >= area.t - 0.5 && c.y + h <= area.b + 0.5){
-       const cx = Math.max(area.l, Math.min(area.r - w, c.x));
-       const cy = Math.max(area.t, Math.min(area.b - h, c.y));
-       if(!blocks.some(o=>rectsOverlap(cx, cy, w, h, o.x, o.y, o.w, o.h, 2))){
-         addBlockAt(cx + w/2, cy + h/2);
+     if(c.x >= area.l - 0.5 && c.x + size <= area.r + 0.5 && c.y >= area.t - 0.5 && c.y + size <= area.b + 0.5){
+       const cx = Math.max(area.l, Math.min(area.r - size, c.x));
+       const cy = Math.max(area.t, Math.min(area.b - size, c.y));
+       if(!blocks.some(o=>rectsOverlap(cx, cy, size, size, o.x, o.y, o.w, o.h, 2))){
+         addBlockAt(cx + size/2, cy + size/2);
          return;
        }
      }
@@ -1563,7 +1553,7 @@ function drawBlocks(b){
    ctx.setLineDash([]);
 
    ctx.strokeStyle = isSel ? '#86efac' : '#22c55e';
-   ctx.lineWidth = (isSel ? 6.5 : 5) * s;
+   ctx.lineWidth = (isSel ? 5.5 : 4.2) * s;
    if(!hasTop){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y); ctx.lineTo(blk.x+blk.w, blk.y); ctx.stroke(); }
    if(!hasBottom){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y+blk.h); ctx.lineTo(blk.x+blk.w, blk.y+blk.h); ctx.stroke(); }
    if(!hasLeft){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y); ctx.lineTo(blk.x, blk.y+blk.h); ctx.stroke(); }
@@ -1573,7 +1563,7 @@ function drawBlocks(b){
      const cx = blk.x + blk.w/2, cy = blk.y + blk.h/2;
      ctx.fillStyle = isSel ? 'rgba(187,247,208,.95)' : 'rgba(255,255,255,.65)';
      ctx.beginPath();
-     ctx.arc(cx, cy, 4.5*s, 0, Math.PI*2);
+     ctx.arc(cx, cy, 4*s, 0, Math.PI*2);
      ctx.fill();
    }
    ctx.restore();
@@ -1584,7 +1574,7 @@ function drawBlocks(b){
  if(hitEdges.length){
    ctx.save();
    ctx.strokeStyle = blockMode ? 'rgba(255, 255, 255, 0.92)' : 'rgba(255, 255, 255, 0.48)';
-   ctx.lineWidth = (blockMode ? 4 : 2.5) * s;
+   ctx.lineWidth = (blockMode ? 3.5 : 2.2) * s;
    ctx.lineCap = 'square';
    for(const e of hitEdges){
      ctx.beginPath();
@@ -1618,15 +1608,15 @@ function drawBlocks(b){
 function drawCursor(b){
  const x=cursor.x,y=cursor.y;
  const s=(b.r-b.l)/1057;
- const R=getCursorRingRadius(b);
+ const R=getBallHitRadius(b);
  const rg=ctx.createRadialGradient(x,y,R*.15,x,y,R*1.75);
  rg.addColorStop(0,'rgba(255,150,35,.48)');
  rg.addColorStop(.45,'rgba(255,115,20,.28)');
  rg.addColorStop(1,'rgba(255,90,10,0)');
  ctx.fillStyle=rg;ctx.beginPath();ctx.arc(x,y,R*1.75,0,Math.PI*2);ctx.fill();
  ctx.fillStyle='rgba(255,105,15,.13)';ctx.beginPath();ctx.arc(x,y,R,0,Math.PI*2);ctx.fill();
- ctx.strokeStyle='rgba(255,95,15,.95)';ctx.lineWidth=7*s;ctx.beginPath();ctx.arc(x,y,R,0,Math.PI*2);ctx.stroke();
- ctx.strokeStyle='rgba(255,225,145,.82)';ctx.lineWidth=3*s;ctx.beginPath();ctx.arc(x,y,R+6*s,0,Math.PI*2);ctx.stroke();
+ ctx.strokeStyle='rgba(255,95,15,.95)';ctx.lineWidth=6*s;ctx.beginPath();ctx.arc(x,y,R,0,Math.PI*2);ctx.stroke();
+ ctx.strokeStyle='rgba(255,225,145,.82)';ctx.lineWidth=2.5*s;ctx.beginPath();ctx.arc(x,y,R+5*s,0,Math.PI*2);ctx.stroke();
  const L=145*s, gap=R+7*s;
  for(let i=0;i<4;i++){
    const a=pullAngle + Math.PI/4 + i*Math.PI/2;
@@ -1712,7 +1702,7 @@ function reflectPath(b){
  return {pts, tail};
 }
 
-// キャラの大きさ判定（シャフト：矢柄の最大幅＝キャラボール当たり判定直径の軌道帯）の描画
+// キャラの大きさ判定（シャフト：キャラボール直径の軌道帯）の描画
 // ※ケツの反射線側には描画せず、発射点から前方の軌道（pts）のみに描画
 function drawShaftOverlay(pts, b){
  if(pts.length < 2) return;
@@ -1720,10 +1710,10 @@ function drawShaftOverlay(pts, b){
  const hitR=getBallHitRadius(b);
 
  ctx.save();
- // 1. シャフト帯（発射点〜反射軌道全体、視認性の高いシアン）
+ // 1. キャラ直径分のシャフト帯（発射点〜反射軌道全体）
  ctx.lineCap='round';
  ctx.lineJoin='round';
- ctx.strokeStyle='rgba(0, 229, 255, 0.34)';
+ ctx.strokeStyle='rgba(0, 229, 255, 0.28)';
  ctx.lineWidth=hitR * 2;
  ctx.beginPath();
  for(let i=0;i<pts.length;i++){
@@ -1732,9 +1722,9 @@ function drawShaftOverlay(pts, b){
  }
  ctx.stroke();
 
- // 2. シャフト左右の境界線（キャラの外周が通るくっきりしたライン）
+ // 2. シャフト左右の境界線（キャラ外周ライン）
  ctx.strokeStyle='rgba(0, 240, 255, 0.92)';
- ctx.lineWidth=3.5 * s;
+ ctx.lineWidth=2.5 * s;
  for(let i=0;i<pts.length-1;i++){
    const p1=pts[i], p2=pts[i+1];
    const vx=p2.x-p1.x, vy=p2.y-p1.y;
@@ -1758,10 +1748,8 @@ function drawShaftOverlay(pts, b){
    const p=pts[i];
    ctx.beginPath();
    ctx.arc(p.x, p.y, hitR, 0, Math.PI*2);
-   ctx.fillStyle=(i===0) ? 'rgba(0, 229, 255, 0.26)' : 'rgba(0, 229, 255, 0.20)';
-   ctx.fill();
-   ctx.strokeStyle='rgba(0, 245, 255, 0.95)';
-   ctx.lineWidth=3.5 * s;
+   ctx.strokeStyle='rgba(0, 245, 255, 0.92)';
+   ctx.lineWidth=2.5 * s;
    ctx.stroke();
  }
  ctx.restore();
@@ -1832,7 +1820,7 @@ function nearestArm(p){
  const x=cursor.x,y=cursor.y;
  const b=bounds();
  const s=(b.r-b.l)/1057;
- const R=getCursorRingRadius(b);
+ const R=getBallHitRadius(b);
  const L=150*s,gap=R+5*s,w=58*s;
  for(let i=0;i<4;i++){
    const a=pullAngle+Math.PI/4+i*Math.PI/2;
@@ -1975,12 +1963,7 @@ function updateAngleUI(){
   input.focus();input.select();
  }
  display.addEventListener('dblclick',e=>{e.preventDefault();e.stopPropagation();openEditor()});
- display.addEventListener('touchend',e=>{
-  if(display.querySelector('input'))return;
-  e.preventDefault();
-  const now=Date.now();
-  if(now-lastTap<350){openEditor();lastTap=0;}else lastTap=now;
- },{passive:false});
+ display.addEventListener('touchend',e=>{const now=Date.now();if(now-lastTap<350){e.preventDefault();openEditor();lastTap=0}else lastTap=now},{passive:false});
 })();
 
 function end(e){
@@ -2030,6 +2013,8 @@ function bindRepeat(btn,fn,mode='slow'){
    step=Math.min(step+1,delays.length-1);
    timeout=setTimeout(tick,delays[step]);
  };
+ // iOS長押しによる拡大鏡（ルーペ）発生を防ぐため touchstart を明示的にキャンセル
+ btn.addEventListener('touchstart',e=>{e.preventDefault();},{passive:false});
  btn.addEventListener('pointerdown',e=>{
    e.preventDefault();e.stopPropagation();stopped=false;step=0;btn.classList.add('repeatPressed');fn();
    timeout=setTimeout(tick,delays[0]);
@@ -2099,63 +2084,57 @@ zoomBtn.onclick=()=>{
  requestAnimationFrame(updateBarScale);
 };
 function touchDist(a,b){return Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);}
+
+// キャンバス上のタッチ操作：通常モード・ブロックモードでも preventDefault() して iOS拡大鏡（ルーペ）を完全防止
 cv.addEventListener('touchstart',e=>{
+ e.preventDefault();
  if(!zoomMode)return;
  if(e.touches.length===2){
-   e.preventDefault(); panActive=false;
+   panActive=false;
    zoomStartDist=touchDist(e.touches[0],e.touches[1]); zoomStartScale=zoomScale;
  }else if(e.touches.length===1){
-   e.preventDefault();
    panActive=true; panStartX=e.touches[0].clientX; panStartY=e.touches[0].clientY; panBaseX=panX; panBaseY=panY;
  }
 },{passive:false});
 cv.addEventListener('touchmove',e=>{
+ e.preventDefault();
  if(!zoomMode)return;
  if(e.touches.length===2){
-   e.preventDefault(); panActive=false;
+   panActive=false;
    const d=touchDist(e.touches[0],e.touches[1]);
    if(zoomStartDist>0){zoomScale=Math.max(1,Math.min(4,zoomStartScale*d/zoomStartDist));applyStageTransform();requestAnimationFrame(updateBarScale);}
  }else if(e.touches.length===1 && panActive){
-   e.preventDefault();
    panX=panBaseX+(e.touches[0].clientX-panStartX);
    panY=panBaseY+(e.touches[0].clientY-panStartY);
    applyStageTransform();requestAnimationFrame(updateBarScale);
  }
 },{passive:false});
-cv.addEventListener('touchend',e=>{if(zoomMode && e.touches.length===0)panActive=false;},{passive:false});
+cv.addEventListener('touchend',e=>{
+ e.preventDefault();
+ if(zoomMode && e.touches.length===0)panActive=false;
+},{passive:false});
 
-// iOS Safariの長押し拡大鏡（ルーペ）・テキスト選択ポップアップを徹底抑止
-function clearAccidentalSelection(){
- const activeTag = document.activeElement && document.activeElement.tagName;
- if(activeTag === 'INPUT' || activeTag === 'TEXTAREA') return;
- const sel = window.getSelection && window.getSelection();
- if(sel && sel.rangeCount > 0){
-   try{ sel.removeAllRanges(); }catch(_){}
- }
+// iOSテキスト選択・拡大鏡のグローバル抑止（入力欄フォーカス時のみ許可）
+function isEditableTarget(el){
+ return !!(el && (el.tagName==='INPUT' || el.tagName==='TEXTAREA' || el.isContentEditable));
 }
-['bar','blockToolbar'].forEach(id=>{
- const el = document.getElementById(id);
- if(!el) return;
- el.addEventListener('touchstart',e=>{
-   const t = e.target;
-   if(t && (t.tagName === 'INPUT' || t.tagName === 'LABEL')) return;
-   e.preventDefault();
-   clearAccidentalSelection();
- },{passive:false});
-});
-document.addEventListener('selectionchange',clearAccidentalSelection);
 document.addEventListener('selectstart',e=>{
- const t = e.target;
- if(t && t.tagName === 'INPUT') return;
- e.preventDefault();
+ if(!isEditableTarget(e.target)) e.preventDefault();
 },{passive:false});
-document.addEventListener('copy',e=>e.preventDefault(),{passive:false});
+document.addEventListener('selectionchange',()=>{
+ if(!isEditableTarget(document.activeElement)){
+   try{ window.getSelection()?.removeAllRanges(); }catch(_){}
+ }
+});
+document.addEventListener('copy',e=>{
+ if(!isEditableTarget(e.target)) e.preventDefault();
+},{passive:false});
 document.addEventListener('contextmenu',e=>{
- const t = e.target;
- if(t && t.tagName === 'INPUT') return;
- e.preventDefault();
+ if(!isEditableTarget(e.target)) e.preventDefault();
 },{passive:false});
-document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+document.addEventListener('dblclick',e=>{
+ if(!isEditableTarget(e.target)) e.preventDefault();
+},{passive:false});
 document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
 requestAnimationFrame(updateBarScale);
 
