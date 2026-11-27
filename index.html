@@ -17,6 +17,7 @@
   --accent-hover:#2563eb;
   --amber:#f59e0b;
   --emerald:#10b981;
+  --cyan:#06b6d4;
   --danger:#ef4444;
   --text:#f3f4f6;
   --text-sub:#9ca3af;
@@ -85,7 +86,7 @@ button.repeatPressed{
 canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 #file{display:none}
 
-/* 初期画面（シンプル） */
+/* 初期画面 */
 #empty[hidden],#stage[hidden]{display:none!important}
 #empty{
   position:absolute;inset:0;
@@ -136,7 +137,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   left:50%;
   transform:translateX(-50%);
   z-index:30;
-  width:min(96vw,520px);
+  width:min(96vw,500px);
   background:rgba(24,27,34,.94);
   backdrop-filter:blur(12px);
   -webkit-backdrop-filter:blur(12px);
@@ -152,7 +153,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   display:flex;align-items:center;justify-content:space-between;gap:6px;
 }
 .blockBarTitle{
-  font-size:12px;font-weight:700;color:#fbbf24;
+  font-size:12px;font-weight:700;color:#4ade80;
   display:flex;align-items:center;gap:6px;
 }
 .blockBarHint{
@@ -160,33 +161,17 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 }
 .blockBarBtns{
   display:grid;
-  grid-template-columns:1.1fr auto 1fr 1fr .9fr;
-  gap:5px;
+  grid-template-columns:1.15fr 1fr 1fr .9fr;
+  gap:6px;
   align-items:center;
 }
 .blockBarBtns button{
-  height:36px;padding:0 7px;font-size:12px;border-radius:8px;
+  height:36px;padding:0 8px;font-size:12px;border-radius:8px;
 }
 #blockAddBtn{
-  background:rgba(245,158,11,.18);
-  border-color:rgba(245,158,11,.5);
-  color:#fcd34d;
-}
-.blockSizeGroup{
-  display:inline-flex;
-  background:var(--well);
-  border:1px solid var(--border);
-  border-radius:8px;
-  padding:2px;gap:2px;
-}
-.blockSizeBtn{
-  height:30px!important;min-width:28px;padding:0 6px!important;
-  font-size:11px!important;border:none!important;background:transparent!important;
-  color:var(--text-sub)!important;border-radius:6px!important;
-}
-.blockSizeBtn.active{
-  background:var(--surface-2)!important;
-  color:#fff!important;
+  background:rgba(34,197,94,.18);
+  border-color:rgba(34,197,94,.55);
+  color:#86efac;
 }
 #blockDelSelBtn{
   color:#fca5a5;
@@ -314,15 +299,24 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   padding:0 5px;font-size:12.5px;
 }
 
-#blockBtn{
-  grid-column:1;grid-row:3;
+/* 3行目：ブロック配置 / キャラ幅（シャフト） / 音声コマンド */
+#bottomRow{
+  grid-column:1/-1;
+  grid-row:3;
+  display:grid;
+  grid-template-columns:1fr 1fr 1.45fr;
+  gap:6px;
+}
+
+#blockBtn,#shaftBtn,#voiceBtn{
   width:100%;min-width:0;height:42px;
   padding:0 6px;font-size:12px;
 }
+
 #blockBtn.active{
-  background:rgba(245,158,11,.22);
-  border-color:#fbbf24;
-  color:#fde68a;
+  background:rgba(34,197,94,.22);
+  border-color:#4ade80;
+  color:#bbf7d0;
 }
 .blockBadge{
   display:inline-flex;align-items:center;justify-content:center;
@@ -332,13 +326,17 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   font-size:10px;font-weight:800;
 }
 #blockBtn.active .blockBadge{
-  background:#f59e0b;color:#111827;
+  background:#22c55e;color:#052e16;
+}
+
+#shaftBtn.active{
+  background:rgba(6,182,212,.22);
+  border-color:#22d3ee;
+  color:#a5f3fc;
 }
 
 #voiceBtn{
-  grid-column:2/-1;grid-row:3;
-  width:100%;height:42px;
-  font-size:13.5px;font-weight:700;padding:0 12px;
+  font-size:12.5px;font-weight:700;padding:0 8px;
   background:var(--accent);
   border-color:rgba(147,197,253,.45);
   color:#fff;
@@ -356,9 +354,9 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
   #minus,#plus,#angleControls button{height:34px;font-size:17px}
   #angleDisplay .angleValue{font-size:13.5px}
   #zoomBtn,#gaugeBtn{height:42px;font-size:12px;gap:3px}
-  #blockBtn,#voiceBtn{height:40px}
-  #blockBtn{font-size:11px;padding:0 4px;gap:3px}
-  #voiceBtn{font-size:12.5px}
+  #bottomRow{gap:5px;grid-template-columns:1fr 1fr 1.38fr}
+  #blockBtn,#shaftBtn,#voiceBtn{height:40px;font-size:11px;padding:0 4px;gap:3px}
+  #voiceBtn{font-size:11.5px}
 }
 
 /* 音声コマンドモーダル */
@@ -727,16 +725,11 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 <!-- ブロック配置モード用フローティングツールバー -->
 <div id="blockToolbar" role="region" aria-label="ブロック編集ツールバー">
   <div class="blockBarTop">
-    <span class="blockBarTitle">ブロック配置モード</span>
-    <span class="blockBarHint">タップ追加 / ドラッグ移動・自動吸着 / 2回タップ削除</span>
+    <span class="blockBarTitle">ブロック配置（緑枠:本体 / 白枠:反射判定）</span>
+    <span class="blockBarHint">タップ追加 / ドラッグ連結 / 2回タップ削除</span>
   </div>
   <div class="blockBarBtns">
     <button id="blockAddBtn" type="button">＋ 追加</button>
-    <div class="blockSizeGroup" role="group" aria-label="ブロックサイズ">
-      <button type="button" class="blockSizeBtn" data-size="small">小</button>
-      <button type="button" class="blockSizeBtn active" data-size="medium">中</button>
-      <button type="button" class="blockSizeBtn" data-size="large">大</button>
-    </div>
     <button id="blockDelSelBtn" type="button">選択削除</button>
     <button id="blockClearBtn" type="button">全消去</button>
     <button id="blockDoneBtn" type="button">完了</button>
@@ -772,16 +765,23 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
     <button id="anglePlus" type="button" aria-label="角度を1段増やす">＋</button>
   </div>
 
-  <button id="blockBtn" type="button" aria-pressed="false">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>
-    <span>ブロック</span>
-    <span id="blockCountBadge" class="blockBadge" hidden>0</span>
-  </button>
+  <div id="bottomRow">
+    <button id="blockBtn" type="button" aria-pressed="false">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>
+      <span>ブロック</span>
+      <span id="blockCountBadge" class="blockBadge" hidden>0</span>
+    </button>
 
-  <button id="voiceBtn" type="button">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
-    <span>音声コマンド作成・編集</span>
-  </button>
+    <button id="shaftBtn" type="button" aria-pressed="false" title="キャラボールの大きさ・シャフト幅を表示">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><line x1="5" y1="3" x2="5" y2="21"/><line x1="19" y1="3" x2="19" y2="21"/></svg>
+      <span>キャラ幅</span>
+    </button>
+
+    <button id="voiceBtn" type="button">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+      <span>音声コマンド作成・編集</span>
+    </button>
+  </div>
 </div>
 
 <div id="voiceModal" role="dialog" aria-modal="true" aria-labelledby="voiceTitle">
@@ -928,7 +928,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
       <ul class="emptyTips">
         <li><span>矢印ドラッグ</span><b>発射位置を移動</b></li>
         <li><span>画面ドラッグ</span><b>角度調整（1024分割）</b></li>
-        <li><span>ブロックボタン</span><b>ブロック配置・連結スナップ</b></li>
+        <li><span>キャラ幅ボタン</span><b>シャフト・ボールサイズ判定表示</b></li>
       </ul>
     </div>
   </div>
@@ -945,6 +945,13 @@ const STATS_API_URL = "";
 const MONST_STEPS = 1024;
 const MONST_STEP_DEG = 360 / MONST_STEPS;
 
+// モンストのブロック・キャラ当たり判定仕様（参考画像に基づく実機準拠）：
+// 1. ステージ見た目の横幅（左壁〜右壁）に対してブロックは横6マス（1/6サイズ）の均一な正方形
+// 2. キャラボールの当たり判定半径はステージ横幅（基準1057px）に対して 68px（直径136px＝矢印シャフト幅と一致）
+// 3. ブロックの反射判定（白枠）は、ブロック本体（緑枠）の外周からキャラボール半径分だけ外側にオフセットした直角外周ポリゴンで跳ね返る（影には判定なし）
+const MONST_GRID_COLS = 6;
+const MONST_BALL_RADIUS_BASE = 68;
+
 const file=document.getElementById('file'), fileBtn=document.getElementById('fileBtn');
 const stage=document.getElementById('stage'), photo=document.getElementById('photo'), cv=document.getElementById('cv');
 const ctx=cv.getContext('2d'), empty=document.getElementById('empty');
@@ -952,29 +959,34 @@ const nEl=document.getElementById('n'), plus=document.getElementById('plus'), mi
 
 let reflections=3, imgW=0, imgH=0;
 let zoomMode=false, zoomScale=1, zoomStartDist=0, zoomStartScale=1;
+let shaftMode=false;
 let cursor={x:0,y:0};
 let angleStep=256; // 初期値 90.00° (No.256 / 1024)
 let pullAngle=-Math.PI/2;
 let active=null, lastX=0, lastY=0;
 let touchStartX=0, touchStartY=0;
 
-// ブロック管理状態
+// ブロック管理状態（すべて均一サイズ）
 let blockMode=false;
-let blocks=[]; // {id, x, y, w, h, sizeKey}
+let blocks=[]; // {id, x, y, w, h}
 let nextBlockId=1;
 let selectedBlockId=null;
-let blockSizePreset='medium'; // 'small' | 'medium' | 'large'
 let draggingBlockId=null;
 let blockDragOffsetX=0, blockDragOffsetY=0;
-let blockDragMoved=false;
 let activeSnapGuides=[]; // {type:'v'|'h', pos:number}
 let lastBlockTapTime=0, lastBlockTapId=null;
 
-function getBlockSizeForPreset(preset){
+function getBallHitRadius(b){
+  const s=(b.r - b.l) / 1057;
+  return MONST_BALL_RADIUS_BASE * s;
+}
+
+// ブロック1マスの均一サイズ（見た目の左壁〜右壁の 1/6 の正方形）
+function getUniformBlockSize(){
   const b=bounds();
-  const stageW=Math.max(100, b.r - b.l);
-  const ratio = preset==='small' ? (1/11) : (preset==='large' ? (1/7) : (1/9));
-  return stageW * ratio;
+  const hitR=getBallHitRadius(b);
+  const visualStageW=Math.max(60, (b.r - b.l) + hitR * 2);
+  return visualStageW / MONST_GRID_COLS;
 }
 
 function normalizeStep(step){
@@ -1095,6 +1107,21 @@ function updateBarScale(){
 }
 
 // ==========================================
+// キャラ幅（シャフト）表示ボタン
+// ==========================================
+const shaftBtn=document.getElementById('shaftBtn');
+shaftBtn.addEventListener('click',()=>{
+ if(stage.hidden || !imgW || !imgH){
+   alert('先に画像を選択してください。');
+   return;
+ }
+ shaftMode=!shaftMode;
+ shaftBtn.classList.toggle('active',shaftMode);
+ shaftBtn.setAttribute('aria-pressed',shaftMode?'true':'false');
+ draw();
+});
+
+// ==========================================
 // ブロック配置・自動吸着（スナップ）ロジック
 // ==========================================
 function updateBlockCountBadge(){
@@ -1113,15 +1140,25 @@ function rectsOverlap(ax,ay,aw,ah,bx,by,bw,bh,eps=1.5){
  return (ax + eps < bx + bw) && (ax + aw - eps > bx) && (ay + eps < by + bh) && (ay + ah - eps > by);
 }
 
-// 指定位置 (rawX, rawY) に対して、他のブロックや壁へ自動でくっつく座標を計算する
+// ブロック配置可能範囲（ステージの見た目の壁＝ボール中心壁よりボール半径分外側）
+function getBlockPlayArea(b){
+ const r = getBallHitRadius(b);
+ return {
+   l: Math.max(0, b.l - r),
+   r: Math.min(imgW, b.r + r),
+   t: Math.max(0, b.t - r),
+   b: Math.min(imgH, b.b + r)
+ };
+}
+
 function snapBlockPosition(rawX, rawY, w, h, ignoreId=null){
  const b=bounds();
- // ステージ内にクランプ
- let x=Math.max(b.l, Math.min(b.r - w, rawX));
- let y=Math.max(b.t, Math.min(b.b - h, rawY));
+ const area=getBlockPlayArea(b);
+ let x=Math.max(area.l, Math.min(area.r - w, rawX));
+ let y=Math.max(area.t, Math.min(area.b - h, rawY));
 
- const snapDist = Math.max(18, w * 0.34);
- const wallSnapDist = Math.max(12, w * 0.22);
+ const snapDist = Math.max(22, w * 0.32);
+ const wallSnapDist = Math.max(16, w * 0.22);
 
  let bestDx = null, bestAbsDx = snapDist + 1, guideX = null;
  let bestDy = null, bestAbsDy = snapDist + 1, guideY = null;
@@ -1130,99 +1167,72 @@ function snapBlockPosition(rawX, rawY, w, h, ignoreId=null){
  for(const other of blocks){
    if(other.id === ignoreId) continue;
 
-   // Y方向にある程度近い場合（横連結・上下揃えの対象）
    const yNear = (y + h + snapDist >= other.y) && (y - snapDist <= other.y + other.h);
-   // X方向にある程度近い場合（縦連結・左右揃えの対象）
    const xNear = (x + w + snapDist >= other.x) && (x - snapDist <= other.x + other.w);
 
    if(yNear){
-     // 右辺 -> 他ブロックの左辺にくっつく
      const dRightToLeft = other.x - (x + w);
      if(Math.abs(dRightToLeft) < bestAbsDx){
-       bestAbsDx = Math.abs(dRightToLeft);
-       bestDx = dRightToLeft;
-       guideX = other.x;
+       bestAbsDx = Math.abs(dRightToLeft); bestDx = dRightToLeft; guideX = other.x;
      }
-     // 左辺 -> 他ブロックの右辺にくっつく
      const dLeftToRight = (other.x + other.w) - x;
      if(Math.abs(dLeftToRight) < bestAbsDx){
-       bestAbsDx = Math.abs(dLeftToRight);
-       bestDx = dLeftToRight;
-       guideX = other.x + other.w;
+       bestAbsDx = Math.abs(dLeftToRight); bestDx = dLeftToRight; guideX = other.x + other.w;
      }
-     // 左端揃え
      const dLeftAlign = other.x - x;
      if(Math.abs(dLeftAlign) < bestAbsDx){
-       bestAbsDx = Math.abs(dLeftAlign);
-       bestDx = dLeftAlign;
-       guideX = other.x;
+       bestAbsDx = Math.abs(dLeftAlign); bestDx = dLeftAlign; guideX = other.x;
      }
-     // 右端揃え
      const dRightAlign = (other.x + other.w) - (x + w);
      if(Math.abs(dRightAlign) < bestAbsDx){
-       bestAbsDx = Math.abs(dRightAlign);
-       bestDx = dRightAlign;
-       guideX = other.x + other.w;
+       bestAbsDx = Math.abs(dRightAlign); bestDx = dRightAlign; guideX = other.x + other.w;
      }
    }
 
    if(xNear){
-     // 下辺 -> 他ブロックの上辺にくっつく
      const dBottomToTop = other.y - (y + h);
      if(Math.abs(dBottomToTop) < bestAbsDy){
-       bestAbsDy = Math.abs(dBottomToTop);
-       bestDy = dBottomToTop;
-       guideY = other.y;
+       bestAbsDy = Math.abs(dBottomToTop); bestDy = dBottomToTop; guideY = other.y;
      }
-     // 上辺 -> 他ブロックの下辺にくっつく
      const dTopToBottom = (other.y + other.h) - y;
      if(Math.abs(dTopToBottom) < bestAbsDy){
-       bestAbsDy = Math.abs(dTopToBottom);
-       bestDy = dTopToBottom;
-       guideY = other.y + other.h;
+       bestAbsDy = Math.abs(dTopToBottom); bestDy = dTopToBottom; guideY = other.y + other.h;
      }
-     // 上端揃え
      const dTopAlign = other.y - y;
      if(Math.abs(dTopAlign) < bestAbsDy){
-       bestAbsDy = Math.abs(dTopAlign);
-       bestDy = dTopAlign;
-       guideY = other.y;
+       bestAbsDy = Math.abs(dTopAlign); bestDy = dTopAlign; guideY = other.y;
      }
-     // 下端揃え
      const dBottomAlign = (other.y + other.h) - (y + h);
      if(Math.abs(dBottomAlign) < bestAbsDy){
-       bestAbsDy = Math.abs(dBottomAlign);
-       bestDy = dBottomAlign;
-       guideY = other.y + other.h;
+       bestAbsDy = Math.abs(dBottomAlign); bestDy = dBottomAlign; guideY = other.y + other.h;
      }
    }
  }
 
- // 2. ステージ外枠（壁）へのスナップ
- const dLeftWall = b.l - x;
+ // 2. ステージ見た目の外枠（壁）へのスナップ
+ const dLeftWall = area.l - x;
  if(Math.abs(dLeftWall) < wallSnapDist && Math.abs(dLeftWall) < bestAbsDx){
-   bestAbsDx = Math.abs(dLeftWall); bestDx = dLeftWall; guideX = b.l;
+   bestAbsDx = Math.abs(dLeftWall); bestDx = dLeftWall; guideX = area.l;
  }
- const dRightWall = b.r - (x + w);
+ const dRightWall = area.r - (x + w);
  if(Math.abs(dRightWall) < wallSnapDist && Math.abs(dRightWall) < bestAbsDx){
-   bestAbsDx = Math.abs(dRightWall); bestDx = dRightWall; guideX = b.r;
+   bestAbsDx = Math.abs(dRightWall); bestDx = dRightWall; guideX = area.r;
  }
- const dTopWall = b.t - y;
+ const dTopWall = area.t - y;
  if(Math.abs(dTopWall) < wallSnapDist && Math.abs(dTopWall) < bestAbsDy){
-   bestAbsDy = Math.abs(dTopWall); bestDy = dTopWall; guideY = b.t;
+   bestAbsDy = Math.abs(dTopWall); bestDy = dTopWall; guideY = area.t;
  }
- const dBottomWall = b.b - (y + h);
+ const dBottomWall = area.b - (y + h);
  if(Math.abs(dBottomWall) < wallSnapDist && Math.abs(dBottomWall) < bestAbsDy){
-   bestAbsDy = Math.abs(dBottomWall); bestDy = dBottomWall; guideY = b.b;
+   bestAbsDy = Math.abs(dBottomWall); bestDy = dBottomWall; guideY = area.b;
  }
 
  const guides = [];
  let candX = x + (bestDx !== null ? bestDx : 0);
  let candY = y + (bestDy !== null ? bestDy : 0);
- candX = Math.max(b.l, Math.min(b.r - w, candX));
- candY = Math.max(b.t, Math.min(b.b - h, candY));
+ candX = Math.max(area.l, Math.min(area.r - w, candX));
+ candY = Math.max(area.t, Math.min(area.b - h, candY));
 
- // スナップした結果、別ブロックと完全に重なる場合はその軸のスナップをキャンセル
  const overlapsAny = (tx, ty) => blocks.some(o => o.id !== ignoreId && rectsOverlap(tx, ty, w, h, o.x, o.y, o.w, o.h, 2));
  if(overlapsAny(candX, candY)){
    if(!overlapsAny(candX, y)){
@@ -1245,15 +1255,14 @@ function addBlockAt(centerX, centerY){
    alert('先に画像を選択してください。');
    return null;
  }
- const size = getBlockSizeForPreset(blockSizePreset);
+ const size = getUniformBlockSize();
  const snapped = snapBlockPosition(centerX - size/2, centerY - size/2, size, size, null);
  const blk = {
    id: nextBlockId++,
    x: snapped.x,
    y: snapped.y,
    w: size,
-   h: size,
-   sizeKey: blockSizePreset
+   h: size
  };
  blocks.push(blk);
  selectedBlockId = blk.id;
@@ -1270,8 +1279,8 @@ function addBlockSmart(){
    return;
  }
  const b=bounds();
- const size=getBlockSizeForPreset(blockSizePreset);
- // 選択中のブロックがあればその右隣（または下・左・上）に自動で繋げて追加
+ const area=getBlockPlayArea(b);
+ const size=getUniformBlockSize();
  const base = blocks.find(o=>o.id===selectedBlockId) || blocks[blocks.length-1];
  if(base){
    const candidates = [
@@ -1281,9 +1290,9 @@ function addBlockSmart(){
      {x: base.x, y: base.y - size}
    ];
    for(const c of candidates){
-     if(c.x >= b.l - 0.5 && c.x + size <= b.r + 0.5 && c.y >= b.t - 0.5 && c.y + size <= b.b + 0.5){
-       const cx = Math.max(b.l, Math.min(b.r - size, c.x));
-       const cy = Math.max(b.t, Math.min(b.b - size, c.y));
+     if(c.x >= area.l - 0.5 && c.x + size <= area.r + 0.5 && c.y >= area.t - 0.5 && c.y + size <= area.b + 0.5){
+       const cx = Math.max(area.l, Math.min(area.r - size, c.x));
+       const cy = Math.max(area.t, Math.min(area.b - size, c.y));
        if(!blocks.some(o=>rectsOverlap(cx, cy, size, size, o.x, o.y, o.w, o.h, 2))){
          addBlockAt(cx + size/2, cy + size/2);
          return;
@@ -1357,25 +1366,113 @@ document.getElementById('blockClearBtn').addEventListener('click',()=>{
 });
 document.getElementById('blockDoneBtn').addEventListener('click',()=>setBlockMode(false));
 
-document.querySelectorAll('.blockSizeBtn').forEach(btn=>{
- btn.addEventListener('click',()=>{
-   blockSizePreset = btn.dataset.size;
-   document.querySelectorAll('.blockSizeBtn').forEach(b=>b.classList.toggle('active', b===btn));
-   if(selectedBlockId!==null){
-     const blk=blocks.find(o=>o.id===selectedBlockId);
-     if(blk){
-       const newSize=getBlockSizeForPreset(blockSizePreset);
-       const cx=blk.x+blk.w/2, cy=blk.y+blk.h/2;
-       const snapped=snapBlockPosition(cx-newSize/2, cy-newSize/2, newSize, newSize, blk.id);
-       blk.w=newSize; blk.h=newSize; blk.x=snapped.x; blk.y=snapped.y; blk.sizeKey=blockSizePreset;
-       draw();
+// ==========================================
+// 膨張矩形の和集合から外周エッジ（直角反射ライン）を抽出する
+// （参考画像1枚目の白枠仕様：見た目ブロック外周＋ボール半径の直角ポリゴン）
+// ==========================================
+function subtractIntervals1D(a0, a1, cuts){
+ let intervals = [[a0, a1]];
+ for(const [c0, c1] of cuts){
+   if(c1 <= a0 || c0 >= a1) continue;
+   const next = [];
+   for(const [s0, s1] of intervals){
+     if(c1 <= s0 || c0 >= s1){
+       next.push([s0, s1]);
+     }else{
+       if(c0 > s0 + 1e-4) next.push([s0, c0]);
+       if(c1 < s1 - 1e-4) next.push([c1, s1]);
      }
    }
- });
-});
+   intervals = next;
+   if(!intervals.length) break;
+ }
+ return intervals;
+}
+
+function getBlockHitEdges(b){
+ if(!blocks.length) return [];
+ const hitR = getBallHitRadius(b);
+ const expanded = blocks.map(blk => ({
+   id: blk.id,
+   l: blk.x - hitR,
+   r: blk.x + blk.w + hitR,
+   t: blk.y - hitR,
+   b: blk.y + blk.h + hitR
+ }));
+
+ const edges = [];
+ const eps = 1e-3;
+
+ for(let i = 0; i < expanded.length; i++){
+   const cur = expanded[i];
+
+   // 上辺 (y = cur.t, x: cur.l -> cur.r, 法線: (0, -1))
+   {
+     const cuts = [];
+     for(let j = 0; j < expanded.length; j++){
+       if(i === j) continue;
+       const o = expanded[j];
+       // y = cur.t が o の真の内部にあるか、または同一直線上で先に処理済みの矩形と重なる場合
+       if((o.t + eps < cur.t && cur.t < o.b - eps) || (Math.abs(o.t - cur.t) <= eps && j < i)){
+         cuts.push([o.l, o.r]);
+       }
+     }
+     for(const [x0, x1] of subtractIntervals1D(cur.l, cur.r, cuts)){
+       edges.push({x1:x0, y1:cur.t, x2:x1, y2:cur.t, nx:0, ny:-1});
+     }
+   }
+
+   // 下辺 (y = cur.b, x: cur.r -> cur.l, 法線: (0, 1))
+   {
+     const cuts = [];
+     for(let j = 0; j < expanded.length; j++){
+       if(i === j) continue;
+       const o = expanded[j];
+       if((o.t + eps < cur.b && cur.b < o.b - eps) || (Math.abs(o.b - cur.b) <= eps && j < i)){
+         cuts.push([o.l, o.r]);
+       }
+     }
+     for(const [x0, x1] of subtractIntervals1D(cur.l, cur.r, cuts)){
+       edges.push({x1:x1, y1:cur.b, x2:x0, y2:cur.b, nx:0, ny:1});
+     }
+   }
+
+   // 左辺 (x = cur.l, y: cur.b -> cur.t, 法線: (-1, 0))
+   {
+     const cuts = [];
+     for(let j = 0; j < expanded.length; j++){
+       if(i === j) continue;
+       const o = expanded[j];
+       if((o.l + eps < cur.l && cur.l < o.r - eps) || (Math.abs(o.l - cur.l) <= eps && j < i)){
+         cuts.push([o.t, o.b]);
+       }
+     }
+     for(const [y0, y1] of subtractIntervals1D(cur.t, cur.b, cuts)){
+       edges.push({x1:cur.l, y1:y1, x2:cur.l, y2:y0, nx:-1, ny:0});
+     }
+   }
+
+   // 右辺 (x = cur.r, y: cur.t -> cur.b, 法線: (1, 0))
+   {
+     const cuts = [];
+     for(let j = 0; j < expanded.length; j++){
+       if(i === j) continue;
+       const o = expanded[j];
+       if((o.l + eps < cur.r && cur.r < o.r - eps) || (Math.abs(o.r - cur.r) <= eps && j < i)){
+         cuts.push([o.t, o.b]);
+       }
+     }
+     for(const [y0, y1] of subtractIntervals1D(cur.t, cur.b, cuts)){
+       edges.push({x1:cur.r, y1:y0, x2:cur.r, y2:y1, nx:1, ny:0});
+     }
+   }
+ }
+
+ return edges;
+}
 
 // ==========================================
-// 描画・物理反射計算
+// 描画・モンスト仕様の物理反射計算
 // ==========================================
 function draw(){
  if(!imgW)return;
@@ -1383,72 +1480,67 @@ function draw(){
  const b=bounds();
  drawBlocks(b);
  drawReflection(b);
- drawCursor();
+ drawCursor(b);
+}
+
+function getBlockAdjacency(blk, eps=2.0){
+ const hasTop = blocks.some(o => o.id !== blk.id && Math.abs((o.y + o.h) - blk.y) <= eps && (o.x + o.w > blk.x + eps) && (o.x < blk.x + blk.w - eps));
+ const hasBottom = blocks.some(o => o.id !== blk.id && Math.abs(o.y - (blk.y + blk.h)) <= eps && (o.x + o.w > blk.x + eps) && (o.x < blk.x + blk.w - eps));
+ const hasLeft = blocks.some(o => o.id !== blk.id && Math.abs((o.x + o.w) - blk.x) <= eps && (o.y + o.h > blk.y + eps) && (o.y < blk.y + blk.h - eps));
+ const hasRight = blocks.some(o => o.id !== blk.id && Math.abs(o.x - (blk.x + blk.w)) <= eps && (o.y + o.h > blk.y + eps) && (o.y < blk.y + blk.h - eps));
+ return {hasTop, hasBottom, hasLeft, hasRight};
 }
 
 function drawBlocks(b){
  const s=(b.r-b.l)/1057;
- const eps=2.0;
 
- // 1. 各ブロックの本体塗りつぶし＆斜線テクスチャ（モンストのブロック風）
+ // 1. 各ブロック本体の描画（参考画像1枚目準拠：緑色の外周枠）
  for(const blk of blocks){
    const isSel = blockMode && (blk.id === selectedBlockId);
    ctx.save();
-   ctx.fillStyle = isSel ? 'rgba(245, 158, 11, 0.34)' : 'rgba(234, 179, 8, 0.24)';
+   ctx.fillStyle = isSel ? 'rgba(34, 197, 94, 0.28)' : 'rgba(34, 197, 94, 0.16)';
    ctx.fillRect(blk.x, blk.y, blk.w, blk.h);
 
-   // ブロック内部の斜線パターン
    ctx.beginPath();
    ctx.rect(blk.x, blk.y, blk.w, blk.h);
    ctx.clip();
-   ctx.strokeStyle = isSel ? 'rgba(254, 240, 138, 0.28)' : 'rgba(253, 224, 71, 0.16)';
+   ctx.strokeStyle = isSel ? 'rgba(134, 239, 172, 0.25)' : 'rgba(74, 222, 128, 0.14)';
    ctx.lineWidth = 4 * s;
-   const step = 22 * s;
+   const step = 26 * s;
    for(let d = -blk.h; d < blk.w + blk.h; d += step){
      ctx.beginPath();
      ctx.moveTo(blk.x + d, blk.y);
      ctx.lineTo(blk.x + d - blk.h, blk.y + blk.h);
      ctx.stroke();
    }
-
-   // 内側のベベルハイライト
-   ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
-   ctx.lineWidth = 3 * s;
-   ctx.strokeRect(blk.x + 2*s, blk.y + 2*s, blk.w - 4*s, blk.h - 4*s);
    ctx.restore();
  }
 
- // 2. 連結判定：隣り合うブロック同士の継ぎ目をシームレスに見せる外周枠線描画
+ // 2. 連結ブロック本体の緑外周枠線
  for(const blk of blocks){
    const isSel = blockMode && (blk.id === selectedBlockId);
-   const hasTop = blocks.some(o => o.id !== blk.id && Math.abs((o.y + o.h) - blk.y) <= eps && (o.x + o.w > blk.x + eps) && (o.x < blk.x + blk.w - eps));
-   const hasBottom = blocks.some(o => o.id !== blk.id && Math.abs(o.y - (blk.y + blk.h)) <= eps && (o.x + o.w > blk.x + eps) && (o.x < blk.x + blk.w - eps));
-   const hasLeft = blocks.some(o => o.id !== blk.id && Math.abs((o.x + o.w) - blk.x) <= eps && (o.y + o.h > blk.y + eps) && (o.y < blk.y + blk.h - eps));
-   const hasRight = blocks.some(o => o.id !== blk.id && Math.abs(o.x - (blk.x + blk.w)) <= eps && (o.y + o.h > blk.y + eps) && (o.y < blk.y + blk.h - eps));
+   const {hasTop, hasBottom, hasLeft, hasRight} = getBlockAdjacency(blk);
 
    ctx.save();
    ctx.lineCap = 'square';
 
-   // 連結している境界線は極薄の点線で表示
-   ctx.strokeStyle = 'rgba(253, 224, 71, 0.25)';
+   ctx.strokeStyle = 'rgba(74, 222, 128, 0.25)';
    ctx.lineWidth = 2 * s;
    ctx.setLineDash([6*s, 6*s]);
    if(hasTop){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y); ctx.lineTo(blk.x+blk.w, blk.y); ctx.stroke(); }
    if(hasLeft){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y); ctx.lineTo(blk.x, blk.y+blk.h); ctx.stroke(); }
    ctx.setLineDash([]);
 
-   // 外周の有効な反射面（太枠）
-   ctx.strokeStyle = isSel ? '#fef08a' : '#f59e0b';
-   ctx.lineWidth = (isSel ? 7 : 5.5) * s;
+   ctx.strokeStyle = isSel ? '#86efac' : '#22c55e';
+   ctx.lineWidth = (isSel ? 6.5 : 5) * s;
    if(!hasTop){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y); ctx.lineTo(blk.x+blk.w, blk.y); ctx.stroke(); }
    if(!hasBottom){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y+blk.h); ctx.lineTo(blk.x+blk.w, blk.y+blk.h); ctx.stroke(); }
    if(!hasLeft){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y); ctx.lineTo(blk.x, blk.y+blk.h); ctx.stroke(); }
    if(!hasRight){ ctx.beginPath(); ctx.moveTo(blk.x+blk.w, blk.y); ctx.lineTo(blk.x+blk.w, blk.y+blk.h); ctx.stroke(); }
 
-   // 編集モード中は中央に小さな移動ハンドル印を表示
    if(blockMode){
      const cx = blk.x + blk.w/2, cy = blk.y + blk.h/2;
-     ctx.fillStyle = isSel ? 'rgba(254,240,138,.9)' : 'rgba(255,255,255,.55)';
+     ctx.fillStyle = isSel ? 'rgba(187,247,208,.95)' : 'rgba(255,255,255,.65)';
      ctx.beginPath();
      ctx.arc(cx, cy, 5*s, 0, Math.PI*2);
      ctx.fill();
@@ -1456,8 +1548,25 @@ function drawBlocks(b){
    ctx.restore();
  }
 
- // 3. ドラッグ中の自動吸着ガイド線
+ // 3. 実際のボール中心反射ライン（参考画像1枚目準拠の白枠：直角外周ポリゴン）
+ const hitEdges = getBlockHitEdges(b);
+ if(hitEdges.length){
+   ctx.save();
+   ctx.strokeStyle = blockMode ? 'rgba(255, 255, 255, 0.92)' : 'rgba(255, 255, 255, 0.48)';
+   ctx.lineWidth = (blockMode ? 4 : 2.5) * s;
+   ctx.lineCap = 'square';
+   for(const e of hitEdges){
+     ctx.beginPath();
+     ctx.moveTo(e.x1, e.y1);
+     ctx.lineTo(e.x2, e.y2);
+     ctx.stroke();
+   }
+   ctx.restore();
+ }
+
+ // 4. 自動吸着ガイド線
  if(blockMode && activeSnapGuides.length){
+   const area = getBlockPlayArea(b);
    ctx.save();
    ctx.strokeStyle = 'rgba(56, 189, 248, 0.9)';
    ctx.lineWidth = 3 * s;
@@ -1465,9 +1574,9 @@ function drawBlocks(b){
    for(const g of activeSnapGuides){
      ctx.beginPath();
      if(g.type === 'v'){
-       ctx.moveTo(g.pos, b.t); ctx.lineTo(g.pos, b.b);
+       ctx.moveTo(g.pos, area.t); ctx.lineTo(g.pos, area.b);
      }else{
-       ctx.moveTo(b.l, g.pos); ctx.lineTo(b.r, g.pos);
+       ctx.moveTo(area.l, g.pos); ctx.lineTo(area.r, g.pos);
      }
      ctx.stroke();
    }
@@ -1475,11 +1584,10 @@ function drawBlocks(b){
  }
 }
 
-function drawCursor(){
+function drawCursor(b){
  const x=cursor.x,y=cursor.y;
- const b=bounds();
  const s=(b.r-b.l)/1057;
- const R=68*s;
+ const R=getBallHitRadius(b);
  const rg=ctx.createRadialGradient(x,y,R*.15,x,y,R*1.75);
  rg.addColorStop(0,'rgba(255,150,35,.48)');
  rg.addColorStop(.45,'rgba(255,115,20,.28)');
@@ -1501,40 +1609,37 @@ function drawCursor(){
 }
 
 function rayToSegment(px,py,dx,dy,x1,y1,x2,y2,nx,ny){
- // バックフェースカリング：レイが面の正面側から進入する場合のみ衝突判定（連結ブロックの継ぎ目誤判定を防止）
+ // バックフェースカリング：面の正面側から進入する場合のみ衝突判定
  if(dx*nx + dy*ny >= -1e-6) return null;
  const sx=x2-x1,sy=y2-y1;
  const den=dx*sy-dy*sx;
  if(Math.abs(den)<1e-9)return null;
  const t=((x1-px)*sy-(y1-py)*sx)/den;
  const u=((x1-px)*dy-(y1-py)*dx)/den;
- if(t>1e-7 && u>=-1e-5 && u<=1+1e-5)return {t,u,x:px+dx*t,y:py+dy*t,nx,ny};
+ if(t>1e-7 && u>=-1e-5 && u<=1+1e-5)return {t,x:px+dx*t,y:py+dy*t,nx,ny};
  return null;
 }
 
+// モンスト仕様のコライダー構築：
+// ・外枠4辺はボール中心基準の反射壁（bounds）
+// ・ブロックは見た目矩形（緑枠）からキャラボール判定半径 r だけ外側に膨らませた直角外周ポリゴン（白枠）
 function buildColliders(b){
  const segs = [
-   // 外枠4辺（内側向き法線）
    {x1:b.l, y1:b.t, x2:b.r, y2:b.t, nx:0, ny:1},
    {x1:b.r, y1:b.t, x2:b.r, y2:b.b, nx:-1, ny:0},
    {x1:b.r, y1:b.b, x2:b.l, y2:b.b, nx:0, ny:-1},
    {x1:b.l, y1:b.b, x2:b.l, y2:b.t, nx:1, ny:0}
  ];
- // 配置された全ブロックの4辺（外側向き法線）
- for(const blk of blocks){
-   segs.push(
-     {x1:blk.x,       y1:blk.y,       x2:blk.x+blk.w, y2:blk.y,       nx:0,  ny:-1}, // 上辺
-     {x1:blk.x+blk.w, y1:blk.y,       x2:blk.x+blk.w, y2:blk.y+blk.h, nx:1,  ny:0},  // 右辺
-     {x1:blk.x+blk.w, y1:blk.y+blk.h, x2:blk.x,       y2:blk.y+blk.h, nx:0,  ny:1},  // 下辺
-     {x1:blk.x,       y1:blk.y+blk.h, x2:blk.x,       y2:blk.y,       nx:-1, ny:0}   // 左辺
-   );
+ const blockEdges = getBlockHitEdges(b);
+ for(const e of blockEdges){
+   segs.push(e);
  }
  return segs;
 }
 
-function findNearestHit(x,y,dx,dy,colliders){
+function findNearestHit(x,y,dx,dy,segs){
  let best=null;
- for(const s of colliders){
+ for(const s of segs){
    const h=rayToSegment(x,y,dx,dy,s.x1,s.y1,s.x2,s.y2,s.nx,s.ny);
    if(h && (!best || h.t < best.t)) best=h;
  }
@@ -1544,28 +1649,117 @@ function findNearestHit(x,y,dx,dy,colliders){
 function reflectPath(b){
  let x=cursor.x,y=cursor.y;
  let dx=Math.cos(pullAngle),dy=Math.sin(pullAngle);
- const colliders=buildColliders(b);
+ const segs=buildColliders(b);
  const pts=[{x,y}];
  for(let k=0;k<reflections;k++){
-   const h=findNearestHit(x,y,dx,dy,colliders);
+   const h=findNearestHit(x,y,dx,dy,segs);
    if(!h)break;
    pts.push({x:h.x,y:h.y});
-   if(h.nx !== 0) dx = -dx;
-   if(h.ny !== 0) dy = -dy;
+   const dot = dx*h.nx + dy*h.ny;
+   dx = dx - 2 * dot * h.nx;
+   dy = dy - 2 * dot * h.ny;
+   const len = Math.hypot(dx, dy) || 1;
+   dx /= len; dy /= len;
    x = h.x + h.nx * 0.05;
    y = h.y + h.ny * 0.05;
  }
  let ex=x+dx*Math.max(imgW,imgH)*2, ey=y+dy*Math.max(imgW,imgH)*2;
- const last=findNearestHit(x,y,dx,dy,colliders);
+ const last=findNearestHit(x,y,dx,dy,segs);
  if(last){ex=last.x;ey=last.y;}
  pts.push({x:ex,y:ey});
- return pts;
+
+ // ケツ側（発射方向と逆向き＝引っ張り方向）の延長終点を計算
+ const backDx = -Math.cos(pullAngle);
+ const backDy = -Math.sin(pullAngle);
+ const wallSegs = [
+   {x1:b.l, y1:b.t, x2:b.r, y2:b.t, nx:0, ny:1},
+   {x1:b.r, y1:b.t, x2:b.r, y2:b.b, nx:-1, ny:0},
+   {x1:b.r, y1:b.b, x2:b.l, y2:b.b, nx:0, ny:-1},
+   {x1:b.l, y1:b.b, x2:b.l, y2:b.t, nx:1, ny:0}
+ ];
+ const backHit = findNearestHit(cursor.x, cursor.y, backDx, backDy, wallSegs);
+ const tail = backHit
+   ? {x: backHit.x, y: backHit.y}
+   : {x: cursor.x + backDx * Math.max(imgW, imgH), y: cursor.y + backDy * Math.max(imgW, imgH)};
+
+ return {pts, tail};
+}
+
+// キャラの大きさ判定（シャフト：矢柄の幅＝キャラボール直径の軌道帯）の描画
+function drawShaftOverlay(pts, tail, b){
+ const s=(b.r-b.l)/1057;
+ const hitR=getBallHitRadius(b);
+ const fullPts=[tail, ...pts];
+
+ ctx.save();
+ // 1. キャラ直径分の半透明シャフト帯（ケツ〜反射軌道全体）
+ ctx.lineCap='round';
+ ctx.lineJoin='round';
+ ctx.strokeStyle='rgba(56, 189, 248, 0.16)';
+ ctx.lineWidth=hitR * 2;
+ ctx.beginPath();
+ for(let i=0;i<fullPts.length;i++){
+   if(i===0) ctx.moveTo(fullPts[i].x, fullPts[i].y);
+   else ctx.lineTo(fullPts[i].x, fullPts[i].y);
+ }
+ ctx.stroke();
+
+ // 2. シャフト左右の境界線（キャラの外周が通るライン）
+ ctx.strokeStyle='rgba(125, 211, 252, 0.45)';
+ ctx.lineWidth=2.2 * s;
+ for(let i=0;i<fullPts.length-1;i++){
+   const p1=fullPts[i], p2=fullPts[i+1];
+   const vx=p2.x-p1.x, vy=p2.y-p1.y;
+   const len=Math.hypot(vx,vy);
+   if(len<1e-3) continue;
+   const nx=(-vy/len)*hitR, ny=(vx/len)*hitR;
+
+   ctx.beginPath();
+   ctx.moveTo(p1.x+nx, p1.y+ny);
+   ctx.lineTo(p2.x+nx, p2.y+ny);
+   ctx.stroke();
+
+   ctx.beginPath();
+   ctx.moveTo(p1.x-nx, p1.y-ny);
+   ctx.lineTo(p2.x-nx, p2.y-ny);
+   ctx.stroke();
+ }
+
+ // 3. 発射点および各反射点でのキャラボールサイズ円
+ for(let i=0;i<pts.length-1;i++){
+   const p=pts[i];
+   ctx.beginPath();
+   ctx.arc(p.x, p.y, hitR, 0, Math.PI*2);
+   ctx.fillStyle=(i===0) ? 'rgba(56, 189, 248, 0.14)' : 'rgba(56, 189, 248, 0.10)';
+   ctx.fill();
+   ctx.strokeStyle=(i===0) ? 'rgba(34, 211, 238, 0.85)' : 'rgba(125, 211, 252, 0.55)';
+   ctx.lineWidth=2.5 * s;
+   ctx.stroke();
+ }
+ ctx.restore();
 }
 
 function drawReflection(b){
  const s=(b.r-b.l)/1057;
- const pts=reflectPath(b);
+ const {pts, tail}=reflectPath(b);
+
+ // キャラ幅（シャフト）ON時はガイド線の背面にシャフト帯を描画
+ if(shaftMode){
+   drawShaftOverlay(pts, tail, b);
+ }
+
  ctx.lineCap='round';ctx.lineJoin='round';ctx.lineWidth=7*s;
+
+ // 1. 反射線のケツ（発射点から後方壁まで）を赤線で延長描画
+ if(pts.length){
+   ctx.strokeStyle='rgba(255,55,55,.98)';
+   ctx.beginPath();
+   ctx.moveTo(tail.x, tail.y);
+   ctx.lineTo(pts[0].x, pts[0].y);
+   ctx.stroke();
+ }
+
+ // 2. 発射点から前方の反射軌道（第1反射まで赤線、以降は白線）
  for(let i=0;i<pts.length-1;i++){
    ctx.strokeStyle = (i===0) ? 'rgba(255,55,55,.98)' : '#fff';
    ctx.beginPath();
@@ -1573,6 +1767,7 @@ function drawReflection(b){
    ctx.lineTo(pts[i+1].x,pts[i+1].y);
    ctx.stroke();
  }
+
  if(pts.length){
    const end=pts[pts.length-1];
    ctx.save();
@@ -1609,7 +1804,7 @@ function nearestArm(p){
  const x=cursor.x,y=cursor.y;
  const b=bounds();
  const s=(b.r-b.l)/1057;
- const R=68*s;
+ const R=getBallHitRadius(b);
  const L=150*s,gap=R+5*s,w=58*s;
  for(let i=0;i<4;i++){
    const a=pullAngle+Math.PI/4+i*Math.PI/2;
@@ -1628,13 +1823,11 @@ cv.addEventListener('pointerdown',e=>{
  cv.setPointerCapture(e.pointerId);
  const p=pos(e);
 
- // ブロック編集モード中のポインタ処理
  if(blockMode){
    const hit=hitTestBlock(p);
    if(hit){
      const now=Date.now();
      if(lastBlockTapId===hit.id && (now - lastBlockTapTime)<320){
-       // 同じブロックを素早く2回タップで削除
        lastBlockTapId=null;
        lastBlockTapTime=0;
        draggingBlockId=null;
@@ -1648,19 +1841,17 @@ cv.addEventListener('pointerdown',e=>{
      draggingBlockId=hit.id;
      blockDragOffsetX=p.x - hit.x;
      blockDragOffsetY=p.y - hit.y;
-     blockDragMoved=false;
      activeSnapGuides=[];
      draw();
    }else{
-     // 空き場所をタップしたら新規ブロック配置＆そのままドラッグ移動も可能
      const b=bounds();
-     if(p.x>=b.l && p.x<=b.r && p.y>=b.t && p.y<=b.b){
+     const area=getBlockPlayArea(b);
+     if(p.x>=area.l && p.x<=area.r && p.y>=area.t && p.y<=area.b){
        const created=addBlockAt(p.x, p.y);
        if(created){
          draggingBlockId=created.id;
          blockDragOffsetX=p.x - created.x;
          blockDragOffsetY=p.y - created.y;
-         blockDragMoved=false;
          lastBlockTapId=created.id;
          lastBlockTapTime=Date.now();
        }
@@ -1692,7 +1883,6 @@ cv.addEventListener('pointermove',e=>{
    const p=pos(lastEv);
    const rawX=p.x - blockDragOffsetX;
    const rawY=p.y - blockDragOffsetY;
-   if(Math.hypot(rawX - blk.x, rawY - blk.y) > 2) blockDragMoved=true;
    const snapped=snapBlockPosition(rawX, rawY, blk.w, blk.h, blk.id);
    blk.x=snapped.x;
    blk.y=snapped.y;
