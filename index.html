@@ -751,7 +751,7 @@ canvas{
 <div id="blockToolbar" role="region" aria-label="ブロック編集ツールバー">
   <div class="blockBarTop">
     <span class="blockBarTitle">ブロック配置（緑枠:本体 / 白枠:反射判定）</span>
-    <span class="blockBarHint">「＋ 追加」で生成 / ドラッグ移動 / 2回タップ削除</span>
+    <span class="blockBarHint">4つ角の線or本体ドラッグ移動 / 2回タップ削除</span>
   </div>
   <div class="blockBarBtns">
     <button id="blockAddBtn" type="button">＋ 追加</button>
@@ -969,12 +969,15 @@ const STATS_API_URL = "";
 const MONST_STEPS = 1024;
 const MONST_STEP_DEG = 360 / MONST_STEPS;
 
-// モンストのブロック・キャラ当たり判定仕様（実機準拠）：
-// 1. ブロック本体（緑枠）：基準ステージ横幅（1170、内側1057）に対して 117px の均一正方形
-// 2. キャラボール当たり判定半径：基準1057に対して 52px（直径104px＝参考画像のシャフト幅・壁判定54pxと整合）
-// 3. ブロックの反射判定（白枠）：ブロック本体の外周からキャラボール半径分（52px）だけ外側にオフセットした直角外周ポリゴン
-const MONST_BLOCK_SIZE_BASE = 117;
-const MONST_BALL_RADIUS_BASE = 52;
+// 実機サイズ・当たり判定の独立パラメータ（基準ステージ内幅 1057 に対する値）
+// 1. カーソルの丸い円：キャラのボール絵サイズに一致（半径 68）
+// 2. シャフト／キャラ物理当たり判定半径：実機キャラ幅（半径 52）
+// 3. ブロック本体の見た目サイズ（緑枠）：実機石ブロックサイズ（132×132）
+// 4. ブロックの内部当たり判定比率：見た目の 76%（白枠＝内部判定＋キャラ当たり判定半径）
+const MONST_CURSOR_RADIUS_BASE = 68;
+const MONST_SHAFT_RADIUS_BASE = 52;
+const MONST_BLOCK_SIZE_BASE = 132;
+const MONST_BLOCK_HIT_RATIO = 0.76;
 
 const file=document.getElementById('file'), fileBtn=document.getElementById('fileBtn');
 const stage=document.getElementById('stage'), photo=document.getElementById('photo'), cv=document.getElementById('cv');
@@ -1000,12 +1003,19 @@ let blockDragOffsetX=0, blockDragOffsetY=0;
 let activeSnapGuides=[]; // {type:'v'|'h', pos:number}
 let lastBlockTapTime=0, lastBlockTapId=null;
 
-function getBallHitRadius(b){
+// カーソルの丸い円の半径（ボール絵サイズ）
+function getCursorRadius(b){
   const s=(b.r - b.l) / 1057;
-  return MONST_BALL_RADIUS_BASE * s;
+  return MONST_CURSOR_RADIUS_BASE * s;
 }
 
-// ブロック1マスの均一サイズ（実機ブロック本体のサイズ）
+// シャフトおよびキャラの物理当たり判定半径
+function getBallHitRadius(b){
+  const s=(b.r - b.l) / 1057;
+  return MONST_SHAFT_RADIUS_BASE * s;
+}
+
+// ブロック1マスの均一サイズ（実機ブロック本体の見た目サイズ）
 function getUniformBlockSize(){
   const b=bounds();
   const s=(b.r - b.l) / 1057;
@@ -1145,7 +1155,7 @@ shaftBtn.addEventListener('click',()=>{
 });
 
 // ==========================================
-// ブロック配置・自動吸着（スナップ）ロジック
+// ブロック配置・自動吸着（スナップ）・4つ角取っ手線ロジック
 // ==========================================
 function updateBlockCountBadge(){
  const badge=document.getElementById('blockCountBadge');
@@ -1163,7 +1173,7 @@ function rectsOverlap(ax,ay,aw,ah,bx,by,bw,bh,eps=1.5){
  return (ax + eps < bx + bw) && (ax + aw - eps > bx) && (ay + eps < by + bh) && (ay + ah - eps > by);
 }
 
-// ブロック配置可能範囲（ステージの見た目の壁＝ボール中心壁よりボール半径分外側）
+// ブロック配置可能範囲（ステージの見た目の壁＝ボール中心壁よりキャラ当たり判定半径分外側）
 function getBlockPlayArea(b){
  const r = getBallHitRadius(b);
  return {
@@ -1172,6 +1182,50 @@ function getBlockPlayArea(b){
    t: Math.max(0, b.t - r),
    b: Math.min(imgH, b.b + r)
  };
+}
+
+// 選択中ブロックの4つ角から斜め外側に少し伸びる「線状の取っ手」座標を返す
+function getBlockCornerHandles(blk, s){
+ const gap = 4 * s;
+ const len = 58 * s;
+ const diag = Math.SQRT1_2;
+ const corners = [
+   {cx: blk.x,         cy: blk.y,         dx: -diag, dy: -diag}, // 左上
+   {cx: blk.x + blk.w, cy: blk.y,         dx:  diag, dy: -diag}, // 右上
+   {cx: blk.x + blk.w, cy: blk.y + blk.h, dx:  diag, dy:  diag}, // 右下
+   {cx: blk.x,         cy: blk.y + blk.h, dx: -diag, dy:  diag}  // 左下
+ ];
+ return corners.map(c => ({
+   x1: c.cx + c.dx * gap,
+   y1: c.cy + c.dy * gap,
+   x2: c.cx + c.dx * (gap + len),
+   y2: c.cy + c.dy * (gap + len)
+ }));
+}
+
+function distToSegment(px, py, x1, y1, x2, y2){
+ const vx = x2 - x1, vy = y2 - y1;
+ const len2 = vx * vx + vy * vy || 1;
+ const t = Math.max(0, Math.min(1, ((px - x1) * vx + (py - y1) * vy) / len2));
+ const qx = x1 + vx * t, qy = y1 + vy * t;
+ return Math.hypot(px - qx, py - qy);
+}
+
+// 選択中ブロックの4つ角の取っ手線の当たり判定（本体より優先して掴める）
+function hitTestBlockHandle(p){
+ if(selectedBlockId === null) return null;
+ const blk = blocks.find(o => o.id === selectedBlockId);
+ if(!blk) return null;
+ const b = bounds();
+ const s = (b.r - b.l) / 1057;
+ const handles = getBlockCornerHandles(blk, s);
+ const hitTol = 36 * s;
+ for(const h of handles){
+   if(distToSegment(p.x, p.y, h.x1, h.y1, h.x2, h.y2) <= hitTol){
+     return blk;
+   }
+ }
+ return null;
 }
 
 function snapBlockPosition(rawX, rawY, w, h, ignoreId=null){
@@ -1360,6 +1414,8 @@ function setBlockMode(on){
  if(!blockMode){
    draggingBlockId=null;
    activeSnapGuides=[];
+ }else if(selectedBlockId === null && blocks.length){
+   selectedBlockId = blocks[blocks.length - 1].id;
  }
  draw();
 }
@@ -1390,7 +1446,7 @@ document.getElementById('blockClearBtn').addEventListener('click',()=>{
 document.getElementById('blockDoneBtn').addEventListener('click',()=>setBlockMode(false));
 
 // ==========================================
-// 膨張矩形の和集合から外周エッジ（直角反射ライン）を抽出する
+// ブロック内部当たり判定＋キャラ判定半径の和集合から外周エッジ（直角反射ライン）を抽出
 // ==========================================
 function subtractIntervals1D(a0, a1, cuts){
  let intervals = [[a0, a1]];
@@ -1414,13 +1470,20 @@ function subtractIntervals1D(a0, a1, cuts){
 function getBlockHitEdges(b){
  if(!blocks.length) return [];
  const hitR = getBallHitRadius(b);
- const expanded = blocks.map(blk => ({
-   id: blk.id,
-   l: blk.x - hitR,
-   r: blk.x + blk.w + hitR,
-   t: blk.y - hitR,
-   b: blk.y + blk.h + hitR
- }));
+ const expanded = blocks.map(blk => {
+   // ブロックの内部当たり判定は見た目より少し小さい（MONST_BLOCK_HIT_RATIO）
+   const insetX = blk.w * (1 - MONST_BLOCK_HIT_RATIO) * 0.5;
+   const insetY = blk.h * (1 - MONST_BLOCK_HIT_RATIO) * 0.5;
+   const expandX = hitR - insetX;
+   const expandY = hitR - insetY;
+   return {
+     id: blk.id,
+     l: blk.x - expandX,
+     r: blk.x + blk.w + expandX,
+     t: blk.y - expandY,
+     b: blk.y + blk.h + expandY
+   };
+ });
 
  const edges = [];
  const eps = 1e-3;
@@ -1519,13 +1582,13 @@ function drawBlocks(b){
  for(const blk of blocks){
    const isSel = blockMode && (blk.id === selectedBlockId);
    ctx.save();
-   ctx.fillStyle = isSel ? 'rgba(34, 197, 94, 0.28)' : 'rgba(34, 197, 94, 0.16)';
+   ctx.fillStyle = isSel ? 'rgba(34, 197, 94, 0.25)' : 'rgba(34, 197, 94, 0.14)';
    ctx.fillRect(blk.x, blk.y, blk.w, blk.h);
 
    ctx.beginPath();
    ctx.rect(blk.x, blk.y, blk.w, blk.h);
    ctx.clip();
-   ctx.strokeStyle = isSel ? 'rgba(134, 239, 172, 0.25)' : 'rgba(74, 222, 128, 0.14)';
+   ctx.strokeStyle = isSel ? 'rgba(134, 239, 172, 0.24)' : 'rgba(74, 222, 128, 0.14)';
    ctx.lineWidth = 4 * s;
    const step = 22 * s;
    for(let d = -blk.h; d < blk.w + blk.h; d += step){
@@ -1553,13 +1616,22 @@ function drawBlocks(b){
    ctx.setLineDash([]);
 
    ctx.strokeStyle = isSel ? '#86efac' : '#22c55e';
-   ctx.lineWidth = (isSel ? 5.5 : 4.2) * s;
+   ctx.lineWidth = (isSel ? 5.2 : 4.0) * s;
    if(!hasTop){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y); ctx.lineTo(blk.x+blk.w, blk.y); ctx.stroke(); }
    if(!hasBottom){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y+blk.h); ctx.lineTo(blk.x+blk.w, blk.y+blk.h); ctx.stroke(); }
    if(!hasLeft){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y); ctx.lineTo(blk.x, blk.y+blk.h); ctx.stroke(); }
    if(!hasRight){ ctx.beginPath(); ctx.moveTo(blk.x+blk.w, blk.y); ctx.lineTo(blk.x+blk.w, blk.y+blk.h); ctx.stroke(); }
 
    if(blockMode){
+     // ブロック内部当たり判定の目安（薄い破線）
+     const insetX = blk.w * (1 - MONST_BLOCK_HIT_RATIO) * 0.5;
+     const insetY = blk.h * (1 - MONST_BLOCK_HIT_RATIO) * 0.5;
+     ctx.strokeStyle = 'rgba(187, 247, 208, 0.38)';
+     ctx.lineWidth = 1.8 * s;
+     ctx.setLineDash([5*s, 5*s]);
+     ctx.strokeRect(blk.x + insetX, blk.y + insetY, blk.w - insetX * 2, blk.h - insetY * 2);
+     ctx.setLineDash([]);
+
      const cx = blk.x + blk.w/2, cy = blk.y + blk.h/2;
      ctx.fillStyle = isSel ? 'rgba(187,247,208,.95)' : 'rgba(255,255,255,.65)';
      ctx.beginPath();
@@ -1585,7 +1657,36 @@ function drawBlocks(b){
    ctx.restore();
  }
 
- // 4. 自動吸着ガイド線
+ // 4. 選択中（移動対象）ブロックの4つ角に「少し伸びた線状の取っ手」を描画
+ if(blockMode && selectedBlockId !== null){
+   const selBlk = blocks.find(o => o.id === selectedBlockId);
+   if(selBlk){
+     const handles = getBlockCornerHandles(selBlk, s);
+     const isDragging = (draggingBlockId === selBlk.id);
+     ctx.save();
+     ctx.lineCap = 'round';
+     for(const h of handles){
+       // 視認性用の黒い縁取り線
+       ctx.strokeStyle = 'rgba(0, 0, 0, 0.55)';
+       ctx.lineWidth = 15 * s;
+       ctx.beginPath();
+       ctx.moveTo(h.x1, h.y1);
+       ctx.lineTo(h.x2, h.y2);
+       ctx.stroke();
+
+       // 取っ手本体の伸びた線
+       ctx.strokeStyle = isDragging ? '#86efac' : 'rgba(255, 255, 255, 0.94)';
+       ctx.lineWidth = 8.5 * s;
+       ctx.beginPath();
+       ctx.moveTo(h.x1, h.y1);
+       ctx.lineTo(h.x2, h.y2);
+       ctx.stroke();
+     }
+     ctx.restore();
+   }
+ }
+
+ // 5. 自動吸着ガイド線
  if(blockMode && activeSnapGuides.length){
    const area = getBlockPlayArea(b);
    ctx.save();
@@ -1608,7 +1709,8 @@ function drawBlocks(b){
 function drawCursor(b){
  const x=cursor.x,y=cursor.y;
  const s=(b.r-b.l)/1057;
- const R=getBallHitRadius(b);
+ // カーソルの丸い円はキャラのボール絵サイズに合わせる
+ const R=getCursorRadius(b);
  const rg=ctx.createRadialGradient(x,y,R*.15,x,y,R*1.75);
  rg.addColorStop(0,'rgba(255,150,35,.48)');
  rg.addColorStop(.45,'rgba(255,115,20,.28)');
@@ -1702,7 +1804,7 @@ function reflectPath(b){
  return {pts, tail};
 }
 
-// キャラの大きさ判定（シャフト：キャラボール直径の軌道帯）の描画
+// キャラの大きさ判定（シャフト：キャラ物理当たり判定直径の軌道帯）の描画
 // ※ケツの反射線側には描画せず、発射点から前方の軌道（pts）のみに描画
 function drawShaftOverlay(pts, b){
  if(pts.length < 2) return;
@@ -1743,7 +1845,7 @@ function drawShaftOverlay(pts, b){
    ctx.stroke();
  }
 
- // 3. 発射点および各反射点でのキャラボールサイズ円
+ // 3. 発射点および各反射点でのキャラサイズ円
  for(let i=0;i<pts.length-1;i++){
    const p=pts[i];
    ctx.beginPath();
@@ -1820,7 +1922,7 @@ function nearestArm(p){
  const x=cursor.x,y=cursor.y;
  const b=bounds();
  const s=(b.r-b.l)/1057;
- const R=getBallHitRadius(b);
+ const R=getCursorRadius(b);
  const L=150*s,gap=R+5*s,w=58*s;
  for(let i=0;i<4;i++){
    const a=pullAngle+Math.PI/4+i*Math.PI/2;
@@ -1840,6 +1942,22 @@ cv.addEventListener('pointerdown',e=>{
  const p=pos(e);
 
  if(blockMode){
+   // 1. まず選択中ブロックの4つ角の取っ手線を優先して掴めるようにする
+   const handleBlk = hitTestBlockHandle(p);
+   if(handleBlk){
+     lastBlockTapId=null;
+     lastBlockTapTime=0;
+     selectedBlockId=handleBlk.id;
+     draggingBlockId=handleBlk.id;
+     blockDragOffsetX=p.x - handleBlk.x;
+     blockDragOffsetY=p.y - handleBlk.y;
+     activeSnapGuides=[];
+     draw();
+     e.preventDefault();
+     return;
+   }
+
+   // 2. ブロック本体タップ／ドラッグ／2回タップ削除
    const hit=hitTestBlock(p);
    if(hit){
      const now=Date.now();
