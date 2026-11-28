@@ -972,12 +972,12 @@ const MONST_STEP_DEG = 360 / MONST_STEPS;
 // 実機サイズ・当たり判定の独立パラメータ（基準ステージ内幅 1057 に対する値）
 // 1. カーソルの丸い円：キャラのボール絵サイズに一致（半径 68）
 // 2. シャフト／キャラ物理当たり判定半径：実機キャラ幅（半径 52）
-// 3. ブロック本体の見た目サイズ（緑枠）：実機石ブロックサイズ（132×132）
-// 4. ブロックの内部当たり判定比率：見た目の 76%（白枠＝内部判定＋キャラ当たり判定半径）
+// 3. ブロック本体の見た目サイズ（緑枠）：実機石ブロックサイズ（160×160）
+// 4. ブロックの内部当たり判定比率：見た目の 94%（白枠＝内部判定＋キャラ当たり判定半径）
 const MONST_CURSOR_RADIUS_BASE = 68;
 const MONST_SHAFT_RADIUS_BASE = 52;
-const MONST_BLOCK_SIZE_BASE = 132;
-const MONST_BLOCK_HIT_RATIO = 0.76;
+const MONST_BLOCK_SIZE_BASE = 160;
+const MONST_BLOCK_HIT_RATIO = 0.94;
 
 const file=document.getElementById('file'), fileBtn=document.getElementById('fileBtn');
 const stage=document.getElementById('stage'), photo=document.getElementById('photo'), cv=document.getElementById('cv');
@@ -1184,10 +1184,10 @@ function getBlockPlayArea(b){
  };
 }
 
-// 選択中ブロックの4つ角から斜め外側に少し伸びる「線状の取っ手」座標を返す
+// 選択中ブロックの4つ角から斜め外側へ伸ばす「線状の取っ手」座標（白枠外から指で掴める長さ）
 function getBlockCornerHandles(blk, s){
- const gap = 4 * s;
- const len = 58 * s;
+ const gap = 8 * s;
+ const len = 112 * s;
  const diag = Math.SQRT1_2;
  const corners = [
    {cx: blk.x,         cy: blk.y,         dx: -diag, dy: -diag}, // 左上
@@ -1219,7 +1219,7 @@ function hitTestBlockHandle(p){
  const b = bounds();
  const s = (b.r - b.l) / 1057;
  const handles = getBlockCornerHandles(blk, s);
- const hitTol = 36 * s;
+ const hitTol = 44 * s;
  for(const h of handles){
    if(distToSegment(p.x, p.y, h.x1, h.y1, h.x2, h.y2) <= hitTol){
      return blk;
@@ -1471,7 +1471,6 @@ function getBlockHitEdges(b){
  if(!blocks.length) return [];
  const hitR = getBallHitRadius(b);
  const expanded = blocks.map(blk => {
-   // ブロックの内部当たり判定は見た目より少し小さい（MONST_BLOCK_HIT_RATIO）
    const insetX = blk.w * (1 - MONST_BLOCK_HIT_RATIO) * 0.5;
    const insetY = blk.h * (1 - MONST_BLOCK_HIT_RATIO) * 0.5;
    const expandX = hitR - insetX;
@@ -1578,7 +1577,7 @@ function getBlockAdjacency(blk, eps=2.0){
 function drawBlocks(b){
  const s=(b.r-b.l)/1057;
 
- // 1. 各ブロック本体の描画（緑色の外周枠）
+ // 1. 各ブロック本体の描画（緑色の塗り・斜線）
  for(const blk of blocks){
    const isSel = blockMode && (blk.id === selectedBlockId);
    ctx.save();
@@ -1600,13 +1599,15 @@ function drawBlocks(b){
    ctx.restore();
  }
 
- // 2. 連結ブロック本体の緑外周枠線
+ // 2. 連結ブロック本体の緑外周枠線（インセット描画で外寸ズレを防止）
  for(const blk of blocks){
    const isSel = blockMode && (blk.id === selectedBlockId);
    const {hasTop, hasBottom, hasLeft, hasRight} = getBlockAdjacency(blk);
+   const lw = (isSel ? 5.2 : 4.0) * s;
+   const ins = lw * 0.5;
 
    ctx.save();
-   ctx.lineCap = 'square';
+   ctx.lineCap = 'butt';
 
    ctx.strokeStyle = 'rgba(74, 222, 128, 0.25)';
    ctx.lineWidth = 2 * s;
@@ -1616,17 +1617,17 @@ function drawBlocks(b){
    ctx.setLineDash([]);
 
    ctx.strokeStyle = isSel ? '#86efac' : '#22c55e';
-   ctx.lineWidth = (isSel ? 5.2 : 4.0) * s;
-   if(!hasTop){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y); ctx.lineTo(blk.x+blk.w, blk.y); ctx.stroke(); }
-   if(!hasBottom){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y+blk.h); ctx.lineTo(blk.x+blk.w, blk.y+blk.h); ctx.stroke(); }
-   if(!hasLeft){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y); ctx.lineTo(blk.x, blk.y+blk.h); ctx.stroke(); }
-   if(!hasRight){ ctx.beginPath(); ctx.moveTo(blk.x+blk.w, blk.y); ctx.lineTo(blk.x+blk.w, blk.y+blk.h); ctx.stroke(); }
+   ctx.lineWidth = lw;
+   if(!hasTop){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y + ins); ctx.lineTo(blk.x+blk.w, blk.y + ins); ctx.stroke(); }
+   if(!hasBottom){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y+blk.h - ins); ctx.lineTo(blk.x+blk.w, blk.y+blk.h - ins); ctx.stroke(); }
+   if(!hasLeft){ ctx.beginPath(); ctx.moveTo(blk.x + ins, blk.y); ctx.lineTo(blk.x + ins, blk.y+blk.h); ctx.stroke(); }
+   if(!hasRight){ ctx.beginPath(); ctx.moveTo(blk.x+blk.w - ins, blk.y); ctx.lineTo(blk.x+blk.w - ins, blk.y+blk.h); ctx.stroke(); }
 
    if(blockMode){
      // ブロック内部当たり判定の目安（薄い破線）
      const insetX = blk.w * (1 - MONST_BLOCK_HIT_RATIO) * 0.5;
      const insetY = blk.h * (1 - MONST_BLOCK_HIT_RATIO) * 0.5;
-     ctx.strokeStyle = 'rgba(187, 247, 208, 0.38)';
+     ctx.strokeStyle = 'rgba(187, 247, 208, 0.35)';
      ctx.lineWidth = 1.8 * s;
      ctx.setLineDash([5*s, 5*s]);
      ctx.strokeRect(blk.x + insetX, blk.y + insetY, blk.w - insetX * 2, blk.h - insetY * 2);
@@ -1657,7 +1658,7 @@ function drawBlocks(b){
    ctx.restore();
  }
 
- // 4. 選択中（移動対象）ブロックの4つ角に「少し伸びた線状の取っ手」を描画
+ // 4. 選択中（移動対象）ブロックの4つ角に延長された線状の取っ手＋先端つまみを描画
  if(blockMode && selectedBlockId !== null){
    const selBlk = blocks.find(o => o.id === selectedBlockId);
    if(selBlk){
@@ -1668,19 +1669,25 @@ function drawBlocks(b){
      for(const h of handles){
        // 視認性用の黒い縁取り線
        ctx.strokeStyle = 'rgba(0, 0, 0, 0.55)';
-       ctx.lineWidth = 15 * s;
+       ctx.lineWidth = 16 * s;
        ctx.beginPath();
        ctx.moveTo(h.x1, h.y1);
        ctx.lineTo(h.x2, h.y2);
        ctx.stroke();
 
        // 取っ手本体の伸びた線
-       ctx.strokeStyle = isDragging ? '#86efac' : 'rgba(255, 255, 255, 0.94)';
-       ctx.lineWidth = 8.5 * s;
+       ctx.strokeStyle = isDragging ? '#86efac' : 'rgba(255, 255, 255, 0.92)';
+       ctx.lineWidth = 9 * s;
        ctx.beginPath();
        ctx.moveTo(h.x1, h.y1);
        ctx.lineTo(h.x2, h.y2);
        ctx.stroke();
+
+       // 先端のつまみ丸（指で掴みやすい目印）
+       ctx.fillStyle = isDragging ? '#86efac' : 'rgba(255, 255, 255, 0.95)';
+       ctx.beginPath();
+       ctx.arc(h.x2, h.y2, 11 * s, 0, Math.PI * 2);
+       ctx.fill();
      }
      ctx.restore();
    }
