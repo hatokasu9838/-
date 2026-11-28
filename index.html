@@ -140,6 +140,44 @@ canvas{
 }
 .emptyTips b{color:var(--text);font-weight:600}
 
+/* 通常モード時：ブロック判定クイックON/OFFピル（ブロック配置時のみ上部表示） */
+#blockCollisionPill{
+  display:none;
+  position:fixed;
+  top:max(10px,env(safe-area-inset-top));
+  left:50%;
+  transform:translateX(-50%);
+  z-index:25;
+  height:34px;
+  padding:0 13px;
+  border-radius:999px;
+  background:rgba(24,27,34,.92);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  border:1px solid rgba(34,197,94,.55);
+  color:#bbf7d0;
+  font-size:12px;
+  font-weight:700;
+  gap:7px;
+  box-shadow:0 8px 22px rgba(0,0,0,.48);
+  white-space:nowrap;
+}
+#blockCollisionPill.show{display:inline-flex}
+#blockCollisionPill .pillDot{
+  width:8px;height:8px;border-radius:50%;
+  background:#22c55e;
+  box-shadow:0 0 7px #22c55e;
+  flex-shrink:0;
+}
+#blockCollisionPill.is-off{
+  border-color:rgba(245,158,11,.55);
+  color:#fde68a;
+}
+#blockCollisionPill.is-off .pillDot{
+  background:#f59e0b;
+  box-shadow:none;
+}
+
 /* ブロック編集フローティングバー */
 #blockToolbar{
   display:none;
@@ -157,7 +195,7 @@ canvas{
   padding:8px 10px;
   box-shadow:0 12px 32px rgba(0,0,0,.55);
   flex-direction:column;
-  gap:7px;
+  gap:6px;
 }
 #blockToolbar.open{display:flex}
 .blockBarTop{
@@ -196,8 +234,42 @@ canvas{
   align-items:center;
 }
 .blockBarBtns button{
-  height:36px;padding:0 8px;font-size:12px;border-radius:8px;
+  height:35px;padding:0 8px;font-size:12px;border-radius:8px;
 }
+.blockBarSubBtns{
+  display:grid;
+  grid-template-columns:1fr 1.15fr;
+  gap:6px;
+  align-items:center;
+}
+.blockBarSubBtns button{
+  height:32px;padding:0 8px;font-size:11.5px;border-radius:8px;
+}
+
+#blockCollisionToggleBtn{
+  background:rgba(34,197,94,.16);
+  border-color:rgba(34,197,94,.48);
+  color:#bbf7d0;
+}
+#blockCollisionToggleBtn.is-off{
+  background:rgba(245,158,11,.14);
+  border-color:rgba(245,158,11,.48);
+  color:#fde68a;
+}
+#blockPresetBtn{
+  background:rgba(59,130,246,.15);
+  border-color:rgba(96,165,250,.45);
+  color:#bfdbfe;
+}
+.presetMiniCount{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:17px;height:17px;padding:0 5px;
+  border-radius:999px;
+  background:rgba(59,130,246,.35);
+  color:#dbeafe;
+  font-size:10px;font-weight:800;
+}
+.presetMiniCount[hidden]{display:none!important}
 
 /* ブロック操作ボタンの通常色＆ピックアップ（押下・選択強調）カラー */
 #blockAddBtn{
@@ -259,7 +331,7 @@ canvas{
   box-shadow:0 0 0 2px rgba(96,165,250,.45),0 4px 14px rgba(59,130,246,.5);
 }
 
-/* メニュー上の通知トースト（シャフトON/OFFなど） */
+/* メニュー上の通知トースト（シャフトON/OFF・反転・判定切替など） */
 #menuToast{
   position:fixed;
   left:50%;
@@ -308,6 +380,17 @@ canvas{
 }
 #menuToast.state-off .toastBadge{
   color:#9ca3af;
+}
+#menuToast.state-warn{
+  border-color:rgba(245,158,11,.7);
+  box-shadow:0 10px 26px rgba(0,0,0,.55),0 0 16px rgba(245,158,11,.25);
+}
+#menuToast.state-warn .toastDot{
+  background:#f59e0b;
+  box-shadow:0 0 8px #f59e0b;
+}
+#menuToast.state-warn .toastBadge{
+  color:#fde68a;
 }
 
 /* 下部コントロールバー */
@@ -406,7 +489,7 @@ canvas{
   border-bottom:1px dashed rgba(255,255,255,.3);
 }
 
-/* 右列1行目：元の拡大ボタン位置・サイズにブロックボタンを配置 */
+/* 右列1行目：ブロックボタン */
 #blockBtn{
   grid-column:3;grid-row:1;
   width:100%;min-width:0;height:46px;
@@ -433,9 +516,13 @@ canvas{
   line-height:1;
   pointer-events:none;
 }
+.blockBadge.collision-off{
+  background:#f59e0b;
+  color:#1f1300;
+}
 .blockBadge[hidden]{display:none!important}
 
-/* 右列2行目：元の保存ボタン位置・サイズにシャフトボタンを配置 */
+/* 右列2行目：シャフトボタン */
 #shaftBtn{
   grid-column:3;grid-row:2;
   width:100%;min-width:0;height:46px;
@@ -450,12 +537,12 @@ canvas{
   color:#a5f3fc;
 }
 
-/* 3行目：サイト概要（1文字分ボタン） / 音声コマンド（残りの幅いっぱいに伸長） */
+/* 3行目：サイト概要 / 左右反転 / 上下反転 / 音声コマンド */
 #bottomRow{
   grid-column:1/-1;
   grid-row:3;
   display:grid;
-  grid-template-columns:42px 1fr;
+  grid-template-columns:42px 62px 62px 1fr;
   gap:6px;
   align-items:center;
 }
@@ -471,16 +558,40 @@ canvas{
   color:var(--text);
 }
 
+#flipHBtn,#flipVBtn{
+  width:100%;min-width:0;height:42px;
+  padding:0 4px;
+  font-size:12px;
+  gap:3px;
+  white-space:nowrap;
+  color:#dbeafe;
+  background:rgba(59,130,246,.12);
+  border-color:rgba(96,165,250,.32);
+}
+#flipHBtn:active,#flipVBtn:active{
+  background:rgba(59,130,246,.32);
+  border-color:#60a5fa;
+}
+
 #voiceBtn{
   width:100%;min-width:0;height:42px;
-  padding:0 12px;
-  font-size:13px;font-weight:700;
+  padding:0 10px;
+  font-size:12.5px;font-weight:700;
   background:var(--accent);
   border-color:rgba(147,197,253,.45);
   color:#fff;
   white-space:nowrap;
 }
 #voiceBtn:active{background:var(--accent-hover)}
+.voiceBtnBadge{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:18px;height:18px;padding:0 5px;
+  border-radius:999px;
+  background:rgba(255,255,255,.24);
+  color:#fff;
+  font-size:10.5px;font-weight:800;
+}
+.voiceBtnBadge[hidden]{display:none!important}
 
 @media(max-width:430px){
   #bar{
@@ -493,9 +604,10 @@ canvas{
   #minus,#plus,#angleControls button{height:34px;font-size:17px}
   #angleDisplay .angleValue{font-size:13.5px}
   #blockBtn,#shaftBtn{height:42px;font-size:11px;gap:3px;padding:0 4px}
-  #bottomRow{gap:5px;grid-template-columns:40px 1fr}
-  #infoBtn{width:40px;min-width:40px;height:40px;padding:0}
-  #voiceBtn{height:40px;font-size:12px;padding:0 10px}
+  #bottomRow{gap:5px;grid-template-columns:38px 54px 54px 1fr}
+  #infoBtn{width:38px;min-width:38px;height:40px;padding:0}
+  #flipHBtn,#flipVBtn{height:40px;font-size:11px;gap:2px;padding:0 2px}
+  #voiceBtn{height:40px;font-size:11.5px;padding:0 8px;gap:4px}
 }
 
 /* サイト概要・開発者モーダル */
@@ -586,6 +698,153 @@ canvas{
   color:#fff;
 }
 
+/* クエスト別ブロック配置プリセットモーダル */
+#presetModal{
+  display:none;
+  position:fixed;inset:0;z-index:1050;
+  background:rgba(0,0,0,.74);
+  align-items:center;justify-content:center;
+  padding:14px;
+  touch-action:manipulation;
+}
+#presetModal.open{display:flex}
+.presetCard{
+  width:min(100%,424px);
+  max-height:88dvh;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  background:var(--surface);
+  border:1px solid var(--border-strong);
+  border-radius:16px;
+  box-shadow:0 24px 60px rgba(0,0,0,.75);
+}
+.presetHeader{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:12px 14px;
+  background:var(--surface-2);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.presetHeader h2{
+  margin:0;font-size:15px;font-weight:700;color:var(--text);
+  display:flex;align-items:center;gap:7px;
+}
+#presetCloseX{
+  width:30px;height:30px;min-width:30px;
+  padding:0;border-radius:8px;
+  font-size:18px;line-height:1;
+}
+.presetBody{
+  padding:14px;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y;
+  display:flex;flex-direction:column;gap:12px;
+}
+.presetSaveBox{
+  background:var(--well);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:11px;
+  display:flex;flex-direction:column;gap:8px;
+}
+.presetSaveLabel{
+  font-size:12px;font-weight:700;color:var(--text);
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+}
+.presetSaveLabel small{
+  font-size:11px;font-weight:600;color:#4ade80;
+}
+.presetSaveRow{
+  display:flex;gap:7px;align-items:center;
+}
+.presetSaveRow input, #presetSearchInput{
+  width:100%;height:38px;
+  border:1px solid var(--border);
+  border-radius:9px;
+  background:var(--surface);
+  color:#fff;
+  padding:0 10px;
+  font-size:13.5px;font-weight:500;
+  -webkit-user-select:text;user-select:text;
+}
+.presetSaveRow input:focus, #presetSearchInput:focus{
+  outline:none;border-color:var(--accent);
+}
+#presetSaveBtn{
+  flex-shrink:0;
+  height:38px;padding:0 14px;
+  border-radius:9px;
+  background:var(--emerald);
+  border-color:rgba(167,243,208,.45);
+  color:#052e16;
+  font-size:12.5px;font-weight:800;
+}
+.presetHint{
+  margin:0;font-size:11px;color:var(--text-sub);line-height:1.4;
+}
+.presetListWrap{
+  display:flex;flex-direction:column;gap:8px;
+}
+.presetListHead{
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:12px;font-weight:700;color:var(--text-sub);
+}
+.presetItem{
+  background:var(--well);
+  border:1px solid var(--border);
+  border-radius:11px;
+  padding:10px 11px;
+  display:flex;flex-direction:column;gap:8px;
+}
+.presetItemTop{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:8px;
+}
+.presetItemName{
+  font-size:13.5px;font-weight:700;color:var(--text);
+  word-break:break-word;line-height:1.3;
+}
+.presetItemMeta{
+  font-size:11px;color:var(--text-sub);font-weight:600;
+  white-space:nowrap;flex-shrink:0;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:2px 7px;
+  font-variant-numeric:tabular-nums;
+}
+.presetItemBtns{
+  display:grid;
+  grid-template-columns:1.3fr .85fr .8fr;
+  gap:6px;
+}
+.presetItemBtns button{
+  height:33px;font-size:12px;border-radius:8px;padding:0 6px;
+}
+.presetLoadBtn{
+  background:var(--accent);
+  border-color:rgba(147,197,253,.45);
+  color:#fff;
+}
+.presetOverwriteBtn{
+  background:rgba(245,158,11,.13);
+  border-color:rgba(245,158,11,.35);
+  color:#fde68a;
+}
+.presetDelBtn{
+  background:rgba(239,68,68,.13);
+  border-color:rgba(239,68,68,.35);
+  color:#fca5a5;
+}
+.presetEmpty{
+  text-align:center;
+  padding:18px 12px;
+  border-radius:10px;
+  border:1px dashed var(--border);
+  color:var(--text-sub);
+  font-size:12px;line-height:1.5;
+}
+
 /* 音声コマンドモーダル */
 #voiceModal{
   display:none;
@@ -597,7 +856,7 @@ canvas{
 }
 #voiceModal.open{display:flex}
 #voiceModal .voiceCard{
-  width:min(100%,432px);
+  width:min(100%,440px);
   max-height:90dvh;
   display:flex;flex-direction:column;
   overflow:hidden;
@@ -627,22 +886,36 @@ canvas{
 }
 
 .voiceTabs{
-  display:grid;grid-template-columns:1fr 1fr;gap:6px;
+  display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:5px;
 }
 .voiceTabBtn{
   height:34px;
   border:1px solid var(--border);
   background:var(--well);
   color:var(--text-sub);
-  font-size:12.5px;font-weight:700;
+  font-size:12px;font-weight:700;
   border-radius:8px;
-  padding:0 8px;
+  padding:0 6px;
+  white-space:nowrap;
 }
 .voiceTabBtn.active{
   border-color:var(--accent);
   background:var(--accent);
   color:#fff;
 }
+.tabCountBadge{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:17px;height:17px;padding:0 4px;
+  border-radius:999px;
+  background:rgba(59,130,246,.3);
+  color:#bfdbfe;
+  font-size:10px;font-weight:800;
+}
+.voiceTabBtn.active .tabCountBadge{
+  background:rgba(255,255,255,.25);
+  color:#fff;
+}
+.tabCountBadge[hidden]{display:none!important}
 
 .voiceBody{
   padding:14px;
@@ -735,10 +1008,67 @@ canvas{
 
 #voiceModal .voiceActions{display:flex;gap:8px;margin-top:14px}
 #voiceModal .voiceActions button{flex:1;height:42px;font-size:13.5px}
-#voiceGenerate{
+#voiceGenerate,#batchVoiceSaveBtn{
   background:var(--accent);
   border-color:rgba(147,197,253,.45);
   color:#fff;
+}
+
+/* まとめ生成タブ */
+.batchAddGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+  margin-bottom:10px;
+}
+.batchAddGrid button{
+  height:40px;
+  padding:0 8px;
+  font-size:12px;
+  border-radius:10px;
+}
+#batchAddCurrentBtn{
+  background:rgba(34,197,94,.16);
+  border-color:rgba(34,197,94,.45);
+  color:#bbf7d0;
+}
+#batchAddSpreadBtn{
+  background:rgba(59,130,246,.16);
+  border-color:rgba(96,165,250,.45);
+  color:#bfdbfe;
+}
+.batchEmptyMsg{
+  text-align:center;
+  padding:18px 12px;
+  border-radius:10px;
+  border:1px dashed var(--border);
+  background:var(--well);
+  color:var(--text-sub);
+  font-size:12px;
+  line-height:1.55;
+}
+#batchVoiceList{
+  display:flex;flex-direction:column;gap:9px;margin-top:10px;
+}
+.batchHeadActions{
+  display:flex;align-items:center;gap:5px;
+}
+.batchMiniBtn{
+  height:26px;padding:0 8px;font-size:11px;border-radius:6px;
+}
+.batchApplyBtn{
+  background:rgba(59,130,246,.16);
+  border-color:rgba(96,165,250,.4);
+  color:#bfdbfe;
+}
+.batchRemoveBtn{
+  background:rgba(239,68,68,.14);
+  border-color:rgba(239,68,68,.38);
+  color:#fca5a5;
+  width:26px;padding:0;font-size:14px;
+}
+.batchSpeedGroup{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;
 }
 
 /* 既存ファイル編集エリア */
@@ -782,6 +1112,11 @@ canvas{
   height:32px;min-height:32px;
   padding:0 5px;font-size:11px;
   border-radius:7px;
+}
+.existingBulkBtn.danger{
+  background:rgba(239,68,68,.13);
+  border-color:rgba(239,68,68,.35);
+  color:#fca5a5;
 }
 
 #existingVoiceCommands{display:flex;flex-direction:column;gap:9px;margin-top:10px}
@@ -846,7 +1181,7 @@ canvas{
   margin-top:12px;padding-top:12px;
   border-top:1px solid var(--border);
 }
-#existingVoiceSaveBtn{
+#existingVoiceSaveBtn,#batchVoiceSaveBtn{
   width:100%;min-height:42px;height:42px;
   padding:0 14px;
   border-radius:10px;
@@ -952,6 +1287,12 @@ canvas{
 </head>
 <body>
 
+<!-- 通常モード時：ブロック判定クイックON/OFFピル -->
+<button id="blockCollisionPill" type="button" aria-pressed="true" title="タップでブロック反射判定のON/OFFを切替">
+  <span class="pillDot" aria-hidden="true"></span>
+  <span id="blockCollisionPillText">ブロック判定：ON</span>
+</button>
+
 <!-- ブロック配置モード用フローティングツールバー -->
 <div id="blockToolbar" role="region" aria-label="ブロック編集ツールバー">
   <div class="blockBarTop">
@@ -966,6 +1307,13 @@ canvas{
     <button id="blockDelSelBtn" type="button">- 削除</button>
     <button id="blockClearBtn" type="button">全消去</button>
     <button id="blockDoneBtn" type="button">完了</button>
+  </div>
+  <div class="blockBarSubBtns">
+    <button id="blockCollisionToggleBtn" type="button" aria-pressed="true">ブロック判定：ON</button>
+    <button id="blockPresetBtn" type="button">
+      <span>クエスト保存・読込</span>
+      <span id="presetCountMini" class="presetMiniCount" hidden>0</span>
+    </button>
   </div>
 </div>
 
@@ -984,18 +1332,18 @@ canvas{
 
   <div id="count">
     <button id="minus" type="button" aria-label="反射を減らす">−</button>
-    <span id="n"><b class="maxLabel"></b><strong class="num">0</strong><small>反射</small></span>
+    <span id="n"><b class="maxLabel"></b><strong class="num">1</strong><small>反射</small></span>
     <button id="plus" type="button" aria-label="反射を増やす">＋</button>
   </div>
 
-  <!-- 元の拡大ボタンの位置・サイズにブロックボタンを配置 -->
+  <!-- 右列1行目：ブロックボタン -->
   <button id="blockBtn" type="button" aria-pressed="false">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>
     <span>ブロック</span>
     <span id="blockCountBadge" class="blockBadge" hidden>0</span>
   </button>
 
-  <!-- 元の保存ボタンの位置・サイズにシャフトボタンを配置 -->
+  <!-- 右列2行目：シャフトボタン -->
   <button id="shaftBtn" type="button" aria-pressed="false" aria-label="シャフト（キャラ幅）表示" title="シャフト（キャラ幅）表示">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><line x1="5" y1="3" x2="5" y2="21"/><line x1="19" y1="3" x2="19" y2="21"/></svg>
     <span>シャフト</span>
@@ -1007,17 +1355,64 @@ canvas{
     <button id="anglePlus" type="button" aria-label="角度を1段増やす">＋</button>
   </div>
 
-  <!-- 3行目：左端に1文字分のサイト概要ボタン、右側に伸びた音声コマンドボタン -->
+  <!-- 3行目：サイト概要 / 左右反転 / 上下反転 / 音声コマンド -->
   <div id="bottomRow">
     <button id="infoBtn" type="button" aria-label="開発者・このサイトの概要" title="開発者・このサイトの概要">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="16" x2="12" y2="11"/><circle cx="12" cy="8" r=".7" fill="currentColor"/></svg>
     </button>
 
+    <button id="flipHBtn" type="button" aria-label="角度を左右反転" title="角度を左右反転">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="7 8 3 12 7 16"/><polyline points="17 8 21 12 17 16"/><line x1="3" y1="12" x2="21" y2="12"/></svg>
+      <span>左右</span>
+    </button>
+
+    <button id="flipVBtn" type="button" aria-label="角度を上下反転" title="角度を上下反転">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="8 7 12 3 16 7"/><polyline points="8 17 12 21 16 17"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+      <span>上下</span>
+    </button>
+
     <button id="voiceBtn" type="button">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
-      <span>音声コマンド作成・編集</span>
+      <span>音声コマンド</span>
+      <span id="voiceBtnBatchBadge" class="voiceBtnBadge" hidden>0</span>
     </button>
   </div>
+</div>
+
+<!-- クエスト別ブロック配置モーダル -->
+<div id="presetModal" role="dialog" aria-modal="true" aria-labelledby="presetTitle" aria-hidden="true">
+ <div class="presetCard">
+  <div class="presetHeader">
+   <h2 id="presetTitle">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>
+    <span>クエスト別ブロック配置</span>
+   </h2>
+   <button id="presetCloseX" type="button" aria-label="閉じる">×</button>
+  </div>
+  <div class="presetBody">
+   <div class="presetSaveBox">
+    <div class="presetSaveLabel">
+     <span>現在のブロック配置を保存</span>
+     <small id="presetCurrentBlocksCount">配置中：0個</small>
+    </div>
+    <div class="presetSaveRow">
+     <input id="presetNameInput" type="text" maxlength="60" placeholder="例：天魔1 ステ2" autocomplete="off">
+     <button id="presetSaveBtn" type="button">保存</button>
+    </div>
+    <p class="presetHint">※ブロックの配置のみを端末内に保存します（発射位置・角度は保存しません）。異なる解像度のスクショにも自動で位置合わせされます。</p>
+   </div>
+
+   <input id="presetSearchInput" type="text" placeholder="クエスト名で絞り込み..." hidden>
+
+   <div class="presetListWrap">
+    <div class="presetListHead">
+     <span>保存済みリスト</span>
+     <span id="presetTotalLabel">0件</span>
+    </div>
+    <div id="presetList"></div>
+   </div>
+  </div>
+ </div>
 </div>
 
 <!-- 開発者・サイト概要モーダル -->
@@ -1040,10 +1435,11 @@ canvas{
    <div class="infoSection">
     <h3>主な機能</h3>
     <ul class="infoList">
-     <li><b>1024分割ガイド線</b>：実機と同じ 0.3515625° 刻みで最大40反射まで予測表示</li>
-     <li><b>ブロック配置</b>：ブロック本体（緑枠）と反射判定（白枠）を配置。2本指ピンチで拡大でき、拡大中は1本指ドラッグで画面移動が可能</li>
+     <li><b>1024分割ガイド線＆角度反転</b>：実機と同じ 0.3515625° 刻みで最大40反射まで予測表示。左右・上下反転で対称ルートもワンタップ切替</li>
+     <li><b>ブロック配置＆判定ON/OFF</b>：ブロック本体（緑枠）と反射判定（白枠）を配置。配置を残したまま判定のON/OFF（AB貫通確認）を切替可能</li>
+     <li><b>クエスト別ブロック保存</b>：よく使うクエストのブロック配置を名前付きで端末内に保存・呼出可能（ブロック配置のみ）</li>
      <li><b>シャフト表示</b>：キャラの物理当たり判定幅を軌道上に可視化</li>
-     <li><b>音声コマンド作成・編集</b>：ガイド角度から新規生成、または既存ファイルの一括・個別編集に対応</li>
+     <li><b>音声コマンド作成・まとめ生成・編集</b>：単体作成のほか、複数角度（前後±1の3本セット等）を1ファイルにまとめて生成、既存ファイル編集に対応</li>
     </ul>
    </div>
 
@@ -1072,7 +1468,7 @@ canvas{
     </div>
     <div class="infoMetaRow">
      <span>バージョン</span>
-     <strong id="infoVersion">v3.0</strong>
+     <strong id="infoVersion">v3.1</strong>
     </div>
    </div>
 
@@ -1093,12 +1489,17 @@ canvas{
     <button id="voiceCloseX" type="button" aria-label="閉じる">×</button>
    </div>
    <div class="voiceTabs" role="tablist">
-    <button type="button" class="voiceTabBtn active" data-tab="create" role="tab" aria-selected="true">新規作成</button>
-    <button type="button" class="voiceTabBtn" data-tab="edit" role="tab" aria-selected="false">既存ファイルを編集</button>
+    <button type="button" class="voiceTabBtn active" data-tab="create" role="tab" aria-selected="true">単体作成</button>
+    <button type="button" class="voiceTabBtn" data-tab="batch" role="tab" aria-selected="false">
+      <span>まとめ生成</span>
+      <span id="batchTabBadge" class="tabCountBadge" hidden>0</span>
+    </button>
+    <button type="button" class="voiceTabBtn" data-tab="edit" role="tab" aria-selected="false">既存編集</button>
    </div>
   </div>
 
   <div class="voiceBody">
+   <!-- 単体作成タブ -->
    <div id="voiceTabCreate" role="tabpanel">
     <div class="angleSummary">
      <span>ガイド角度（1024分割）</span>
@@ -1143,6 +1544,42 @@ canvas{
     </div>
    </div>
 
+   <!-- 複数角度まとめ生成タブ -->
+   <div id="voiceTabBatch" role="tabpanel" hidden>
+    <div class="angleSummary">
+     <span>現在のガイド角度</span>
+     <strong id="batchCurrentAngle">90.00° (No.256)</strong>
+    </div>
+
+    <div class="batchAddGrid">
+     <button id="batchAddCurrentBtn" type="button">＋ 現在の角度を追加</button>
+     <button id="batchAddSpreadBtn" type="button">＋ 前後±1 (3本追加)</button>
+    </div>
+
+    <div id="batchBulkBar" class="existingBulkBar" style="display:none;">
+     <span>リスト全体の操作</span>
+     <button type="button" class="existingBulkBtn" data-batch-speed="rapid">全て速射</button>
+     <button type="button" class="existingBulkBtn" data-batch-speed="gauge">全てゲージ</button>
+     <button type="button" class="existingBulkBtn danger" id="batchClearAllBtn">全消去</button>
+    </div>
+
+    <div id="batchEmptyMsg" class="batchEmptyMsg">
+     上のボタンから角度を追加すると、複数のショット角度を<b>1つの .voicecontrolcommands ファイル</b>にまとめて書き出せます。<br>
+     モーダルを閉じて角度を変えながら、次々とリストへ追加できます。
+    </div>
+
+    <div id="batchVoiceList"></div>
+
+    <div id="batchSaveArea" class="existingSaveArea" style="display:none;">
+     <div class="voiceField" style="margin:0">
+      <label for="batchVoiceFileName">保存ファイル名</label>
+      <input id="batchVoiceFileName" type="text" maxlength="100" value="" placeholder="ファイル名を入力" autocomplete="off">
+     </div>
+     <button id="batchVoiceSaveBtn" type="button">まとめて保存</button>
+    </div>
+   </div>
+
+   <!-- 既存ファイル編集タブ -->
    <div id="voiceTabEdit" role="tabpanel" hidden>
     <p class="voiceHint">お手持ちの <b>.voicecontrolcommands</b> ファイルを選択すると、中のコマンドを一覧表示し、読み上げ語句や引っ張る速度を個別に編集して保存できます。</p>
     <div id="existingVoiceChange">
@@ -1247,7 +1684,7 @@ const SITE_INFO = {
   siteName: "モンスト ガイド＆音声コマンド生成",
   developer: "鳩",
   contact: "", // 例: "@your_id"（空欄なら非表示）
-  version: "v3.0"
+  version: "v3.1"
 };
 
 // モンストの角度仕様：1周1024分割（360° / 1024 = 0.3515625°）
@@ -1260,7 +1697,7 @@ const MAX_REFLECTIONS = 40;
 // 2. シャフト／キャラ物理当たり判定半径：実機キャラ幅（半径 52）
 // 3. ブロック本体の見た目サイズ（緑枠）：実機石ブロックサイズ（145×145）
 // 4. ブロックの内部当たり判定比率：見た目の 91%（白枠＝内部判定＋キャラ当たり判定半径）
-// 5. ガイド線の太さ：モンスト実機の黄色ガイド線に合わせた太さ（12）
+// 5. ガイド線の太さ：モンスト実機の黄色ガイド線に合わせた太さ（10）
 const MONST_CURSOR_RADIUS_BASE = 68;
 const MONST_SHAFT_RADIUS_BASE = 52;
 const MONST_BLOCK_SIZE_BASE = 145;
@@ -1272,7 +1709,7 @@ const stage=document.getElementById('stage'), photo=document.getElementById('pho
 const ctx=cv.getContext('2d'), empty=document.getElementById('empty');
 const nEl=document.getElementById('n'), plus=document.getElementById('plus'), minus=document.getElementById('minus');
 
-let reflections=3, imgW=0, imgH=0;
+let reflections=1, imgW=0, imgH=0;
 let zoomScale=1, zoomStartDist=0, zoomStartScale=1;
 let panX=0, panY=0;
 let shaftMode=false;
@@ -1284,6 +1721,7 @@ let touchStartX=0, touchStartY=0;
 
 // ブロック管理状態（すべて均一サイズ）
 let blockMode=false;
+let blockCollisionEnabled=true; // ブロック反射判定のON/OFF
 let blocks=[]; // {id, x, y, w, h}
 let nextBlockId=1;
 let selectedBlockId=null;
@@ -1366,6 +1804,7 @@ file.onchange=e=>{
      cursor.x=(b.l+b.r)/2; cursor.y=(b.t+b.b)/2;
    }
    updateAngleUI();
+   updateBlockCollisionUI();
    draw();
    updateBarScale();
  };
@@ -1493,17 +1932,26 @@ function updateBarScale(){
 })();
 
 // ==========================================
-// メニュー上トースト通知（シャフト ON / OFF など）
+// メニュー上トースト通知（シャフト ON / OFF、反転、ブロック判定など）
 // ==========================================
 let menuToastTimer=null;
-function showMenuToast(label, stateText, isOn){
+function showMenuToast(label, stateText, stateType){
  const toast=document.getElementById('menuToast');
  const textEl=document.getElementById('menuToastText');
  if(!toast || !textEl)return;
  updateMenuToastPosition();
- textEl.innerHTML=`${label}<span class="toastBadge">${stateText}</span>`;
- toast.classList.remove('state-on','state-off','show');
- toast.classList.add(isOn ? 'state-on' : 'state-off');
+ textEl.textContent='';
+ textEl.append(document.createTextNode(label));
+ const badge=document.createElement('span');
+ badge.className='toastBadge';
+ badge.textContent=stateText;
+ textEl.appendChild(badge);
+
+ toast.classList.remove('state-on','state-off','state-warn','show');
+ if(stateType==='warn') toast.classList.add('state-warn');
+ else if(stateType) toast.classList.add('state-on');
+ else toast.classList.add('state-off');
+
  void toast.offsetWidth;
  toast.classList.add('show');
  if(menuToastTimer) clearTimeout(menuToastTimer);
@@ -1511,6 +1959,22 @@ function showMenuToast(label, stateText, isOn){
    toast.classList.remove('show');
  }, 1650);
 }
+
+// ==========================================
+// 角度の左右・上下反転ボタン
+// ==========================================
+document.getElementById('flipHBtn').addEventListener('click',()=>{
+ setAngleStep(512 - angleStep);
+ updateAngleUI();
+ if(!stage.hidden && imgW) draw();
+ showMenuToast('左右反転：', `${getAngleDeg().toFixed(2)}° (No.${angleStep})`, true);
+});
+document.getElementById('flipVBtn').addEventListener('click',()=>{
+ setAngleStep(MONST_STEPS - angleStep);
+ updateAngleUI();
+ if(!stage.hidden && imgW) draw();
+ showMenuToast('上下反転：', `${getAngleDeg().toFixed(2)}° (No.${angleStep})`, true);
+});
 
 // ==========================================
 // キャラ幅（シャフト）表示ボタン
@@ -1529,15 +1993,48 @@ shaftBtn.addEventListener('click',()=>{
 });
 
 // ==========================================
-// ブロック配置・自動吸着（スナップ）・4つ角取っ手線・ピックアップ演出
+// ブロック配置・判定ON/OFF・クエスト別保存・自動吸着（スナップ）
 // ==========================================
 const blockAddBtn=document.getElementById('blockAddBtn');
 const blockDelSelBtn=document.getElementById('blockDelSelBtn');
 const blockClearBtn=document.getElementById('blockClearBtn');
 const blockDoneBtn=document.getElementById('blockDoneBtn');
 const blockZoomResetBtn=document.getElementById('blockZoomResetBtn');
+const blockCollisionToggleBtn=document.getElementById('blockCollisionToggleBtn');
+const blockCollisionPill=document.getElementById('blockCollisionPill');
+const blockCollisionPillText=document.getElementById('blockCollisionPillText');
 const blockActionBtns=[blockAddBtn, blockDelSelBtn, blockClearBtn];
 let blockPickClearTimer=null;
+
+function updateBlockCollisionUI(){
+ const isOn = blockCollisionEnabled;
+ if(blockCollisionToggleBtn){
+   blockCollisionToggleBtn.textContent = isOn ? 'ブロック判定：ON' : 'ブロック判定：OFF（貫通）';
+   blockCollisionToggleBtn.classList.toggle('is-off', !isOn);
+   blockCollisionToggleBtn.setAttribute('aria-pressed', isOn ? 'true' : 'false');
+ }
+ if(blockCollisionPill && blockCollisionPillText){
+   const shouldShow = !blockMode && blocks.length > 0 && !stage.hidden;
+   blockCollisionPill.classList.toggle('show', shouldShow);
+   blockCollisionPill.classList.toggle('is-off', !isOn);
+   blockCollisionPill.setAttribute('aria-pressed', isOn ? 'true' : 'false');
+   blockCollisionPillText.textContent = isOn ? 'ブロック判定：ON' : 'ブロック判定：OFF（貫通）';
+ }
+ const badge=document.getElementById('blockCountBadge');
+ if(badge){
+   badge.classList.toggle('collision-off', !isOn);
+ }
+}
+
+function toggleBlockCollision(){
+ blockCollisionEnabled = !blockCollisionEnabled;
+ updateBlockCollisionUI();
+ showMenuToast('ブロック判定：', blockCollisionEnabled ? 'ON' : 'OFF（貫通）', blockCollisionEnabled ? true : 'warn');
+ draw();
+}
+
+blockCollisionToggleBtn.addEventListener('click', toggleBlockCollision);
+blockCollisionPill.addEventListener('click', toggleBlockCollision);
 
 function applyStageTransform(){
  stage.style.transform=`translate3d(${panX}px,${panY}px,0) scale(${zoomScale})`;
@@ -1592,6 +2089,7 @@ function updateBlockCountBadge(){
    badge.textContent='0';
  }
  updateBlockToolbarButtonsState();
+ updateBlockCollisionUI();
 }
 
 function rectsOverlap(ax,ay,aw,ah,bx,by,bw,bh,eps=1.5){
@@ -1864,6 +2362,7 @@ function setBlockMode(on){
    selectedBlockId = blocks[blocks.length - 1].id;
  }
  updateBlockToolbarButtonsState();
+ updateBlockCollisionUI();
  draw();
 }
 
@@ -1896,6 +2395,239 @@ blockDoneBtn.addEventListener('click',()=>setBlockMode(false));
 blockZoomResetBtn.addEventListener('click',()=>{
  resetStageZoom();
 });
+
+// ==========================================
+// クエスト別ブロック配置の保存・読込（ブロック配置のみ保存）
+// ==========================================
+(function initBlockPresets(){
+ const PRESET_STORE_KEY='_mg_block_presets_v1';
+ const modal=document.getElementById('presetModal');
+ const openBtn=document.getElementById('blockPresetBtn');
+ const closeX=document.getElementById('presetCloseX');
+ const nameInput=document.getElementById('presetNameInput');
+ const saveBtn=document.getElementById('presetSaveBtn');
+ const searchInput=document.getElementById('presetSearchInput');
+ const listEl=document.getElementById('presetList');
+ const countMini=document.getElementById('presetCountMini');
+ const curCountEl=document.getElementById('presetCurrentBlocksCount');
+ const totalLabel=document.getElementById('presetTotalLabel');
+
+ function loadPresets(){
+  try{
+   const raw=localStorage.getItem(PRESET_STORE_KEY);
+   const parsed=raw?JSON.parse(raw):[];
+   return Array.isArray(parsed)?parsed:[];
+  }catch(_){return [];}
+ }
+
+ function savePresets(list){
+  try{
+   localStorage.setItem(PRESET_STORE_KEY, JSON.stringify(list));
+  }catch(_){
+   alert('端末の保存容量が不足しているため保存できませんでした。');
+  }
+ }
+
+ function updateMiniBadge(list){
+  const presets = list || loadPresets();
+  if(countMini){
+   if(presets.length > 0){
+    countMini.hidden = false;
+    countMini.textContent = String(presets.length);
+   }else{
+    countMini.hidden = true;
+    countMini.textContent = '0';
+   }
+  }
+ }
+
+ function serializeBlocksOnly(){
+  const b=bounds();
+  const bw=Math.max(1, b.r - b.l);
+  const bh=Math.max(1, b.b - b.t);
+  return blocks.map(blk=>({
+   rx: Number(((blk.x - b.l) / bw).toFixed(6)),
+   ry: Number(((blk.y - b.t) / bh).toFixed(6))
+  }));
+ }
+
+ function applyPresetBlocks(preset){
+  if(stage.hidden || !imgW || !imgH){
+   alert('先に画像を選択してください。');
+   return;
+  }
+  const b=bounds();
+  const area=getBlockPlayArea(b);
+  const bw=b.r - b.l;
+  const bh=b.b - b.t;
+  const size=getUniformBlockSize();
+  const items=Array.isArray(preset.blocks)?preset.blocks:[];
+
+  blocks = items.map(pt=>{
+   const rawX = b.l + Number(pt.rx || 0) * bw;
+   const rawY = b.t + Number(pt.ry || 0) * bh;
+   const x = Math.max(area.l, Math.min(area.r - size, rawX));
+   const y = Math.max(area.t, Math.min(area.b - size, rawY));
+   return {id: nextBlockId++, x, y, w: size, h: size};
+  });
+  selectedBlockId = blocks.length ? blocks[blocks.length - 1].id : null;
+  activeSnapGuides = [];
+  updateBlockCountBadge();
+  draw();
+  closeModal();
+  showMenuToast('ブロック読込：', `${preset.name}（${blocks.length}個）`, true);
+ }
+
+ function formatShortDate(ts){
+  const d=new Date(ts||Date.now());
+  const pad=n=>String(n).padStart(2,'0');
+  return `${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+ }
+
+ function renderList(){
+  const all=loadPresets();
+  updateMiniBadge(all);
+  if(curCountEl) curCountEl.textContent=`配置中：${blocks.length}個`;
+  if(totalLabel) totalLabel.textContent=`${all.length}件`;
+  if(searchInput) searchInput.hidden = all.length < 3;
+
+  const q=(searchInput?.value||'').trim().toLowerCase();
+  const filtered=q ? all.filter(p=>String(p.name||'').toLowerCase().includes(q)) : all;
+
+  listEl.innerHTML='';
+  if(!all.length){
+   const emptyDiv=document.createElement('div');
+   emptyDiv.className='presetEmpty';
+   emptyDiv.textContent='保存されたクエスト別ブロック配置はまだありません。\nブロックを並べて上のフォームから保存できます。';
+   listEl.appendChild(emptyDiv);
+   return;
+  }
+  if(!filtered.length){
+   const emptyDiv=document.createElement('div');
+   emptyDiv.className='presetEmpty';
+   emptyDiv.textContent='条件に一致するクエストがありません。';
+   listEl.appendChild(emptyDiv);
+   return;
+  }
+
+  filtered.forEach(preset=>{
+   const row=document.createElement('div');
+   row.className='presetItem';
+
+   const top=document.createElement('div');
+   top.className='presetItemTop';
+   const nameEl=document.createElement('div');
+   nameEl.className='presetItemName';
+   nameEl.textContent=preset.name;
+   const metaEl=document.createElement('div');
+   metaEl.className='presetItemMeta';
+   const cnt=Array.isArray(preset.blocks)?preset.blocks.length:0;
+   metaEl.textContent=`${cnt}個 ・ ${formatShortDate(preset.updatedAt)}`;
+   top.append(nameEl, metaEl);
+
+   const btns=document.createElement('div');
+   btns.className='presetItemBtns';
+
+   const loadBtn=document.createElement('button');
+   loadBtn.type='button';
+   loadBtn.className='presetLoadBtn';
+   loadBtn.textContent='読み込み';
+   loadBtn.addEventListener('click',()=>applyPresetBlocks(preset));
+
+   const overwriteBtn=document.createElement('button');
+   overwriteBtn.type='button';
+   overwriteBtn.className='presetOverwriteBtn';
+   overwriteBtn.textContent='上書き';
+   overwriteBtn.addEventListener('click',()=>{
+    if(!blocks.length){
+     alert('現在のブロック配置が0個のため上書きできません。');
+     return;
+    }
+    if(!confirm(`「${preset.name}」を現在のブロック配置（${blocks.length}個）で上書きしますか？`))return;
+    const list=loadPresets();
+    const target=list.find(p=>p.id===preset.id);
+    if(target){
+     target.blocks=serializeBlocksOnly();
+     target.updatedAt=Date.now();
+     const reordered=[target, ...list.filter(p=>p.id!==preset.id)];
+     savePresets(reordered);
+     renderList();
+     showMenuToast('上書き保存：', `${preset.name}（${blocks.length}個）`, true);
+    }
+   });
+
+   const delBtn=document.createElement('button');
+   delBtn.type='button';
+   delBtn.className='presetDelBtn';
+   delBtn.textContent='削除';
+   delBtn.addEventListener('click',()=>{
+    if(!confirm(`「${preset.name}」を削除しますか？`))return;
+    const next=loadPresets().filter(p=>p.id!==preset.id);
+    savePresets(next);
+    renderList();
+   });
+
+   btns.append(loadBtn, overwriteBtn, delBtn);
+   row.append(top, btns);
+   listEl.appendChild(row);
+  });
+ }
+
+ function openModal(){
+  if(searchInput) searchInput.value='';
+  renderList();
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden','false');
+ }
+ function closeModal(){
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden','true');
+ }
+
+ openBtn.addEventListener('click', openModal);
+ closeX.addEventListener('click', closeModal);
+ modal.addEventListener('click', e=>{ if(e.target===modal) closeModal(); });
+ searchInput.addEventListener('input', renderList);
+
+ saveBtn.addEventListener('click',()=>{
+  if(!blocks.length){
+   alert('保存するブロックが配置されていません。先にブロックを配置してください。');
+   return;
+  }
+  const name=nameInput.value.trim();
+  if(!name){
+   alert('クエスト・ステージ名を入力してください。');
+   nameInput.focus();
+   return;
+  }
+  const list=loadPresets();
+  const existing=list.find(p=>p.name===name);
+  const serialized=serializeBlocksOnly();
+  if(existing){
+   if(!confirm(`「${name}」はすでに保存されています。現在の配置（${blocks.length}個）で上書きしますか？`))return;
+   existing.blocks=serialized;
+   existing.updatedAt=Date.now();
+   savePresets([existing, ...list.filter(p=>p.id!==existing.id)]);
+  }else{
+   const item={
+    id: `p_${Date.now()}_${Math.floor(Math.random()*10000)}`,
+    name,
+    updatedAt: Date.now(),
+    blocks: serialized
+   };
+   savePresets([item, ...list]);
+  }
+  nameInput.value='';
+  renderList();
+  showMenuToast('ブロック保存：', `${name}（${blocks.length}個）`, true);
+ });
+
+ nameInput.addEventListener('keydown', e=>{
+  if(e.key==='Enter'){ e.preventDefault(); saveBtn.click(); }
+ });
+
+ updateMiniBadge();
+})();
 
 // ==========================================
 // ブロック内部当たり判定＋キャラ判定半径の和集合から外周エッジ（直角反射ライン）を抽出
@@ -2028,18 +2760,27 @@ function getBlockAdjacency(blk, eps=2.0){
 
 function drawBlocks(b){
  const s=(b.r-b.l)/1057;
+ const colOn = blockCollisionEnabled;
 
- // 1. 各ブロック本体の描画（緑色の塗り・斜線）
+ // 1. 各ブロック本体の描画（判定ON時は緑、OFF時は半透明グレーで貫通状態を明示）
  for(const blk of blocks){
    const isSel = blockMode && (blk.id === selectedBlockId);
    ctx.save();
-   ctx.fillStyle = isSel ? 'rgba(34, 197, 94, 0.25)' : 'rgba(34, 197, 94, 0.14)';
+   if(colOn){
+     ctx.fillStyle = isSel ? 'rgba(34, 197, 94, 0.25)' : 'rgba(34, 197, 94, 0.14)';
+   }else{
+     ctx.fillStyle = isSel ? 'rgba(245, 158, 11, 0.18)' : 'rgba(156, 163, 175, 0.10)';
+   }
    ctx.fillRect(blk.x, blk.y, blk.w, blk.h);
 
    ctx.beginPath();
    ctx.rect(blk.x, blk.y, blk.w, blk.h);
    ctx.clip();
-   ctx.strokeStyle = isSel ? 'rgba(134, 239, 172, 0.24)' : 'rgba(74, 222, 128, 0.14)';
+   if(colOn){
+     ctx.strokeStyle = isSel ? 'rgba(134, 239, 172, 0.24)' : 'rgba(74, 222, 128, 0.14)';
+   }else{
+     ctx.strokeStyle = isSel ? 'rgba(253, 230, 138, 0.22)' : 'rgba(156, 163, 175, 0.13)';
+   }
    ctx.lineWidth = 4 * s;
    const step = 22 * s;
    for(let d = -blk.h; d < blk.w + blk.h; d += step){
@@ -2051,7 +2792,7 @@ function drawBlocks(b){
    ctx.restore();
  }
 
- // 2. 連結ブロック本体の緑外周枠線（インセット描画で外寸ズレを防止）
+ // 2. 連結ブロック本体の外周枠線（インセット描画で外寸ズレを防止）
  for(const blk of blocks){
    const isSel = blockMode && (blk.id === selectedBlockId);
    const {hasTop, hasBottom, hasLeft, hasRight} = getBlockAdjacency(blk);
@@ -2061,25 +2802,31 @@ function drawBlocks(b){
    ctx.save();
    ctx.lineCap = 'butt';
 
-   ctx.strokeStyle = 'rgba(74, 222, 128, 0.25)';
+   ctx.strokeStyle = colOn ? 'rgba(74, 222, 128, 0.25)' : 'rgba(156, 163, 175, 0.22)';
    ctx.lineWidth = 2 * s;
    ctx.setLineDash([6*s, 6*s]);
    if(hasTop){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y); ctx.lineTo(blk.x+blk.w, blk.y); ctx.stroke(); }
    if(hasLeft){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y); ctx.lineTo(blk.x, blk.y+blk.h); ctx.stroke(); }
-   ctx.setLineDash([]);
 
-   ctx.strokeStyle = isSel ? '#86efac' : '#22c55e';
+   if(colOn){
+     ctx.setLineDash([]);
+     ctx.strokeStyle = isSel ? '#86efac' : '#22c55e';
+   }else{
+     ctx.setLineDash([12*s, 8*s]);
+     ctx.strokeStyle = isSel ? '#fde68a' : 'rgba(156, 163, 175, 0.65)';
+   }
    ctx.lineWidth = lw;
    if(!hasTop){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y + ins); ctx.lineTo(blk.x+blk.w, blk.y + ins); ctx.stroke(); }
    if(!hasBottom){ ctx.beginPath(); ctx.moveTo(blk.x, blk.y+blk.h - ins); ctx.lineTo(blk.x+blk.w, blk.y+blk.h - ins); ctx.stroke(); }
    if(!hasLeft){ ctx.beginPath(); ctx.moveTo(blk.x + ins, blk.y); ctx.lineTo(blk.x + ins, blk.y+blk.h); ctx.stroke(); }
    if(!hasRight){ ctx.beginPath(); ctx.moveTo(blk.x+blk.w - ins, blk.y); ctx.lineTo(blk.x+blk.w - ins, blk.y+blk.h); ctx.stroke(); }
+   ctx.setLineDash([]);
 
    if(blockMode){
      // ブロック内部当たり判定の目安（薄い破線）
      const insetX = blk.w * (1 - MONST_BLOCK_HIT_RATIO) * 0.5;
      const insetY = blk.h * (1 - MONST_BLOCK_HIT_RATIO) * 0.5;
-     ctx.strokeStyle = 'rgba(187, 247, 208, 0.35)';
+     ctx.strokeStyle = colOn ? 'rgba(187, 247, 208, 0.35)' : 'rgba(209, 213, 219, 0.25)';
      ctx.lineWidth = 1.8 * s;
      ctx.setLineDash([5*s, 5*s]);
      ctx.strokeRect(blk.x + insetX, blk.y + insetY, blk.w - insetX * 2, blk.h - insetY * 2);
@@ -2094,13 +2841,19 @@ function drawBlocks(b){
    ctx.restore();
  }
 
- // 3. 実際のボール中心反射ライン（白枠：直角外周ポリゴン）
+ // 3. 実際のボール中心反射ライン（白枠：直角外周ポリゴン）※判定OFF時は通常モード非表示、編集モードのみ薄い破線
  const hitEdges = getBlockHitEdges(b);
- if(hitEdges.length){
+ if(hitEdges.length && (colOn || blockMode)){
    ctx.save();
-   ctx.strokeStyle = blockMode ? 'rgba(255, 255, 255, 0.92)' : 'rgba(255, 255, 255, 0.48)';
-   ctx.lineWidth = (blockMode ? 3.5 : 2.2) * s;
-   ctx.lineCap = 'square';
+   if(colOn){
+     ctx.strokeStyle = blockMode ? 'rgba(255, 255, 255, 0.92)' : 'rgba(255, 255, 255, 0.48)';
+     ctx.lineWidth = (blockMode ? 3.5 : 2.2) * s;
+     ctx.lineCap = 'square';
+   }else{
+     ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+     ctx.lineWidth = 2.2 * s;
+     ctx.setLineDash([8*s, 8*s]);
+   }
    for(const e of hitEdges){
      ctx.beginPath();
      ctx.moveTo(e.x1, e.y1);
@@ -2222,9 +2975,11 @@ function buildColliders(b){
    {x1:b.r, y1:b.b, x2:b.l, y2:b.b, nx:0, ny:-1},
    {x1:b.l, y1:b.b, x2:b.l, y2:b.t, nx:1, ny:0}
  ];
- const blockEdges = getBlockHitEdges(b);
- for(const e of blockEdges){
-   segs.push(e);
+ if(blockCollisionEnabled){
+   const blockEdges = getBlockHitEdges(b);
+   for(const e of blockEdges){
+     segs.push(e);
+   }
  }
  return segs;
 }
@@ -2676,6 +3431,7 @@ bindRepeat(anglePlus,()=>changeAngleStep(1),'fast');
 bindRepeat(angleMinus,()=>changeAngleStep(-1),'fast');
 updateCount();
 updateAngleUI();
+updateBlockCollisionUI();
 
 function touchDist(a,b){return Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);}
 function touchMid(a,b){return {x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2};}
@@ -2995,9 +3751,11 @@ document.getElementById('voiceFileName').value=getDefaultVoiceFileName();
 });
 document.getElementById('voiceFileName').addEventListener('input',()=>{voiceFileNameEdited=true;});
 function updateVoiceModalAngleBadge(){
+ const text=`${getAngleDeg().toFixed(2)}° (No.${angleStep})`;
  const badge=document.getElementById('voiceCurrentAngle');
- if(!badge)return;
- badge.textContent=`${getAngleDeg().toFixed(2)}° (No.${angleStep})`;
+ if(badge) badge.textContent=text;
+ const batchBadge=document.getElementById('batchCurrentAngle');
+ if(batchBadge) batchBadge.textContent=text;
 }
 function switchVoiceTab(tabName){
  document.querySelectorAll('.voiceTabBtn').forEach(btn=>{
@@ -3006,8 +3764,10 @@ function switchVoiceTab(tabName){
   btn.setAttribute('aria-selected',active?'true':'false');
  });
  const createPane=document.getElementById('voiceTabCreate');
+ const batchPane=document.getElementById('voiceTabBatch');
  const editPane=document.getElementById('voiceTabEdit');
  if(createPane)createPane.hidden=(tabName!=='create');
+ if(batchPane)batchPane.hidden=(tabName!=='batch');
  if(editPane)editPane.hidden=(tabName!=='edit');
  const body=document.querySelector('#voiceModal .voiceBody');
  if(body)body.scrollTop=0;
@@ -3074,6 +3834,32 @@ function makeVoiceGesture(lengthPx,durationSec,deviceScale,targetPullAngle=pullA
  return voiceDataToBase64(bytes);
 }
 
+function buildVoiceCommandsPlistXml(entries){
+ const now=new Date();
+ const iso=now.toISOString().replace(/\.\d{3}Z$/,'Z');
+ const appleDate=Date.now()/1000-978307200;
+ const baseTs=Math.floor(Date.now()/1000);
+ const baseRand=Math.floor(Math.random()*800000+100000);
+
+ const tableXml=entries.map((entry, idx)=>{
+  const id=`Custom.${baseTs}.${baseRand + idx}`;
+  return `<key>${id}</key><dict><key>ConfirmationRequired</key><false/><key>CustomCommands</key><dict><key>ja_JP</key><array><string>${voiceXmlEscape(entry.commandName)}</string></array></dict><key>CustomGesture</key><data>${entry.gesture}</data><key>CustomModifyDate</key><date>${iso}</date><key>CustomScope</key><string>com.apple.speech.SystemWideScope</string><key>CustomType</key><string>RunGesture</string></dict>`;
+ }).join('');
+
+ const sysVerXml=Object.entries(voiceSystemVersion).map(([k,v])=>`<key>${voiceXmlEscape(k)}</key><string>${voiceXmlEscape(v)}</string>`).join('');
+ return `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0"><dict><key>CommandsTable</key><dict>${tableXml}</dict><key>ExportDate</key><real>${appleDate}</real><key>SystemVersion</key><dict>${sysVerXml}</dict></dict></plist>`;
+}
+
+function downloadVoiceXmlString(xml, fileName){
+ const blob=new Blob([xml],{type:'application/octet-stream'});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');
+ a.href=url;
+ a.download=fileName.toLowerCase().endsWith('.voicecontrolcommands')?fileName:fileName+'.voicecontrolcommands';
+ document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+
 document.getElementById('voiceGenerate').addEventListener('click',()=>{
  try{
   const deviceProfile=getVoiceDeviceProfile();
@@ -3087,13 +3873,266 @@ document.getElementById('voiceGenerate').addEventListener('click',()=>{
   if(!Number.isFinite(durationSec)||durationSec<.01||durationSec>10)throw new Error('時間は0.01〜10秒の範囲で入力してください。');
   if(!fileName)fileName=getDefaultVoiceFileName();
   const gesture=makeVoiceGesture(lengthPx,durationSec,deviceScale);
-  const now=new Date();const iso=now.toISOString().replace(/\.\d{3}Z$/,'Z');
-  const appleDate=Date.now()/1000-978307200;
-  const id=`Custom.${Math.floor(Date.now()/1000)}.${Math.floor(Math.random()*900000+100000)}`;
-  const xml=`<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0"><dict><key>CommandsTable</key><dict><key>${id}</key><dict><key>ConfirmationRequired</key><false/><key>CustomCommands</key><dict><key>ja_JP</key><array><string>${voiceXmlEscape(commandName)}</string></array></dict><key>CustomGesture</key><data>${gesture}</data><key>CustomModifyDate</key><date>${iso}</date><key>CustomScope</key><string>com.apple.speech.SystemWideScope</string><key>CustomType</key><string>RunGesture</string></dict></dict><key>ExportDate</key><real>${appleDate}</real><key>SystemVersion</key><dict>${Object.entries(voiceSystemVersion).map(([k,v])=>`<key>${voiceXmlEscape(k)}</key><string>${voiceXmlEscape(v)}</string>`).join('')}</dict></dict></plist>`;
-  const blob=new Blob([xml],{type:'application/octet-stream'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=fileName.toLowerCase().endsWith('.voicecontrolcommands')?fileName:fileName+'.voicecontrolcommands';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);if(window._recStat)window._recStat('gen');voiceModal.classList.remove('open');
+  const xml=buildVoiceCommandsPlistXml([{commandName, gesture}]);
+  downloadVoiceXmlString(xml, fileName);
+  if(window._recStat)window._recStat('gen');
+  voiceModal.classList.remove('open');
  }catch(err){alert(err.message||'ファイル生成に失敗しました。')}
 });
+
+// ==========================================
+// 複数角度のまとめ生成（バッチ出力）
+// ==========================================
+(function initBatchVoiceGenerator(){
+ const addCurBtn=document.getElementById('batchAddCurrentBtn');
+ const addSpreadBtn=document.getElementById('batchAddSpreadBtn');
+ const bulkBar=document.getElementById('batchBulkBar');
+ const clearAllBtn=document.getElementById('batchClearAllBtn');
+ const emptyMsg=document.getElementById('batchEmptyMsg');
+ const listEl=document.getElementById('batchVoiceList');
+ const saveArea=document.getElementById('batchSaveArea');
+ const fileNameInput=document.getElementById('batchVoiceFileName');
+ const saveBtn=document.getElementById('batchVoiceSaveBtn');
+ const tabBadge=document.getElementById('batchTabBadge');
+ const btnBadge=document.getElementById('voiceBtnBatchBadge');
+
+ let batchItems=[]; // {uid, step, name, speedMode:'rapid'|'gauge'|'custom', customDuration:''}
+ let nextUid=1;
+ let batchFileEdited=false;
+
+ function getDefaultBatchFileName(){
+  const d=new Date();const pad=n=>String(n).padStart(2,'0');
+  return `まとめ_${batchItems.length}件_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
+ }
+
+ function getNextAutoName(){
+  const used=new Set(batchItems.map(x=>x.name));
+  let n=batchItems.length + 1;
+  while(used.has(String(n))) n++;
+  return String(n);
+ }
+
+ function updateBadges(){
+  const cnt=batchItems.length;
+  [tabBadge, btnBadge].forEach(el=>{
+   if(!el)return;
+   if(cnt>0){ el.hidden=false; el.textContent=String(cnt); }
+   else{ el.hidden=true; el.textContent='0'; }
+  });
+  if(saveBtn){
+   saveBtn.textContent=cnt>0 ? `まとめて保存（${cnt}件）` : 'まとめて保存';
+  }
+ }
+
+ function renderBatchList(){
+  updateBadges();
+  const hasItems=batchItems.length>0;
+  emptyMsg.style.display=hasItems?'none':'block';
+  bulkBar.style.display=hasItems?'flex':'none';
+  saveArea.style.display=hasItems?'flex':'none';
+  if(hasItems && !batchFileEdited){
+   fileNameInput.value=getDefaultBatchFileName();
+  }
+
+  listEl.innerHTML='';
+  batchItems.forEach((item, idx)=>{
+   const deg=(item.step * MONST_STEP_DEG).toFixed(2);
+   const row=document.createElement('div');
+   row.className='existingCommandRow';
+
+   const head=document.createElement('div');
+   head.className='existingCommandHead';
+
+   const title=document.createElement('div');
+   title.className='existingCommandTitle';
+   title.innerHTML=`<span class="cmdNumBadge">No.${idx+1}</span> <span>${deg}° <small style="color:var(--text-sub);font-weight:600">(No.${item.step})</small></span>`;
+
+   const actions=document.createElement('div');
+   actions.className='batchHeadActions';
+
+   const applyBtn=document.createElement('button');
+   applyBtn.type='button';
+   applyBtn.className='batchMiniBtn batchApplyBtn';
+   applyBtn.textContent='ガイド反映';
+   applyBtn.addEventListener('click',()=>{
+    setAngleStep(item.step);
+    updateAngleUI();
+    updateVoiceModalAngleBadge();
+    if(!stage.hidden && imgW) draw();
+    showMenuToast('角度反映：', `${deg}° (No.${item.step})`, true);
+   });
+
+   const remBtn=document.createElement('button');
+   remBtn.type='button';
+   remBtn.className='batchMiniBtn batchRemoveBtn';
+   remBtn.setAttribute('aria-label','この角度を削除');
+   remBtn.textContent='×';
+   remBtn.addEventListener('click',()=>{
+    batchItems=batchItems.filter(x=>x.uid!==item.uid);
+    renderBatchList();
+   });
+
+   actions.append(applyBtn, remBtn);
+   head.append(title, actions);
+   row.appendChild(head);
+
+   const nameLabel=document.createElement('div');
+   nameLabel.className='existingSubLabel';
+   nameLabel.textContent='読み上げ語句';
+   const nameInput=document.createElement('input');
+   nameInput.type='text';
+   nameInput.maxLength=80;
+   nameInput.value=item.name;
+   nameInput.placeholder='例：1、あ、etc...';
+   nameInput.addEventListener('focus',()=>{try{nameInput.select();}catch(_){}});
+   nameInput.addEventListener('input',()=>{ item.name=nameInput.value; });
+   row.append(nameLabel, nameInput);
+
+   const speedLabel=document.createElement('div');
+   speedLabel.className='existingSubLabel';
+   speedLabel.textContent='引っ張る速度（なぞる時間）';
+   const speedGroup=document.createElement('div');
+   speedGroup.className='batchSpeedGroup';
+
+   const chips=[];
+   [{value:'rapid',label:'速射(0.01秒)'},{value:'gauge',label:'ゲージ(0.5秒)'}].forEach(m=>{
+    const chip=document.createElement('button');
+    chip.type='button';
+    chip.className='existingSpeedChip'+(item.speedMode===m.value?' active':'');
+    chip.dataset.mode=m.value;
+    chip.textContent=m.label;
+    chip.addEventListener('click',()=>{
+     item.speedMode=m.value;
+     item.customDuration='';
+     customInput.value='';
+     chips.forEach(c=>c.classList.toggle('active', c.dataset.mode===m.value));
+    });
+    speedGroup.appendChild(chip);
+    chips.push(chip);
+   });
+
+   const customInput=document.createElement('input');
+   customInput.type='number';
+   customInput.min='0.01';
+   customInput.max='10';
+   customInput.step='0.001';
+   customInput.value=item.customDuration;
+   customInput.placeholder='自由入力（0.01〜10秒）';
+   customInput.addEventListener('focus',()=>{try{customInput.select();}catch(_){}});
+   customInput.addEventListener('input',()=>{
+    item.customDuration=customInput.value;
+    if(customInput.value.trim()!==''){
+     item.speedMode='custom';
+     chips.forEach(c=>c.classList.remove('active'));
+    }else{
+     item.speedMode='rapid';
+     chips.forEach(c=>c.classList.toggle('active', c.dataset.mode==='rapid'));
+    }
+   });
+
+   row.append(speedLabel, speedGroup, customInput);
+   listEl.appendChild(row);
+  });
+ }
+
+ function getDefaultSpeedForNew(){
+  const customVal=document.getElementById('voiceDuration').value.trim();
+  if(customVal!=='') return {speedMode:'custom', customDuration:customVal};
+  const mode=durationModeInputs.find(input=>input.checked)?.value||'rapid';
+  return {speedMode:mode==='gauge'?'gauge':'rapid', customDuration:''};
+ }
+
+ addCurBtn.addEventListener('click',()=>{
+  const sp=getDefaultSpeedForNew();
+  batchItems.push({
+   uid: nextUid++,
+   step: angleStep,
+   name: getNextAutoName(),
+   speedMode: sp.speedMode,
+   customDuration: sp.customDuration
+  });
+  renderBatchList();
+ });
+
+ addSpreadBtn.addEventListener('click',()=>{
+  const sp=getDefaultSpeedForNew();
+  [normalizeStep(angleStep - 1), angleStep, normalizeStep(angleStep + 1)].forEach(st=>{
+   batchItems.push({
+    uid: nextUid++,
+    step: st,
+    name: getNextAutoName(),
+    speedMode: sp.speedMode,
+    customDuration: sp.customDuration
+   });
+  });
+  renderBatchList();
+ });
+
+ bulkBar.querySelectorAll('[data-batch-speed]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+   const mode=btn.dataset.batchSpeed;
+   batchItems.forEach(item=>{
+    item.speedMode=mode;
+    item.customDuration='';
+   });
+   renderBatchList();
+  });
+ });
+
+ clearAllBtn.addEventListener('click',()=>{
+  if(!batchItems.length)return;
+  if(!confirm(`リスト内の${batchItems.length}件をすべて消去しますか？`))return;
+  batchItems=[];
+  batchFileEdited=false;
+  renderBatchList();
+ });
+
+ fileNameInput.addEventListener('focus',()=>{try{fileNameInput.select();}catch(_){}});
+ fileNameInput.addEventListener('input',()=>{ batchFileEdited=true; });
+
+ saveBtn.addEventListener('click',()=>{
+  if(!batchItems.length){
+   alert('角度が1件も追加されていません。');
+   return;
+  }
+  try{
+   const deviceProfile=getVoiceDeviceProfile();
+   const lengthPx=deviceProfile.lengthPx;
+   const deviceScale=deviceProfile.deviceScale;
+
+   const builtEntries=batchItems.map((item, idx)=>{
+    const commandName=item.name.trim();
+    if(!commandName) throw new Error(`${idx+1}番目の読み上げ語句を入力してください。`);
+    let durationSec=0.01;
+    if(item.speedMode==='gauge') durationSec=0.5;
+    else if(item.speedMode==='custom'){
+     durationSec=Number(String(item.customDuration).trim());
+    }
+    if(!Number.isFinite(durationSec)||durationSec<0.01||durationSec>10){
+     throw new Error(`${idx+1}番目の時間は0.01〜10秒の範囲で入力してください。`);
+    }
+    const targetPullAngle = -(item.step * MONST_STEP_DEG) * Math.PI / 180;
+    const gesture=makeVoiceGesture(lengthPx, durationSec, deviceScale, targetPullAngle);
+    return {commandName, gesture};
+   });
+
+   let fileName=fileNameInput.value.trim().replace(/[\\/:*?"<>|]/g,'-');
+   if(!fileName) fileName=getDefaultBatchFileName();
+
+   const xml=buildVoiceCommandsPlistXml(builtEntries);
+   downloadVoiceXmlString(xml, fileName);
+   if(window._recStat) window._recStat('gen');
+
+   const prevText=saveBtn.textContent;
+   saveBtn.textContent='保存しました！';
+   setTimeout(()=>{ saveBtn.textContent=prevText; }, 1500);
+  }catch(err){
+   alert(err.message||'ファイル生成に失敗しました。');
+  }
+ });
+
+ renderBatchList();
+})();
 
 function convertGestureDuration(b64, durationSec, lengthPx, deviceScale){
   const raw = atob(b64.trim());
