@@ -406,47 +406,74 @@ canvas{
   border-bottom:1px dashed rgba(255,255,255,.3);
 }
 
-#zoomBtn{
+/* 右列1行目：元の拡大ボタン位置・サイズにブロックボタンを配置 */
+#blockBtn{
   grid-column:3;grid-row:1;
   width:100%;min-width:0;height:46px;
-  padding:0 5px;font-size:12.5px;
+  padding:0 5px;
+  font-size:12px;
+  gap:4px;
+  white-space:nowrap;
 }
-#zoomBtn.active{
-  background:var(--emerald);
-  border-color:#6ee7b7;
-  color:#fff;
+#blockBtn.active{
+  background:rgba(34,197,94,.22);
+  border-color:#4ade80;
+  color:#bbf7d0;
 }
+.blockBadge{
+  position:absolute;
+  top:-5px;right:-5px;
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:17px;height:17px;padding:0 4px;
+  border-radius:999px;
+  background:#22c55e;
+  border:1.5px solid var(--surface);
+  color:#052e16;
+  font-size:10px;font-weight:800;
+  line-height:1;
+  pointer-events:none;
+}
+.blockBadge[hidden]{display:none!important}
 
-#gaugeBtn{
+/* 右列2行目：元の保存ボタン位置・サイズにシャフトボタンを配置 */
+#shaftBtn{
   grid-column:3;grid-row:2;
   width:100%;min-width:0;height:46px;
-  padding:0 5px;font-size:12.5px;
+  padding:0 5px;
+  font-size:12px;
+  gap:4px;
+  white-space:nowrap;
+}
+#shaftBtn.active{
+  background:rgba(6,182,212,.28);
+  border-color:#22d3ee;
+  color:#a5f3fc;
 }
 
-/* 3行目：ブロック配置 / キャラ幅（アイコン1文字分） / 音声コマンド（大きく配置） */
+/* 3行目：サイト概要（1文字分ボタン） / 音声コマンド（残りの幅いっぱいに伸長） */
 #bottomRow{
   grid-column:1/-1;
   grid-row:3;
   display:grid;
-  grid-template-columns:auto 42px 1fr;
+  grid-template-columns:42px 1fr;
   gap:6px;
   align-items:center;
 }
 
-#blockBtn{
-  min-width:0;height:42px;
-  padding:0 11px;font-size:12px;
-  white-space:nowrap;
-}
-
-#shaftBtn{
+#infoBtn{
   width:42px;min-width:42px;height:42px;
   padding:0;
+  font-size:15px;
+  font-weight:800;
+  color:var(--text-sub);
+}
+#infoBtn:hover,#infoBtn:active{
+  color:var(--text);
 }
 
 #voiceBtn{
   width:100%;min-width:0;height:42px;
-  padding:0 10px;
+  padding:0 12px;
   font-size:13px;font-weight:700;
   background:var(--accent);
   border-color:rgba(147,197,253,.45);
@@ -454,28 +481,6 @@ canvas{
   white-space:nowrap;
 }
 #voiceBtn:active{background:var(--accent-hover)}
-
-#blockBtn.active{
-  background:rgba(34,197,94,.22);
-  border-color:#4ade80;
-  color:#bbf7d0;
-}
-.blockBadge{
-  display:inline-flex;align-items:center;justify-content:center;
-  min-width:16px;height:16px;padding:0 4px;
-  border-radius:999px;
-  background:rgba(255,255,255,.14);
-  font-size:10px;font-weight:800;
-}
-#blockBtn.active .blockBadge{
-  background:#22c55e;color:#052e16;
-}
-
-#shaftBtn.active{
-  background:rgba(6,182,212,.28);
-  border-color:#22d3ee;
-  color:#a5f3fc;
-}
 
 @media(max-width:430px){
   #bar{
@@ -487,11 +492,98 @@ canvas{
   #count,#angleControls{grid-template-columns:34px 1fr 34px;height:42px}
   #minus,#plus,#angleControls button{height:34px;font-size:17px}
   #angleDisplay .angleValue{font-size:13.5px}
-  #zoomBtn,#gaugeBtn{height:42px;font-size:12px;gap:3px}
-  #bottomRow{gap:5px;grid-template-columns:auto 40px 1fr}
-  #blockBtn{height:40px;font-size:11.5px;padding:0 9px;gap:4px}
-  #shaftBtn{width:40px;min-width:40px;height:40px;padding:0}
-  #voiceBtn{height:40px;font-size:12px;padding:0 8px}
+  #blockBtn,#shaftBtn{height:42px;font-size:11px;gap:3px;padding:0 4px}
+  #bottomRow{gap:5px;grid-template-columns:40px 1fr}
+  #infoBtn{width:40px;min-width:40px;height:40px;padding:0}
+  #voiceBtn{height:40px;font-size:12px;padding:0 10px}
+}
+
+/* サイト概要・開発者モーダル */
+#infoModal{
+  display:none;
+  position:fixed;inset:0;z-index:1100;
+  background:rgba(0,0,0,.74);
+  align-items:center;justify-content:center;
+  padding:14px;
+  touch-action:manipulation;
+}
+#infoModal.open{display:flex}
+.infoCard{
+  width:min(100%,420px);
+  max-height:88dvh;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  background:var(--surface);
+  border:1px solid var(--border-strong);
+  border-radius:16px;
+  box-shadow:0 24px 60px rgba(0,0,0,.75);
+}
+.infoHeader{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:12px 14px;
+  background:var(--surface-2);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.infoHeader h2{
+  margin:0;font-size:15px;font-weight:700;color:var(--text);
+  display:flex;align-items:center;gap:7px;
+}
+#infoCloseX{
+  width:30px;height:30px;min-width:30px;
+  padding:0;border-radius:8px;
+  font-size:18px;line-height:1;
+}
+.infoBody{
+  padding:14px;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y;
+  display:flex;flex-direction:column;gap:12px;
+  font-size:12.5px;
+  line-height:1.6;
+  color:var(--text-sub);
+}
+.infoSection{
+  background:var(--well);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:11px 12px;
+}
+.infoSection h3{
+  margin:0 0 6px;
+  font-size:12.5px;font-weight:700;
+  color:#93c5fd;
+  letter-spacing:.02em;
+}
+.infoSection p{margin:0}
+.infoList{
+  margin:0;padding-left:16px;
+  display:flex;flex-direction:column;gap:4px;
+}
+.infoList b{color:var(--text);font-weight:600}
+.infoMetaRow{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:4px 0;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.infoMetaRow:last-child{border-bottom:none;padding-bottom:0}
+.infoMetaRow span{color:var(--text-sub);font-size:12px}
+.infoMetaRow strong{color:var(--text);font-size:12.5px;font-weight:700;text-align:right}
+.infoNote{
+  font-size:11px;line-height:1.5;color:var(--text-sub);margin:0;
+}
+.infoFoot{
+  padding:10px 14px 12px;
+  border-top:1px solid var(--border);
+  background:var(--surface-2);
+  flex-shrink:0;
+}
+#infoCloseBtn{
+  width:100%;height:40px;font-size:13px;
+  background:var(--accent);
+  border-color:rgba(147,197,253,.45);
+  color:#fff;
 }
 
 /* 音声コマンドモーダル */
@@ -865,7 +957,7 @@ canvas{
   <div class="blockBarTop">
     <span class="blockBarTitle">ブロック配置（緑枠:本体 / 白枠:反射判定）</span>
     <div class="blockBarRightMeta">
-      <span class="blockBarHint">2本指で拡大・移動可</span>
+      <span class="blockBarHint">2本指拡大 / 拡大中は1本指移動可</span>
       <button id="blockZoomResetBtn" type="button" title="タップで等倍リセット">1.0x</button>
     </div>
   </div>
@@ -896,14 +988,17 @@ canvas{
     <button id="plus" type="button" aria-label="反射を増やす">＋</button>
   </div>
 
-  <button id="zoomBtn" type="button">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
-    <span class="btnLabel">拡大</span>
+  <!-- 元の拡大ボタンの位置・サイズにブロックボタンを配置 -->
+  <button id="blockBtn" type="button" aria-pressed="false">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>
+    <span>ブロック</span>
+    <span id="blockCountBadge" class="blockBadge" hidden>0</span>
   </button>
 
-  <button id="gaugeBtn" type="button" aria-label="ガイド画像を保存">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-    <span>保存</span>
+  <!-- 元の保存ボタンの位置・サイズにシャフトボタンを配置 -->
+  <button id="shaftBtn" type="button" aria-pressed="false" aria-label="シャフト（キャラ幅）表示" title="シャフト（キャラ幅）表示">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><line x1="5" y1="3" x2="5" y2="21"/><line x1="19" y1="3" x2="19" y2="21"/></svg>
+    <span>シャフト</span>
   </button>
 
   <div id="angleControls">
@@ -912,15 +1007,10 @@ canvas{
     <button id="anglePlus" type="button" aria-label="角度を1段増やす">＋</button>
   </div>
 
+  <!-- 3行目：左端に1文字分のサイト概要ボタン、右側に伸びた音声コマンドボタン -->
   <div id="bottomRow">
-    <button id="blockBtn" type="button" aria-pressed="false">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>
-      <span>ブロック</span>
-      <span id="blockCountBadge" class="blockBadge" hidden>0</span>
-    </button>
-
-    <button id="shaftBtn" type="button" aria-pressed="false" aria-label="キャラ幅表示" title="キャラ幅（シャフト）表示">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><line x1="5" y1="3" x2="5" y2="21"/><line x1="19" y1="3" x2="19" y2="21"/></svg>
+    <button id="infoBtn" type="button" aria-label="開発者・このサイトの概要" title="開発者・このサイトの概要">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="16" x2="12" y2="11"/><circle cx="12" cy="8" r=".7" fill="currentColor"/></svg>
     </button>
 
     <button id="voiceBtn" type="button">
@@ -928,6 +1018,71 @@ canvas{
       <span>音声コマンド作成・編集</span>
     </button>
   </div>
+</div>
+
+<!-- 開発者・サイト概要モーダル -->
+<div id="infoModal" role="dialog" aria-modal="true" aria-labelledby="infoTitle" aria-hidden="true">
+ <div class="infoCard">
+  <div class="infoHeader">
+   <h2 id="infoTitle">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="16" x2="12" y2="11"/><circle cx="12" cy="8" r=".7" fill="#60a5fa"/></svg>
+    <span>このサイトの概要・開発者情報</span>
+   </h2>
+   <button id="infoCloseX" type="button" aria-label="閉じる">×</button>
+  </div>
+
+  <div class="infoBody">
+   <div class="infoSection">
+    <h3>サイト概要</h3>
+    <p>スクリーンショット上に反射ガイド線・キャラ幅（シャフト）・ブロック判定を重ねてショット角度を確認し、そのままiOS音声コントロール用ファイル（.voicecontrolcommands）を作成・編集できるWebツールです。</p>
+   </div>
+
+   <div class="infoSection">
+    <h3>主な機能</h3>
+    <ul class="infoList">
+     <li><b>1024分割ガイド線</b>：実機と同じ 0.3515625° 刻みで最大40反射まで予測表示</li>
+     <li><b>ブロック配置</b>：ブロック本体（緑枠）と反射判定（白枠）を配置。2本指ピンチで拡大でき、拡大中は1本指ドラッグで画面移動が可能</li>
+     <li><b>シャフト表示</b>：キャラの物理当たり判定幅を軌道上に可視化</li>
+     <li><b>音声コマンド作成・編集</b>：ガイド角度から新規生成、または既存ファイルの一括・個別編集に対応</li>
+    </ul>
+   </div>
+
+   <div class="infoSection">
+    <h3>基本操作</h3>
+    <ul class="infoList">
+     <li><b>カーソルの白い矢印をドラッグ</b>：発射位置を移動（丸の中の十字をキャラ中心に合わせます）</li>
+     <li><b>画面の空きスペースをドラッグ</b>：角度を調整（角度表示を2回タップで直接入力）</li>
+    </ul>
+   </div>
+
+   <!-- ▼ 開発者情報は下のテキスト（または script 先頭の SITE_INFO）から自由に変更できます ▼ -->
+   <div class="infoSection">
+    <h3>開発者情報</h3>
+    <div class="infoMetaRow">
+     <span>ツール名</span>
+     <strong id="infoSiteName">モンスト ガイド＆音声コマンド生成</strong>
+    </div>
+    <div class="infoMetaRow">
+     <span>開発者</span>
+     <strong id="infoDevName">サイト管理者</strong>
+    </div>
+    <div class="infoMetaRow" id="infoContactRow" hidden>
+     <span>連絡先 / SNS</span>
+     <strong id="infoDevContact"></strong>
+    </div>
+    <div class="infoMetaRow">
+     <span>バージョン</span>
+     <strong id="infoVersion">v3.0</strong>
+    </div>
+   </div>
+
+   <p class="infoNote">※本サイトは非公式の個人制作ツールであり、各ゲーム公式とは一切関係ありません。読み込んだ画像やファイルはお使いの端末内（ブラウザ上）のみで処理され、外部サーバーへ送信されることはありません。</p>
+  </div>
+
+  <div class="infoFoot">
+   <button id="infoCloseBtn" type="button">閉じる</button>
+  </div>
+ </div>
 </div>
 
 <div id="voiceModal" role="dialog" aria-modal="true" aria-labelledby="voiceTitle">
@@ -1074,7 +1229,7 @@ canvas{
       <ul class="emptyTips">
         <li><span>矢印ドラッグ</span><b>発射位置を移動</b></li>
         <li><span>画面ドラッグ</span><b>角度調整（1024分割）</b></li>
-        <li><span>キャラ幅ボタン</span><b>シャフト・ボールサイズ判定表示</b></li>
+        <li><span>シャフトボタン</span><b>キャラ幅・ボールサイズ判定表示</b></li>
       </ul>
     </div>
   </div>
@@ -1087,21 +1242,30 @@ canvas{
 <script>
 const STATS_API_URL = "";
 
+// ▼ サイト概要モーダルに表示する開発者情報（ここを書き換えるだけで反映されます）
+const SITE_INFO = {
+  siteName: "モンスト ガイド＆音声コマンド生成",
+  developer: "サイト管理者",
+  contact: "", // 例: "@your_id"（空欄なら非表示）
+  version: "v3.0"
+};
+
 // モンストの角度仕様：1周1024分割（360° / 1024 = 0.3515625°）
 const MONST_STEPS = 1024;
 const MONST_STEP_DEG = 360 / MONST_STEPS;
+const MAX_REFLECTIONS = 40;
 
 // 実機サイズ・当たり判定の独立パラメータ（基準ステージ内幅 1057 に対する値）
 // 1. カーソルの丸い円：キャラのボール絵サイズに一致（半径 68）
 // 2. シャフト／キャラ物理当たり判定半径：実機キャラ幅（半径 52）
 // 3. ブロック本体の見た目サイズ（緑枠）：実機石ブロックサイズ（145×145）
 // 4. ブロックの内部当たり判定比率：見た目の 91%（白枠＝内部判定＋キャラ当たり判定半径）
-// 5. ガイド線の太さ：モンスト実機ガイド線サイズ（5）
+// 5. ガイド線の太さ：モンスト実機の黄色ガイド線に合わせた太さ（12）
 const MONST_CURSOR_RADIUS_BASE = 68;
 const MONST_SHAFT_RADIUS_BASE = 52;
 const MONST_BLOCK_SIZE_BASE = 145;
 const MONST_BLOCK_HIT_RATIO = 0.91;
-const MONST_GUIDE_LINE_WIDTH_BASE = 5;
+const MONST_GUIDE_LINE_WIDTH_BASE = 12;
 
 const file=document.getElementById('file'), fileBtn=document.getElementById('fileBtn');
 const stage=document.getElementById('stage'), photo=document.getElementById('photo'), cv=document.getElementById('cv');
@@ -1109,7 +1273,8 @@ const ctx=cv.getContext('2d'), empty=document.getElementById('empty');
 const nEl=document.getElementById('n'), plus=document.getElementById('plus'), minus=document.getElementById('minus');
 
 let reflections=3, imgW=0, imgH=0;
-let zoomMode=false, zoomScale=1, zoomStartDist=0, zoomStartScale=1;
+let zoomScale=1, zoomStartDist=0, zoomStartScale=1;
+let panX=0, panY=0;
 let shaftMode=false;
 let cursor={x:0,y:0};
 let angleStep=256; // 初期値 90.00° (No.256 / 1024)
@@ -1127,6 +1292,12 @@ let blockDragOffsetX=0, blockDragOffsetY=0;
 let blockDragStartSnapshot=null; // 2本指ピンチ開始時の誤移動ロールバック用
 let blockPinchActive=false;
 let pinchStartMidX=0, pinchStartMidY=0, pinchBasePanX=0, pinchBasePanY=0;
+// ブロックモード拡大中の1本指パン移動状態
+let blockPanActive=false;
+let blockPanPointerId=null;
+let blockPanStartX=0, blockPanStartY=0;
+let blockPanBaseX=0, blockPanBaseY=0;
+let blockPanMoved=false;
 let activeSnapGuides=[]; // {type:'v'|'h', pos:number}
 let lastBlockTapTime=0, lastBlockTapId=null;
 
@@ -1261,6 +1432,11 @@ function updateMenuToastPosition(){
 function updateBarScale(){
  const bar=document.getElementById('bar');
  if(!bar)return;
+ // ブロックモード拡大中は下部メニューが極端に縮小されないよう現在のスケールを維持
+ if(zoomScale > 1.01){
+   updateMenuToastPosition();
+   return;
+ }
  const naturalHeight=bar.offsetHeight;
  if(!naturalHeight)return;
  let availableHeight=window.innerHeight*0.88;
@@ -1275,6 +1451,46 @@ function updateBarScale(){
  bar.style.setProperty('--auto-menu-scale',String(scale));
  updateMenuToastPosition();
 }
+
+// ==========================================
+// サイト概要・開発者情報モーダル
+// ==========================================
+(function initInfoModal(){
+ const infoModal=document.getElementById('infoModal');
+ const infoBtn=document.getElementById('infoBtn');
+ const infoCloseX=document.getElementById('infoCloseX');
+ const infoCloseBtn=document.getElementById('infoCloseBtn');
+
+ const nameEl=document.getElementById('infoSiteName');
+ const devEl=document.getElementById('infoDevName');
+ const contactRow=document.getElementById('infoContactRow');
+ const contactEl=document.getElementById('infoDevContact');
+ const verEl=document.getElementById('infoVersion');
+
+ if(nameEl && SITE_INFO.siteName) nameEl.textContent=SITE_INFO.siteName;
+ if(devEl && SITE_INFO.developer) devEl.textContent=SITE_INFO.developer;
+ if(verEl && SITE_INFO.version) verEl.textContent=SITE_INFO.version;
+ if(contactRow && contactEl && SITE_INFO.contact){
+   contactEl.textContent=SITE_INFO.contact;
+   contactRow.hidden=false;
+ }
+
+ function openInfo(){
+   infoModal.classList.add('open');
+   infoModal.setAttribute('aria-hidden','false');
+ }
+ function closeInfo(){
+   infoModal.classList.remove('open');
+   infoModal.setAttribute('aria-hidden','true');
+ }
+
+ infoBtn.addEventListener('click', openInfo);
+ infoCloseX.addEventListener('click', closeInfo);
+ infoCloseBtn.addEventListener('click', closeInfo);
+ infoModal.addEventListener('click', e=>{
+   if(e.target===infoModal) closeInfo();
+ });
+})();
 
 // ==========================================
 // メニュー上トースト通知（シャフト ON / OFF など）
@@ -1322,6 +1538,17 @@ const blockDoneBtn=document.getElementById('blockDoneBtn');
 const blockZoomResetBtn=document.getElementById('blockZoomResetBtn');
 const blockActionBtns=[blockAddBtn, blockDelSelBtn, blockClearBtn];
 let blockPickClearTimer=null;
+
+function applyStageTransform(){
+ stage.style.transform=`translate3d(${panX}px,${panY}px,0) scale(${zoomScale})`;
+}
+
+function clampBlockPan(){
+ const maxX=(stage.offsetWidth * zoomScale) * 0.5 + 120;
+ const maxY=(stage.offsetHeight * zoomScale) * 0.5 + 160;
+ panX=Math.max(-maxX, Math.min(maxX, panX));
+ panY=Math.max(-maxY, Math.min(maxY, panY));
+}
 
 function updateBlockToolbarButtonsState(){
  if(blockDelSelBtn){
@@ -1604,6 +1831,9 @@ function resetStageZoom(){
  zoomScale=1;
  panX=0;
  panY=0;
+ blockPanActive=false;
+ blockPanPointerId=null;
+ blockPanMoved=false;
  applyStageTransform();
  updateBlockZoomBadge();
  requestAnimationFrame(updateBarScale);
@@ -1622,9 +1852,12 @@ function setBlockMode(on){
    draggingBlockId=null;
    blockDragStartSnapshot=null;
    blockPinchActive=false;
+   blockPanActive=false;
+   blockPanPointerId=null;
+   blockPanMoved=false;
    activeSnapGuides=[];
    blockActionBtns.forEach(b=>{ if(b) b.classList.remove('is-picked','is-pressing'); });
-   if(!zoomMode && (zoomScale !== 1 || panX !== 0 || panY !== 0)){
+   if(zoomScale !== 1 || panX !== 0 || panY !== 0){
      resetStageZoom();
    }
  }else if(selectedBlockId === null && blocks.length){
@@ -1638,9 +1871,6 @@ document.getElementById('blockBtn').addEventListener('click',()=>{
  if(stage.hidden || !imgW || !imgH){
    alert('先に画像を選択してください。');
    return;
- }
- if(zoomMode){
-   zoomBtn.click();
  }
  setBlockMode(!blockMode);
 });
@@ -1940,6 +2170,20 @@ function drawCursor(b){
  const s=(b.r-b.l)/1057;
  // カーソルの丸い円はキャラのボール絵サイズに合わせる
  const R=getCursorRadius(b);
+
+ // 〇の中の十字（発射方向の赤線と直交する横線を同じ赤色・太さで丸の内側に描画）
+ const perp=pullAngle + Math.PI/2;
+ const px=Math.cos(perp)*R, py=Math.sin(perp)*R;
+ ctx.save();
+ ctx.strokeStyle='rgba(255,55,55,.98)';
+ ctx.lineWidth=MONST_GUIDE_LINE_WIDTH_BASE*s;
+ ctx.lineCap='butt';
+ ctx.beginPath();
+ ctx.moveTo(x - px, y - py);
+ ctx.lineTo(x + px, y + py);
+ ctx.stroke();
+ ctx.restore();
+
  const rg=ctx.createRadialGradient(x,y,R*.15,x,y,R*1.75);
  rg.addColorStop(0,'rgba(255,150,35,.48)');
  rg.addColorStop(.45,'rgba(255,115,20,.28)');
@@ -2119,7 +2363,7 @@ function drawReflection(b){
    const end=pts[pts.length-1];
    ctx.save();
    ctx.beginPath();
-   ctx.arc(end.x,end.y,6.5*s,0,Math.PI*2);
+   ctx.arc(end.x,end.y,Math.max(8, MONST_GUIDE_LINE_WIDTH_BASE*0.72)*s,0,Math.PI*2);
    ctx.fillStyle='#fff';
    ctx.fill();
    ctx.restore();
@@ -2166,7 +2410,7 @@ function nearestArm(p){
 }
 
 cv.addEventListener('pointerdown',e=>{
- if(stage.hidden || zoomMode)return;
+ if(stage.hidden)return;
  if(blockMode && blockPinchActive)return;
  cv.setPointerCapture(e.pointerId);
  const p=pos(e);
@@ -2177,6 +2421,8 @@ cv.addEventListener('pointerdown',e=>{
    if(handleBlk){
      lastBlockTapId=null;
      lastBlockTapTime=0;
+     blockPanActive=false;
+     blockPanPointerId=null;
      selectedBlockId=handleBlk.id;
      draggingBlockId=handleBlk.id;
      blockDragStartSnapshot={id:handleBlk.id, x:handleBlk.x, y:handleBlk.y, time:Date.now()};
@@ -2198,12 +2444,16 @@ cv.addEventListener('pointerdown',e=>{
        lastBlockTapTime=0;
        draggingBlockId=null;
        blockDragStartSnapshot=null;
+       blockPanActive=false;
+       blockPanPointerId=null;
        removeBlockById(hit.id);
        e.preventDefault();
        return;
      }
      lastBlockTapId=hit.id;
      lastBlockTapTime=now;
+     blockPanActive=false;
+     blockPanPointerId=null;
      selectedBlockId=hit.id;
      draggingBlockId=hit.id;
      blockDragStartSnapshot={id:hit.id, x:hit.x, y:hit.y, time:now};
@@ -2213,13 +2463,27 @@ cv.addEventListener('pointerdown',e=>{
      updateBlockToolbarButtonsState();
      draw();
    }else{
-     // 空きスペースをタップしてもブロックは追加しない（「＋ 追加」ボタンでのみ追加）
-     selectedBlockId=null;
-     draggingBlockId=null;
-     blockDragStartSnapshot=null;
-     activeSnapGuides=[];
-     updateBlockToolbarButtonsState();
-     draw();
+     // 3. 空きスペース操作：拡大中なら1本指ドラッグで縦横に画面移動
+     if(zoomScale > 1.01){
+       draggingBlockId=null;
+       blockDragStartSnapshot=null;
+       activeSnapGuides=[];
+       blockPanActive=true;
+       blockPanPointerId=e.pointerId;
+       blockPanStartX=e.clientX;
+       blockPanStartY=e.clientY;
+       blockPanBaseX=panX;
+       blockPanBaseY=panY;
+       blockPanMoved=false;
+     }else{
+       // 等倍時は選択解除のみ（「＋ 追加」ボタンでのみ追加）
+       selectedBlockId=null;
+       draggingBlockId=null;
+       blockDragStartSnapshot=null;
+       activeSnapGuides=[];
+       updateBlockToolbarButtonsState();
+       draw();
+     }
    }
    e.preventDefault();
    return;
@@ -2239,7 +2503,21 @@ cv.addEventListener('pointerdown',e=>{
 
 cv.addEventListener('pointermove',e=>{
  if(blockMode){
-   if(blockPinchActive || draggingBlockId===null)return;
+   if(blockPinchActive)return;
+   // 拡大中の1本指パン移動
+   if(blockPanActive && e.pointerId===blockPanPointerId){
+     const dx=e.clientX - blockPanStartX;
+     const dy=e.clientY - blockPanStartY;
+     if(Math.hypot(dx, dy) > 4) blockPanMoved=true;
+     panX = blockPanBaseX + dx;
+     panY = blockPanBaseY + dy;
+     clampBlockPan();
+     applyStageTransform();
+     updateBlockZoomBadge();
+     e.preventDefault();
+     return;
+   }
+   if(draggingBlockId===null)return;
    const blk=blocks.find(o=>o.id===draggingBlockId);
    if(!blk)return;
    const events=e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
@@ -2323,6 +2601,19 @@ function updateAngleUI(){
 
 function end(e){
  if(blockMode){
+   if(blockPanActive && (!e || e.pointerId===blockPanPointerId)){
+     const wasTap = !blockPanMoved;
+     blockPanActive=false;
+     blockPanPointerId=null;
+     blockPanMoved=false;
+     if(wasTap){
+       selectedBlockId=null;
+       activeSnapGuides=[];
+       updateBlockToolbarButtonsState();
+       draw();
+     }
+     return;
+   }
    draggingBlockId=null;
    blockDragStartSnapshot=null;
    activeSnapGuides=[];
@@ -2346,8 +2637,8 @@ function updateCount(){
   const num=nEl.querySelector('.num');
   const max=nEl.querySelector('.maxLabel');
   num.textContent=reflections;
-  max.textContent=reflections===20?'MAX':'';
-  nEl.classList.toggle('max',reflections===20);
+  max.textContent=reflections===MAX_REFLECTIONS?'MAX':'';
+  nEl.classList.toggle('max',reflections===MAX_REFLECTIONS);
 }
 
 const angleMinus=document.getElementById('angleMinus'), anglePlus=document.getElementById('anglePlus');
@@ -2359,7 +2650,7 @@ function changeAngleStep(deltaSteps){
 
 function bindRepeat(btn,fn,mode='slow'){
  let timeout=null, stopped=false, step=0;
- const reflectionDelays=[240,120];
+ const reflectionDelays=[220,100,65];
  const angleDelays=[85,28];
  const delays=mode==='fast'?angleDelays:reflectionDelays;
  const stop=()=>{stopped=true;if(timeout){clearTimeout(timeout);timeout=null;}btn.classList.remove('repeatPressed');};
@@ -2379,73 +2670,19 @@ function bindRepeat(btn,fn,mode='slow'){
  ['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,stop));
 }
 
-bindRepeat(plus,()=>{reflections=reflections===20?0:reflections+1;updateCount();draw();});
-bindRepeat(minus,()=>{reflections=reflections===0?20:reflections-1;updateCount();draw();});
+bindRepeat(plus,()=>{reflections=reflections===MAX_REFLECTIONS?0:reflections+1;updateCount();draw();});
+bindRepeat(minus,()=>{reflections=reflections===0?MAX_REFLECTIONS:reflections-1;updateCount();draw();});
 bindRepeat(anglePlus,()=>changeAngleStep(1),'fast');
 bindRepeat(angleMinus,()=>changeAngleStep(-1),'fast');
 updateCount();
 updateAngleUI();
 
-const gaugeBtn=document.getElementById('gaugeBtn');
-function saveGuideImage(){
-  if(stage.hidden || !imgW || !imgH){
-    alert('先に画像を選択してください。');
-    return;
-  }
-  const out=document.createElement('canvas');
-  out.width=imgW; out.height=imgH;
-  const octx=out.getContext('2d');
-  octx.drawImage(photo,0,0,imgW,imgH);
-  octx.drawImage(cv,0,0,imgW,imgH);
-
-  const angleDeg = getAngleDeg();
-  const angleText = `${angleDeg.toFixed(2)}° (No.${angleStep})`;
-  octx.save();
-  octx.textAlign='center';
-  octx.textBaseline='middle';
-  octx.font='700 26px -apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif';
-  octx.lineWidth=7;
-  octx.strokeStyle='rgba(0,0,0,.85)';
-  octx.strokeText(angleText,cursor.x,cursor.y);
-  octx.fillStyle='#fff';
-  octx.fillText(angleText,cursor.x,cursor.y);
-  octx.restore();
-
-  out.toBlob(blob=>{
-    if(!blob)return;
-    const fileName='monst-guide-'+new Date().toISOString().replace(/[:.]/g,'-')+'.png';
-    const file=new File([blob],fileName,{type:'image/png'});
-    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
-      navigator.share({files:[file],title:'モンスト ガイド画像'}).catch(()=>{});
-      return;
-    }
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url; a.download=fileName;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
-  },'image/png');
-}
-gaugeBtn.onclick=saveGuideImage;
-
-const zoomBtn=document.getElementById('zoomBtn');
-let panX=0,panY=0,panStartX=0,panStartY=0,panBaseX=0,panBaseY=0,panActive=false;
-function applyStageTransform(){stage.style.transform=`translate3d(${panX}px,${panY}px,0) scale(${zoomScale})`;}
-zoomBtn.onclick=()=>{
- if(blockMode) setBlockMode(false);
- zoomMode=!zoomMode;
- const zl=zoomBtn.querySelector('.btnLabel');if(zl)zl.textContent=zoomMode?'解除':'拡大';else zoomBtn.textContent=zoomMode?'解除':'拡大';
- zoomBtn.classList.toggle('active',zoomMode);
- if(!zoomMode){zoomScale=1;panX=0;panY=0;applyStageTransform();}else active=null;
- requestAnimationFrame(updateBarScale);
-};
 function touchDist(a,b){return Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);}
 function touchMid(a,b){return {x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2};}
 
 // キャンバス上のタッチ操作：
 // ・iOS拡大鏡（ルーペ）防止のため常に preventDefault()
-// ・zoomMode 時：2本指ピンチ拡大＋1本指パン移動
-// ・blockMode 時：2本指ピンチ拡大＆2本指パン移動を自在に可能（1本指はブロック移動のまま）
+// ・blockMode 時：2本指ピンチ拡大＆2本指パン移動に対応（拡大中の1本指パン移動は pointer イベントで処理）
 cv.addEventListener('touchstart',e=>{
  e.preventDefault();
  if(blockMode){
@@ -2455,6 +2692,9 @@ cv.addEventListener('touchstart',e=>{
        const blk=blocks.find(o=>o.id===blockDragStartSnapshot.id);
        if(blk){ blk.x=blockDragStartSnapshot.x; blk.y=blockDragStartSnapshot.y; }
      }
+     blockPanActive=false;
+     blockPanPointerId=null;
+     blockPanMoved=false;
      blockPinchActive=true;
      draggingBlockId=null;
      blockDragStartSnapshot=null;
@@ -2468,73 +2708,51 @@ cv.addEventListener('touchstart',e=>{
      pinchBasePanY=panY;
      draw();
    }
-   return;
- }
- if(!zoomMode)return;
- if(e.touches.length===2){
-   panActive=false;
-   zoomStartDist=touchDist(e.touches[0],e.touches[1]); zoomStartScale=zoomScale;
- }else if(e.touches.length===1){
-   panActive=true; panStartX=e.touches[0].clientX; panStartY=e.touches[0].clientY; panBaseX=panX; panBaseY=panY;
  }
 },{passive:false});
 
 cv.addEventListener('touchmove',e=>{
  e.preventDefault();
- if(blockMode){
-   if(blockPinchActive && e.touches.length>=2){
-     const d=touchDist(e.touches[0],e.touches[1]);
-     const mid=touchMid(e.touches[0],e.touches[1]);
-     if(zoomStartDist>0){
-       const nextScale=Math.max(1,Math.min(4,zoomStartScale*d/zoomStartDist));
-       const cx=window.innerWidth/2;
-       const cy=window.innerHeight/2;
-       const ratio=nextScale/zoomStartScale;
-       zoomScale=nextScale;
-       // ピンチ中心を保ちつつ2本指パンにも自然に追従
-       panX = (mid.x - cx) - ((pinchStartMidX - cx) - pinchBasePanX) * ratio;
-       panY = (mid.y - cy) - ((pinchStartMidY - cy) - pinchBasePanY) * ratio;
-       if(zoomScale <= 1.005){
-         zoomScale=1;
-         panX=0;
-         panY=0;
-       }
-       applyStageTransform();
-       updateBlockZoomBadge();
-       requestAnimationFrame(updateBarScale);
-     }
-   }
-   return;
- }
- if(!zoomMode)return;
- if(e.touches.length===2){
-   panActive=false;
+ if(blockMode && blockPinchActive && e.touches.length>=2){
    const d=touchDist(e.touches[0],e.touches[1]);
-   if(zoomStartDist>0){zoomScale=Math.max(1,Math.min(4,zoomStartScale*d/zoomStartDist));applyStageTransform();requestAnimationFrame(updateBarScale);}
- }else if(e.touches.length===1 && panActive){
-   panX=panBaseX+(e.touches[0].clientX-panStartX);
-   panY=panBaseY+(e.touches[0].clientY-panStartY);
-   applyStageTransform();requestAnimationFrame(updateBarScale);
+   const mid=touchMid(e.touches[0],e.touches[1]);
+   if(zoomStartDist>0){
+     const nextScale=Math.max(1,Math.min(4,zoomStartScale*d/zoomStartDist));
+     const cx=window.innerWidth/2;
+     const cy=window.innerHeight/2;
+     const ratio=nextScale/zoomStartScale;
+     zoomScale=nextScale;
+     // ピンチ中心を保ちつつ2本指パンにも自然に追従
+     panX = (mid.x - cx) - ((pinchStartMidX - cx) - pinchBasePanX) * ratio;
+     panY = (mid.y - cy) - ((pinchStartMidY - cy) - pinchBasePanY) * ratio;
+     if(zoomScale <= 1.005){
+       zoomScale=1;
+       panX=0;
+       panY=0;
+     }else{
+       clampBlockPan();
+     }
+     applyStageTransform();
+     updateBlockZoomBadge();
+     requestAnimationFrame(updateBarScale);
+   }
  }
 },{passive:false});
 
 cv.addEventListener('touchend',e=>{
  e.preventDefault();
- if(blockMode){
-   if(e.touches.length===0){
-     blockPinchActive=false;
-   }
-   return;
+ if(blockMode && e.touches.length===0){
+   blockPinchActive=false;
+   blockPanActive=false;
+   blockPanPointerId=null;
  }
- if(zoomMode && e.touches.length===0)panActive=false;
 },{passive:false});
 
 cv.addEventListener('touchcancel',e=>{
  if(blockMode && e.touches.length===0){
    blockPinchActive=false;
- }
- if(zoomMode && e.touches.length===0){
-   panActive=false;
+   blockPanActive=false;
+   blockPanPointerId=null;
  }
 },{passive:false});
 
