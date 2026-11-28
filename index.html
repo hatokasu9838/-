@@ -56,7 +56,7 @@ button{
   align-items:center;
   justify-content:center;
   gap:5px;
-  transition:background .12s ease,border-color .12s ease,transform .06s ease;
+  transition:background .12s ease,border-color .12s ease,color .12s ease,box-shadow .12s ease,transform .08s ease;
 }
 button:active{
   transform:scale(.975);
@@ -161,14 +161,33 @@ canvas{
 }
 #blockToolbar.open{display:flex}
 .blockBarTop{
-  display:flex;align-items:center;justify-content:space-between;gap:6px;
+  display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;
 }
 .blockBarTitle{
   font-size:12px;font-weight:700;color:#4ade80;
   display:flex;align-items:center;gap:6px;
 }
+.blockBarRightMeta{
+  display:flex;align-items:center;gap:6px;
+}
 .blockBarHint{
-  font-size:11px;color:var(--text-sub);
+  font-size:10.5px;color:var(--text-sub);
+}
+#blockZoomResetBtn{
+  height:24px;
+  padding:0 7px;
+  font-size:11px;
+  border-radius:999px;
+  background:rgba(255,255,255,.08);
+  border:1px solid var(--border);
+  color:var(--text-sub);
+  font-variant-numeric:tabular-nums;
+}
+#blockZoomResetBtn.zoomed{
+  background:rgba(16,185,129,.22);
+  border-color:#34d399;
+  color:#a7f3d0;
+  box-shadow:0 0 10px rgba(16,185,129,.35);
 }
 .blockBarBtns{
   display:grid;
@@ -179,22 +198,116 @@ canvas{
 .blockBarBtns button{
   height:36px;padding:0 8px;font-size:12px;border-radius:8px;
 }
+
+/* ブロック操作ボタンの通常色＆ピックアップ（押下・選択強調）カラー */
 #blockAddBtn{
-  background:rgba(34,197,94,.18);
-  border-color:rgba(34,197,94,.55);
+  background:rgba(34,197,94,.16);
+  border-color:rgba(34,197,94,.45);
   color:#86efac;
 }
+#blockAddBtn.is-picked,
+#blockAddBtn.is-pressing{
+  background:#22c55e!important;
+  border-color:#dcfce7!important;
+  color:#052e16!important;
+  box-shadow:0 0 0 2px rgba(34,197,94,.4),0 4px 14px rgba(34,197,94,.5);
+  transform:translateY(-1px);
+}
+
 #blockDelSelBtn{
-  color:#fca5a5;
+  background:rgba(239,68,68,.12);
   border-color:rgba(239,68,68,.35);
+  color:#fca5a5;
 }
+#blockDelSelBtn.has-target{
+  background:rgba(239,68,68,.2);
+  border-color:rgba(248,113,113,.6);
+  color:#fecaca;
+}
+#blockDelSelBtn.is-picked,
+#blockDelSelBtn.is-pressing{
+  background:#ef4444!important;
+  border-color:#fee2e2!important;
+  color:#fff!important;
+  box-shadow:0 0 0 2px rgba(239,68,68,.4),0 4px 14px rgba(239,68,68,.5);
+  transform:translateY(-1px);
+}
+
 #blockClearBtn{
-  color:var(--text-sub);
+  background:rgba(245,158,11,.1);
+  border-color:rgba(245,158,11,.32);
+  color:#fcd34d;
 }
+#blockClearBtn.is-picked,
+#blockClearBtn.is-pressing{
+  background:#f59e0b!important;
+  border-color:#fef3c7!important;
+  color:#1f1300!important;
+  box-shadow:0 0 0 2px rgba(245,158,11,.4),0 4px 14px rgba(245,158,11,.5);
+  transform:translateY(-1px);
+}
+
 #blockDoneBtn{
   background:var(--accent);
-  border-color:var(--accent);
+  border-color:rgba(147,197,253,.45);
   color:#fff;
+}
+#blockDoneBtn.is-pressing{
+  background:#60a5fa!important;
+  border-color:#dbeafe!important;
+  color:#0c1938!important;
+  box-shadow:0 0 0 2px rgba(96,165,250,.45),0 4px 14px rgba(59,130,246,.5);
+}
+
+/* メニュー上の通知トースト（シャフトON/OFFなど） */
+#menuToast{
+  position:fixed;
+  left:50%;
+  bottom:170px;
+  transform:translate(-50%, 8px);
+  z-index:35;
+  pointer-events:none;
+  opacity:0;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 14px;
+  border-radius:999px;
+  background:rgba(20,24,32,.95);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  border:1px solid var(--border-strong);
+  box-shadow:0 10px 26px rgba(0,0,0,.55);
+  color:var(--text);
+  font-size:12.5px;
+  font-weight:700;
+  letter-spacing:.02em;
+  white-space:nowrap;
+  transition:opacity .18s ease,transform .18s ease;
+}
+#menuToast.show{
+  opacity:1;
+  transform:translate(-50%, 0);
+}
+#menuToast .toastDot{
+  width:9px;height:9px;
+  border-radius:50%;
+  background:#9ca3af;
+  flex-shrink:0;
+}
+#menuToast.state-on{
+  border-color:rgba(34,211,238,.7);
+  box-shadow:0 10px 26px rgba(0,0,0,.55),0 0 16px rgba(6,182,212,.3);
+}
+#menuToast.state-on .toastDot{
+  background:#22d3ee;
+  box-shadow:0 0 8px #22d3ee;
+}
+#menuToast.state-on .toastBadge{
+  color:#67e8f9;
+}
+#menuToast.state-off .toastBadge{
+  color:#9ca3af;
 }
 
 /* 下部コントロールバー */
@@ -751,7 +864,10 @@ canvas{
 <div id="blockToolbar" role="region" aria-label="ブロック編集ツールバー">
   <div class="blockBarTop">
     <span class="blockBarTitle">ブロック配置（緑枠:本体 / 白枠:反射判定）</span>
-    <span class="blockBarHint">4つ角の線or本体ドラッグ移動 / 2回タップ削除</span>
+    <div class="blockBarRightMeta">
+      <span class="blockBarHint">2本指で拡大・移動可</span>
+      <button id="blockZoomResetBtn" type="button" title="タップで等倍リセット">1.0x</button>
+    </div>
   </div>
   <div class="blockBarBtns">
     <button id="blockAddBtn" type="button">＋ 追加</button>
@@ -759,6 +875,12 @@ canvas{
     <button id="blockClearBtn" type="button">全消去</button>
     <button id="blockDoneBtn" type="button">完了</button>
   </div>
+</div>
+
+<!-- メニュー上のトースト通知 -->
+<div id="menuToast" role="status" aria-live="polite">
+  <span class="toastDot" aria-hidden="true"></span>
+  <span id="menuToastText">シャフト（キャラ幅）：<span class="toastBadge">OFF</span></span>
 </div>
 
 <div id="bar">
@@ -974,10 +1096,12 @@ const MONST_STEP_DEG = 360 / MONST_STEPS;
 // 2. シャフト／キャラ物理当たり判定半径：実機キャラ幅（半径 52）
 // 3. ブロック本体の見た目サイズ（緑枠）：実機石ブロックサイズ（145×145）
 // 4. ブロックの内部当たり判定比率：見た目の 91%（白枠＝内部判定＋キャラ当たり判定半径）
+// 5. ガイド線の太さ：モンスト実機ガイド線サイズ（5）
 const MONST_CURSOR_RADIUS_BASE = 68;
 const MONST_SHAFT_RADIUS_BASE = 52;
 const MONST_BLOCK_SIZE_BASE = 145;
 const MONST_BLOCK_HIT_RATIO = 0.91;
+const MONST_GUIDE_LINE_WIDTH_BASE = 5;
 
 const file=document.getElementById('file'), fileBtn=document.getElementById('fileBtn');
 const stage=document.getElementById('stage'), photo=document.getElementById('photo'), cv=document.getElementById('cv');
@@ -1000,6 +1124,9 @@ let nextBlockId=1;
 let selectedBlockId=null;
 let draggingBlockId=null;
 let blockDragOffsetX=0, blockDragOffsetY=0;
+let blockDragStartSnapshot=null; // 2本指ピンチ開始時の誤移動ロールバック用
+let blockPinchActive=false;
+let pinchStartMidX=0, pinchStartMidY=0, pinchBasePanX=0, pinchBasePanY=0;
 let activeSnapGuides=[]; // {type:'v'|'h', pos:number}
 let lastBlockTapTime=0, lastBlockTapId=null;
 
@@ -1122,6 +1249,15 @@ function bounds(){
   };
 }
 
+function updateMenuToastPosition(){
+ const toast=document.getElementById('menuToast');
+ const bar=document.getElementById('bar');
+ if(!toast || !bar)return;
+ const rect=bar.getBoundingClientRect();
+ const bottomPx=Math.max(16, window.innerHeight - rect.top + 10);
+ toast.style.bottom=Math.round(bottomPx)+'px';
+}
+
 function updateBarScale(){
  const bar=document.getElementById('bar');
  if(!bar)return;
@@ -1137,6 +1273,27 @@ function updateBarScale(){
  }
  const scale=Math.max(0.1,Math.min(1,(availableHeight*0.90)/naturalHeight));
  bar.style.setProperty('--auto-menu-scale',String(scale));
+ updateMenuToastPosition();
+}
+
+// ==========================================
+// メニュー上トースト通知（シャフト ON / OFF など）
+// ==========================================
+let menuToastTimer=null;
+function showMenuToast(label, stateText, isOn){
+ const toast=document.getElementById('menuToast');
+ const textEl=document.getElementById('menuToastText');
+ if(!toast || !textEl)return;
+ updateMenuToastPosition();
+ textEl.innerHTML=`${label}<span class="toastBadge">${stateText}</span>`;
+ toast.classList.remove('state-on','state-off','show');
+ toast.classList.add(isOn ? 'state-on' : 'state-off');
+ void toast.offsetWidth;
+ toast.classList.add('show');
+ if(menuToastTimer) clearTimeout(menuToastTimer);
+ menuToastTimer=setTimeout(()=>{
+   toast.classList.remove('show');
+ }, 1650);
 }
 
 // ==========================================
@@ -1151,12 +1308,52 @@ shaftBtn.addEventListener('click',()=>{
  shaftMode=!shaftMode;
  shaftBtn.classList.toggle('active',shaftMode);
  shaftBtn.setAttribute('aria-pressed',shaftMode?'true':'false');
+ showMenuToast('シャフト（キャラ幅）：', shaftMode ? 'ON' : 'OFF', shaftMode);
  draw();
 });
 
 // ==========================================
-// ブロック配置・自動吸着（スナップ）・4つ角取っ手線ロジック
+// ブロック配置・自動吸着（スナップ）・4つ角取っ手線・ピックアップ演出
 // ==========================================
+const blockAddBtn=document.getElementById('blockAddBtn');
+const blockDelSelBtn=document.getElementById('blockDelSelBtn');
+const blockClearBtn=document.getElementById('blockClearBtn');
+const blockDoneBtn=document.getElementById('blockDoneBtn');
+const blockZoomResetBtn=document.getElementById('blockZoomResetBtn');
+const blockActionBtns=[blockAddBtn, blockDelSelBtn, blockClearBtn];
+let blockPickClearTimer=null;
+
+function updateBlockToolbarButtonsState(){
+ if(blockDelSelBtn){
+   blockDelSelBtn.classList.toggle('has-target', selectedBlockId !== null || blocks.length > 0);
+ }
+ updateBlockZoomBadge();
+}
+
+function updateBlockZoomBadge(){
+ if(!blockZoomResetBtn)return;
+ const isZoomed = zoomScale > 1.02 || Math.abs(panX) > 2 || Math.abs(panY) > 2;
+ blockZoomResetBtn.textContent = isZoomed ? `${zoomScale.toFixed(1)}x ↺` : '1.0x';
+ blockZoomResetBtn.classList.toggle('zoomed', isZoomed);
+}
+
+function setPickedBlockBtn(btn){
+ blockActionBtns.forEach(b=>{ if(b) b.classList.remove('is-picked'); });
+ if(btn) btn.classList.add('is-picked');
+ if(blockPickClearTimer) clearTimeout(blockPickClearTimer);
+ blockPickClearTimer=setTimeout(()=>{
+   if(btn) btn.classList.remove('is-picked');
+ }, 900);
+}
+
+// 押下中の即時ハイライト（iOSタッチでも確実に反応させる）
+[blockAddBtn, blockDelSelBtn, blockClearBtn, blockDoneBtn].forEach(btn=>{
+ if(!btn)return;
+ const release=()=>btn.classList.remove('is-pressing');
+ btn.addEventListener('pointerdown',()=>{ btn.classList.add('is-pressing'); });
+ ['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,release));
+});
+
 function updateBlockCountBadge(){
  const badge=document.getElementById('blockCountBadge');
  if(!badge)return;
@@ -1167,6 +1364,7 @@ function updateBlockCountBadge(){
    badge.hidden=true;
    badge.textContent='0';
  }
+ updateBlockToolbarButtonsState();
 }
 
 function rectsOverlap(ax,ay,aw,ah,bx,by,bw,bh,eps=1.5){
@@ -1402,6 +1600,15 @@ function hitTestBlock(p){
  return null;
 }
 
+function resetStageZoom(){
+ zoomScale=1;
+ panX=0;
+ panY=0;
+ applyStageTransform();
+ updateBlockZoomBadge();
+ requestAnimationFrame(updateBarScale);
+}
+
 function setBlockMode(on){
  blockMode = !!on;
  const btn=document.getElementById('blockBtn');
@@ -1413,10 +1620,17 @@ function setBlockMode(on){
  if(bar) bar.classList.toggle('open', blockMode);
  if(!blockMode){
    draggingBlockId=null;
+   blockDragStartSnapshot=null;
+   blockPinchActive=false;
    activeSnapGuides=[];
+   blockActionBtns.forEach(b=>{ if(b) b.classList.remove('is-picked','is-pressing'); });
+   if(!zoomMode && (zoomScale !== 1 || panX !== 0 || panY !== 0)){
+     resetStageZoom();
+   }
  }else if(selectedBlockId === null && blocks.length){
    selectedBlockId = blocks[blocks.length - 1].id;
  }
+ updateBlockToolbarButtonsState();
  draw();
 }
 
@@ -1430,12 +1644,17 @@ document.getElementById('blockBtn').addEventListener('click',()=>{
  }
  setBlockMode(!blockMode);
 });
-document.getElementById('blockAddBtn').addEventListener('click',()=>addBlockSmart());
-document.getElementById('blockDelSelBtn').addEventListener('click',()=>{
+blockAddBtn.addEventListener('click',()=>{
+ setPickedBlockBtn(blockAddBtn);
+ addBlockSmart();
+});
+blockDelSelBtn.addEventListener('click',()=>{
+ setPickedBlockBtn(blockDelSelBtn);
  if(selectedBlockId!==null) removeBlockById(selectedBlockId);
  else if(blocks.length) removeBlockById(blocks[blocks.length-1].id);
 });
-document.getElementById('blockClearBtn').addEventListener('click',()=>{
+blockClearBtn.addEventListener('click',()=>{
+ setPickedBlockBtn(blockClearBtn);
  if(!blocks.length)return;
  blocks=[];
  selectedBlockId=null;
@@ -1443,7 +1662,10 @@ document.getElementById('blockClearBtn').addEventListener('click',()=>{
  updateBlockCountBadge();
  draw();
 });
-document.getElementById('blockDoneBtn').addEventListener('click',()=>setBlockMode(false));
+blockDoneBtn.addEventListener('click',()=>setBlockMode(false));
+blockZoomResetBtn.addEventListener('click',()=>{
+ resetStageZoom();
+});
 
 // ==========================================
 // ブロック内部当たり判定＋キャラ判定半径の和集合から外周エッジ（直角反射ライン）を抽出
@@ -1873,7 +2095,7 @@ function drawReflection(b){
    drawShaftOverlay(pts, b);
  }
 
- ctx.lineCap='round';ctx.lineJoin='round';ctx.lineWidth=7*s;
+ ctx.lineCap='round';ctx.lineJoin='round';ctx.lineWidth=MONST_GUIDE_LINE_WIDTH_BASE*s;
 
  // 1. 反射線のケツ（発射点から後方壁まで）を赤線で延長描画
  if(pts.length){
@@ -1897,7 +2119,7 @@ function drawReflection(b){
    const end=pts[pts.length-1];
    ctx.save();
    ctx.beginPath();
-   ctx.arc(end.x,end.y,8*s,0,Math.PI*2);
+   ctx.arc(end.x,end.y,6.5*s,0,Math.PI*2);
    ctx.fillStyle='#fff';
    ctx.fill();
    ctx.restore();
@@ -1913,7 +2135,7 @@ function drawReflection(b){
    }
    ctx.closePath();
    ctx.fillStyle='rgba(40,255,255,.12)';ctx.fill();
-   ctx.strokeStyle='rgba(40,255,255,.95)';ctx.lineWidth=6*s;ctx.stroke();
+   ctx.strokeStyle='rgba(40,255,255,.95)';ctx.lineWidth=5*s;ctx.stroke();
    ctx.font=`bold ${Math.round(20*s)}px -apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif`;
    ctx.fillStyle='#69ff6b';ctx.fillText(String(i),p.x+40*s,p.y-35*s);
    ctx.restore();
@@ -1945,6 +2167,7 @@ function nearestArm(p){
 
 cv.addEventListener('pointerdown',e=>{
  if(stage.hidden || zoomMode)return;
+ if(blockMode && blockPinchActive)return;
  cv.setPointerCapture(e.pointerId);
  const p=pos(e);
 
@@ -1956,9 +2179,11 @@ cv.addEventListener('pointerdown',e=>{
      lastBlockTapTime=0;
      selectedBlockId=handleBlk.id;
      draggingBlockId=handleBlk.id;
+     blockDragStartSnapshot={id:handleBlk.id, x:handleBlk.x, y:handleBlk.y, time:Date.now()};
      blockDragOffsetX=p.x - handleBlk.x;
      blockDragOffsetY=p.y - handleBlk.y;
      activeSnapGuides=[];
+     updateBlockToolbarButtonsState();
      draw();
      e.preventDefault();
      return;
@@ -1972,6 +2197,7 @@ cv.addEventListener('pointerdown',e=>{
        lastBlockTapId=null;
        lastBlockTapTime=0;
        draggingBlockId=null;
+       blockDragStartSnapshot=null;
        removeBlockById(hit.id);
        e.preventDefault();
        return;
@@ -1980,15 +2206,19 @@ cv.addEventListener('pointerdown',e=>{
      lastBlockTapTime=now;
      selectedBlockId=hit.id;
      draggingBlockId=hit.id;
+     blockDragStartSnapshot={id:hit.id, x:hit.x, y:hit.y, time:now};
      blockDragOffsetX=p.x - hit.x;
      blockDragOffsetY=p.y - hit.y;
      activeSnapGuides=[];
+     updateBlockToolbarButtonsState();
      draw();
    }else{
      // 空きスペースをタップしてもブロックは追加しない（「＋ 追加」ボタンでのみ追加）
      selectedBlockId=null;
      draggingBlockId=null;
+     blockDragStartSnapshot=null;
      activeSnapGuides=[];
+     updateBlockToolbarButtonsState();
      draw();
    }
    e.preventDefault();
@@ -2009,7 +2239,7 @@ cv.addEventListener('pointerdown',e=>{
 
 cv.addEventListener('pointermove',e=>{
  if(blockMode){
-   if(draggingBlockId===null)return;
+   if(blockPinchActive || draggingBlockId===null)return;
    const blk=blocks.find(o=>o.id===draggingBlockId);
    if(!blk)return;
    const events=e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
@@ -2094,6 +2324,7 @@ function updateAngleUI(){
 function end(e){
  if(blockMode){
    draggingBlockId=null;
+   blockDragStartSnapshot=null;
    activeSnapGuides=[];
    draw();
    return;
@@ -2209,10 +2440,36 @@ zoomBtn.onclick=()=>{
  requestAnimationFrame(updateBarScale);
 };
 function touchDist(a,b){return Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);}
+function touchMid(a,b){return {x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2};}
 
-// キャンバス上のタッチ操作：通常モード・ブロックモードでも preventDefault() して iOS拡大鏡（ルーペ）を完全防止
+// キャンバス上のタッチ操作：
+// ・iOS拡大鏡（ルーペ）防止のため常に preventDefault()
+// ・zoomMode 時：2本指ピンチ拡大＋1本指パン移動
+// ・blockMode 時：2本指ピンチ拡大＆2本指パン移動を自在に可能（1本指はブロック移動のまま）
 cv.addEventListener('touchstart',e=>{
  e.preventDefault();
+ if(blockMode){
+   if(e.touches.length>=2){
+     // 直前に1本指目でブロックを誤ドラッグしていたら元の位置へ戻す
+     if(blockDragStartSnapshot && (Date.now() - blockDragStartSnapshot.time) < 280){
+       const blk=blocks.find(o=>o.id===blockDragStartSnapshot.id);
+       if(blk){ blk.x=blockDragStartSnapshot.x; blk.y=blockDragStartSnapshot.y; }
+     }
+     blockPinchActive=true;
+     draggingBlockId=null;
+     blockDragStartSnapshot=null;
+     activeSnapGuides=[];
+     zoomStartDist=touchDist(e.touches[0],e.touches[1]);
+     zoomStartScale=zoomScale;
+     const mid=touchMid(e.touches[0],e.touches[1]);
+     pinchStartMidX=mid.x;
+     pinchStartMidY=mid.y;
+     pinchBasePanX=panX;
+     pinchBasePanY=panY;
+     draw();
+   }
+   return;
+ }
  if(!zoomMode)return;
  if(e.touches.length===2){
    panActive=false;
@@ -2221,8 +2478,34 @@ cv.addEventListener('touchstart',e=>{
    panActive=true; panStartX=e.touches[0].clientX; panStartY=e.touches[0].clientY; panBaseX=panX; panBaseY=panY;
  }
 },{passive:false});
+
 cv.addEventListener('touchmove',e=>{
  e.preventDefault();
+ if(blockMode){
+   if(blockPinchActive && e.touches.length>=2){
+     const d=touchDist(e.touches[0],e.touches[1]);
+     const mid=touchMid(e.touches[0],e.touches[1]);
+     if(zoomStartDist>0){
+       const nextScale=Math.max(1,Math.min(4,zoomStartScale*d/zoomStartDist));
+       const cx=window.innerWidth/2;
+       const cy=window.innerHeight/2;
+       const ratio=nextScale/zoomStartScale;
+       zoomScale=nextScale;
+       // ピンチ中心を保ちつつ2本指パンにも自然に追従
+       panX = (mid.x - cx) - ((pinchStartMidX - cx) - pinchBasePanX) * ratio;
+       panY = (mid.y - cy) - ((pinchStartMidY - cy) - pinchBasePanY) * ratio;
+       if(zoomScale <= 1.005){
+         zoomScale=1;
+         panX=0;
+         panY=0;
+       }
+       applyStageTransform();
+       updateBlockZoomBadge();
+       requestAnimationFrame(updateBarScale);
+     }
+   }
+   return;
+ }
  if(!zoomMode)return;
  if(e.touches.length===2){
    panActive=false;
@@ -2234,9 +2517,25 @@ cv.addEventListener('touchmove',e=>{
    applyStageTransform();requestAnimationFrame(updateBarScale);
  }
 },{passive:false});
+
 cv.addEventListener('touchend',e=>{
  e.preventDefault();
+ if(blockMode){
+   if(e.touches.length===0){
+     blockPinchActive=false;
+   }
+   return;
+ }
  if(zoomMode && e.touches.length===0)panActive=false;
+},{passive:false});
+
+cv.addEventListener('touchcancel',e=>{
+ if(blockMode && e.touches.length===0){
+   blockPinchActive=false;
+ }
+ if(zoomMode && e.touches.length===0){
+   panActive=false;
+ }
 },{passive:false});
 
 // iOSテキスト選択・拡大鏡のグローバル抑止（入力欄フォーカス時のみ許可）
