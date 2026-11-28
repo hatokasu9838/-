@@ -848,7 +848,7 @@ canvas{
     <div class="voiceField">
      <label for="voiceCommandName">読み上げ語句</label>
      <p class="fieldSub">空欄時は「1」になります。「あ」「1」など短い語句も設定できます。</p>
-     <input id="voiceCommandName" type="text" maxlength="80" value="" placeholder="例：1、あ、ルートA">
+     <input id="voiceCommandName" type="text" maxlength="80" value="" placeholder="例：1、あ、etc.....">
     </div>
 
     <div class="voiceField">
@@ -972,7 +972,7 @@ const MONST_STEP_DEG = 360 / MONST_STEPS;
 // 実機サイズ・当たり判定の独立パラメータ（基準ステージ内幅 1057 に対する値）
 // 1. カーソルの丸い円：キャラのボール絵サイズに一致（半径 68）
 // 2. シャフト／キャラ物理当たり判定半径：実機キャラ幅（半径 52）
-// 3. ブロック本体の見た目サイズ（緑枠）：実機石ブロックサイズ（160×160）
+// 3. ブロック本体の見た目サイズ（緑枠）：実機石ブロックサイズ（145×145）
 // 4. ブロックの内部当たり判定比率：見た目の 91%（白枠＝内部判定＋キャラ当たり判定半径）
 const MONST_CURSOR_RADIUS_BASE = 68;
 const MONST_SHAFT_RADIUS_BASE = 52;
